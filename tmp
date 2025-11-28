@@ -1,0 +1,53 @@
+HIVE/
+├── Makefile                # Сборка, генерация proto, запуск линтеров
+├── docker-compose.yaml     # Инфраструктура (Postgres, Redis, Kafka, Zookeeper)
+├── go.work                 # Workspace для объединения модулей (очень важно для монорепы!)
+├── go.work.sum
+│
+├── gen/                    # <-- Генерируемый код (общий для всех)
+│   ├── go.mod              # Отдельный модуль для gen, чтобы не тащить лишнее
+│   ├── dispatch/
+│   ├── order/
+│   ├── telemetry/
+│   └── tracking/
+│
+├── proto/                  # <-- Источник правды (контракты)
+│   ├── dispatch.proto
+│   ├── order.proto
+│   ├── telemetry.proto
+│   └── tracking.proto
+│
+├── services/               # <-- Сами микросервисы
+│   │
+│   ├── api-gateway/        # Сервис 1
+│   │   ├── cmd/            # Точка входа (main.go)
+│   │   ├── internal/       # Логика (handlers, service, config)
+│   │   ├── Dockerfile
+│   │   └── go.mod          # Свой go.mod!
+│   │
+│   ├── dispatch/           # Сервис 2
+│   │   ├── cmd/
+│   │   ├── internal/
+│   │   └── go.mod
+│   │
+│   ├── order/              # Сервис 3
+│   │   ├── cmd/
+│   │   ├── internal/
+│   │   ├── migrations/     # SQL миграции для Orders
+│   │   └── go.mod
+│   │
+│   ├── telemetry/          # Сервис 4
+│   │   ├── cmd/
+│   │   ├── internal/
+│   │   └── go.mod
+│   │
+│   └── tracking/           # Сервис 5
+│       ├── cmd/
+│       ├── internal/
+│       └── go.mod
+│
+└── pkg/                    # <-- Общие библиотеки (Helpers)
+    ├── go.mod              # Отдельный модуль для pkg
+    ├── logger/             # Общий логгер (zap/slog)
+    ├── kafka/              # Обертка над Kafka producer/consumer
+    └── db/                 # Хелперы для подключения к PG/Redis

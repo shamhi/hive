@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package dispatch;
+option go_package = "./gen/dispatch";
+
+service DispatchService {
+  // Order Service вызывает этот метод, когда заказ создан (Шаг: Поток Заказа)
+  rpc AssignDrone(AssignDroneRequest) returns (AssignDroneResponse);
+}
+
+message AssignDroneRequest {
+  string order_id = 1;
+  Location client_location = 2;
+  // Сюда можно добавить вес груза, если это влияет на выбор дрона
+}
+
+message Location {
+  double lat = 1;
+  double lon = 2;
+}
+
+message AssignDroneResponse {
+  bool success = 1;
+  string drone_id = 2; // ID назначенного дрона
+  string store_id = 3; // ID склада, откуда полетит (вычисляется внутри Dispatch)
+  string error_reason = 4; // Например "Нет свободных дронов"
+}
