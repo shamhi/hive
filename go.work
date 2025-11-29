@@ -1,5 +1,7 @@
-go 1.25.0
+go 1.25.4
 
-// use (
-//	services
-//)
+ use (
+ 	./gen
+	./services/telemetry
+	./services/simulator
+)
