@@ -1,27 +1,32 @@
 ## Общая архитектура
 https://excalidraw.com/#json=aiozIsaqS5UeVLdOy6A-v,b71CCzkSmriyXZnau0n6Mg
 
-Всего 6 компонентов:
-1. Nginx (прокси для Telemetry Service и API Gateway)
-2. API Gateway (REST от Клиента -> gRPC)
-3. Telemetry Service (gRPC от Дрона -> Kafka(Producer) -> SendCommand)
-4. Tracking Service (Redis, гео-поиск ближайшего)
-5. Order Service (Database, бизнес-логика)
-6. Dispatch Service (Диспетчер, оркестратор)
+Всего 5 сервисов:
+1. [ ] API Gateway (REST от Клиента -> gRPC)
+2. [ ] Telemetry Service (gRPC от Дрона -> Kafka(Producer) -> SendCommand)
+3. [ ] Tracking Service (Redis, гео-поиск ближайшего)
+4. [ ] Order Service (Database, бизнес-логика)
+5. [ ] Dispatch Service (Диспетчер, оркестратор)
 
+6. [ ] Drone Emulator (optional)
+
+По инфраструктуре:
+1. [ ] Nginx
+2. [ ] Docker Compose (общий для всего проекта)
+3. [ ] Dockerfile (свой для каждого сервиса)
 
 ### Задачи по сервисам
 #### Telemetry Service
 Для каждого дрона - свое соединение для обмена данными
 Нужно:
-1. Реализовать `sync.Map` где хранятся данные вида `{ID: Connection}`, добавлять в эту мапу id дрона и его коннект при первом соединении
-2. Принимать данные от дрона
+1. [ ] Реализовать `sync.Map` где хранятся данные вида `{ID: Connection}`, добавлять в эту мапу id дрона и его коннект при первом соединении
+2. [ ] Принимать данные от дрона
     * Валидировать их: проверять что батарея в пределах `0-100`, координаты в пределах допустимой территории, статус должен быть одним из описанных в .proto контракте, иначе обрывать соединение
     * Отправлять в Kafka топик `telemetry.raw`данные от дрона
-3. Реализовать gRPC метод SendCommand (вызывается Dispatch сервисом):
+3. [ ] Реализовать gRPC метод SendCommand (вызывается Dispatch сервисом):
     * Найти соединение в `sync.Map` по id дрона
     * Отправить эту команду дрону
-4. Реализовать отправку событий от дрона `ARRIVED`, `PICKED_UP`, `DROPPED_CARGO` в Kafka топик `events`
+4. [ ] Реализовать отправку событий от дрона `ARRIVED`, `PICKED_UP`, `DROPPED_CARGO` в Kafka топик `events`
 
 Proto контракт:
 ```proto
@@ -102,18 +107,18 @@ message DispatchCommandResponse {
 
 
 #### Tracking Service
-Отвечает за хранение данных дронов в Redis
+Отвечает за хранение данных дронов в Redis (про Redis Geo можно почитать [тут](https://habr.com/ru/articles/679994/))
 Нужно:
-1. Подключиться к Kafka Consumer Group `tracking-group`
-2. Читать топик `telemetry.raw`:
+1. [ ] Подключиться к Kafka Consumer Group `tracking-group`
+2. [ ] Читать топик `telemetry.raw`:
     * Обновлять гео-индекс: `GEOADD drones <lon> <lat> <drone_id>`
     * Обновлять статус: `HSET drone:<id> battery <val> status <val>`
-3. Реализовать gRPC метод `FindNearest`:
+3. [ ] Реализовать gRPC метод `FindNearest`:
     * Принимать координаты склада
     * Делать `GEOSEARCH ... BYRADIUS 30 km` в Redis, фильтровать по статусу `FREE` и заряду `>20%`, сортировать по `ASC`
     * Возвращать ID ближайшего дрона (первый после сортировки)
-4. Реализовать gRPC метод `GetDroneLocation` (возвращать из Redis данные дрона)
-5. Реализовать gRPC метод `SetStatus` (менять статус дрона в Redis)
+4. [ ] Реализовать gRPC метод `GetDroneLocation` (возвращать из Redis данные дрона)
+5. [ ] Реализовать gRPC метод `SetStatus` (менять статус дрона в Redis)
 
 Proto контракт:
 ```proto
@@ -173,13 +178,13 @@ message SetStatusResponse {
 #### Order Service
 Отвечает за создание заказа и получения информации по нему
 Нужно:
-1. Поднять миграции БД (таблица `orders`)
-2. Реализовать gRPC метод `CreateOrder`:
+1. [ ] Поднять миграции БД (таблица `orders`)
+2. [ ] Реализовать gRPC метод `CreateOrder`:
     * Сохранить заказ в БД со статусом `PENDING`
     * Вызвать `dispatch.AssignDrone`
     * Обновить заказ (`ASSIGNED` в случае успешного ответа от `dispatch.AssignDrone` и `FAILED` в ином случае)
-3. Реализовать gRPC метод `GetOrder` (возвращать данные заказа по его ID)
-4. Реализовать gRPC метод `UpdateStatus` (обновлять статус заказа, метод вызывает `dispatch` сервис)
+3. [ ] Реализовать gRPC метод `GetOrder` (возвращать данные заказа по его ID)
+4. [ ] Реализовать gRPC метод `UpdateStatus` (обновлять статус заказа, метод вызывает `dispatch` сервис)
 
 Proto контракт:
 ```proto
@@ -244,12 +249,12 @@ message UpdateStatusResponse {
 #### Dispatch Service
 Привязывает дрона к заказу и отправляет ему команды (через `telemetry` сервис)
 Нужно:
-1. Реализовать метод `AssignOrder`:
+1. [ ] Реализовать метод `AssignOrder`:
     * Найти ближайший склад к точке заказа
     * Вызвать `tracking.FindNearest` для получения ближайшего дрона к этому складу
     * Вызвать `tracking.SetStatus(BUSY)` если дрон найден, иначе вернуть `success: false`
     * Вызвать `telemetry.SendCommand(FLY_TO(Store))`
-2. Читать сообщения из Kafka топика `events`:
+2. [ ] Читать сообщения из Kafka топика `events`:
     * Если `ARRIVED_AT_STORE` -> шлем `PICKUP_CARGO`
     * Если `PICKED_UP_CARGO` -> шлем `FLY_TO(Client)`
     * Если `ARRIVED_AT_CLIENT` -> шлем `DROP_CARGO`
@@ -288,8 +293,8 @@ message AssignDroneResponse {
 #### API Gateway
 Сервер на `echo`, принимает REST HTTP запросы от клиентского приложения (фронтенда), не содержит бизнес-логики, занимается только маршрутизацией и базовой валидации
 Нужно:
-1. Поднять HTTP сервер на порту `8080`
-2. POST `/api/v1/orders`:
+1. [ ] Поднять HTTP сервер на порту `8080`
+2. [ ] POST `/api/v1/orders`:
     * Принимает JSON:
    ```json
        {
@@ -308,7 +313,7 @@ message AssignDroneResponse {
        "estimated_time": "15 min"
    }
    ```
-3. GET `/api/v1/orders`:
+3. [ ] GET `/api/v1/orders`:
     * Делает gRPC запрос `order.GetOrder`
     * Если есть `drone_id` делает `tracking.GetDroneLocation`
     * Собирает агрегированный JSON ответ:
@@ -555,8 +560,8 @@ components:
 
 Запускает N "виртуальных дронов", подключается с каждого дрона (отдельной функции) к Telemetry Service
 Нужно:
-1. Для каждого дрона запустить отдельную горутину
-2. Логика одного дрона:
+1. [ ] Для каждого дрона запустить отдельную горутину
+2. [ ] Логика одного дрона:
     * Инициализация:
         * Сгенерировать UUID
         * Выбрать случайную стартовую точку внутри полигона
