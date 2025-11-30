@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.10
 // 	protoc        v3.21.12
-// source: proto/telemetry.proto
+// source: telemetry.proto
 
 package telemetry
 
@@ -24,25 +24,25 @@ const (
 type DroneStatus int32
 
 const (
-	DroneStatus_UNKNOWN  DroneStatus = 0
-	DroneStatus_FREE     DroneStatus = 1 // Готов к заказу
-	DroneStatus_BUSY     DroneStatus = 2 // Выполняет заказ
-	DroneStatus_CHARGING DroneStatus = 3 // На зарядке
+	DroneStatus_STATUS_UNKNOWN  DroneStatus = 0
+	DroneStatus_STATUS_FREE     DroneStatus = 1
+	DroneStatus_STATUS_BUSY     DroneStatus = 2
+	DroneStatus_STATUS_CHARGING DroneStatus = 3
 )
 
 // Enum value maps for DroneStatus.
 var (
 	DroneStatus_name = map[int32]string{
-		0: "UNKNOWN",
-		1: "FREE",
-		2: "BUSY",
-		3: "CHARGING",
+		0: "STATUS_UNKNOWN",
+		1: "STATUS_FREE",
+		2: "STATUS_BUSY",
+		3: "STATUS_CHARGING",
 	}
 	DroneStatus_value = map[string]int32{
-		"UNKNOWN":  0,
-		"FREE":     1,
-		"BUSY":     2,
-		"CHARGING": 3,
+		"STATUS_UNKNOWN":  0,
+		"STATUS_FREE":     1,
+		"STATUS_BUSY":     2,
+		"STATUS_CHARGING": 3,
 	}
 )
 
@@ -57,11 +57,11 @@ func (x DroneStatus) String() string {
 }
 
 func (DroneStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_telemetry_proto_enumTypes[0].Descriptor()
+	return file_telemetry_proto_enumTypes[0].Descriptor()
 }
 
 func (DroneStatus) Type() protoreflect.EnumType {
-	return &file_proto_telemetry_proto_enumTypes[0]
+	return &file_telemetry_proto_enumTypes[0]
 }
 
 func (x DroneStatus) Number() protoreflect.EnumNumber {
@@ -70,34 +70,40 @@ func (x DroneStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use DroneStatus.Descriptor instead.
 func (DroneStatus) EnumDescriptor() ([]byte, []int) {
-	return file_proto_telemetry_proto_rawDescGZIP(), []int{0}
+	return file_telemetry_proto_rawDescGZIP(), []int{0}
 }
 
 type DroneEvent int32
 
 const (
-	DroneEvent_NONE              DroneEvent = 0
-	DroneEvent_ARRIVED_AT_STORE  DroneEvent = 1
-	DroneEvent_PICKED_UP_CARGO   DroneEvent = 2
-	DroneEvent_ARRIVED_AT_CLIENT DroneEvent = 3
-	DroneEvent_DELIVERED         DroneEvent = 4
+	DroneEvent_EVENT_NONE              DroneEvent = 0
+	DroneEvent_EVENT_ARRIVED_AT_STORE  DroneEvent = 1
+	DroneEvent_EVENT_PICKED_UP_CARGO   DroneEvent = 2
+	DroneEvent_EVENT_ARRIVED_AT_CLIENT DroneEvent = 3
+	DroneEvent_EVENT_DROPPED_CARGO     DroneEvent = 4
+	DroneEvent_EVENT_ARRIVED_AT_BASE   DroneEvent = 5
+	DroneEvent_EVENT_FULLY_CHARGED     DroneEvent = 6
 )
 
 // Enum value maps for DroneEvent.
 var (
 	DroneEvent_name = map[int32]string{
-		0: "NONE",
-		1: "ARRIVED_AT_STORE",
-		2: "PICKED_UP_CARGO",
-		3: "ARRIVED_AT_CLIENT",
-		4: "DELIVERED",
+		0: "EVENT_NONE",
+		1: "EVENT_ARRIVED_AT_STORE",
+		2: "EVENT_PICKED_UP_CARGO",
+		3: "EVENT_ARRIVED_AT_CLIENT",
+		4: "EVENT_DROPPED_CARGO",
+		5: "EVENT_ARRIVED_AT_BASE",
+		6: "EVENT_FULLY_CHARGED",
 	}
 	DroneEvent_value = map[string]int32{
-		"NONE":              0,
-		"ARRIVED_AT_STORE":  1,
-		"PICKED_UP_CARGO":   2,
-		"ARRIVED_AT_CLIENT": 3,
-		"DELIVERED":         4,
+		"EVENT_NONE":              0,
+		"EVENT_ARRIVED_AT_STORE":  1,
+		"EVENT_PICKED_UP_CARGO":   2,
+		"EVENT_ARRIVED_AT_CLIENT": 3,
+		"EVENT_DROPPED_CARGO":     4,
+		"EVENT_ARRIVED_AT_BASE":   5,
+		"EVENT_FULLY_CHARGED":     6,
 	}
 )
 
@@ -112,11 +118,11 @@ func (x DroneEvent) String() string {
 }
 
 func (DroneEvent) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_telemetry_proto_enumTypes[1].Descriptor()
+	return file_telemetry_proto_enumTypes[1].Descriptor()
 }
 
 func (DroneEvent) Type() protoreflect.EnumType {
-	return &file_proto_telemetry_proto_enumTypes[1]
+	return &file_telemetry_proto_enumTypes[1]
 }
 
 func (x DroneEvent) Number() protoreflect.EnumNumber {
@@ -125,31 +131,34 @@ func (x DroneEvent) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use DroneEvent.Descriptor instead.
 func (DroneEvent) EnumDescriptor() ([]byte, []int) {
-	return file_proto_telemetry_proto_rawDescGZIP(), []int{1}
+	return file_telemetry_proto_rawDescGZIP(), []int{1}
 }
 
 type Action int32
 
 const (
-	Action_WAIT        Action = 0 // Жди, виси в воздухе
-	Action_FLY_TO      Action = 1 // Лети в координаты
-	Action_LAND        Action = 2 // Садись
-	Action_RETURN_BASE Action = 3 // Лети домой
+	Action_ACTION_WAIT         Action = 0
+	Action_ACTION_FLY_TO       Action = 1
+	Action_ACTION_PICKUP_CARGO Action = 2
+	Action_ACTION_DROP_CARGO   Action = 3
+	Action_ACTION_CHARGE       Action = 4
 )
 
 // Enum value maps for Action.
 var (
 	Action_name = map[int32]string{
-		0: "WAIT",
-		1: "FLY_TO",
-		2: "LAND",
-		3: "RETURN_BASE",
+		0: "ACTION_WAIT",
+		1: "ACTION_FLY_TO",
+		2: "ACTION_PICKUP_CARGO",
+		3: "ACTION_DROP_CARGO",
+		4: "ACTION_CHARGE",
 	}
 	Action_value = map[string]int32{
-		"WAIT":        0,
-		"FLY_TO":      1,
-		"LAND":        2,
-		"RETURN_BASE": 3,
+		"ACTION_WAIT":         0,
+		"ACTION_FLY_TO":       1,
+		"ACTION_PICKUP_CARGO": 2,
+		"ACTION_DROP_CARGO":   3,
+		"ACTION_CHARGE":       4,
 	}
 )
 
@@ -164,11 +173,11 @@ func (x Action) String() string {
 }
 
 func (Action) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_telemetry_proto_enumTypes[2].Descriptor()
+	return file_telemetry_proto_enumTypes[2].Descriptor()
 }
 
 func (Action) Type() protoreflect.EnumType {
-	return &file_proto_telemetry_proto_enumTypes[2]
+	return &file_telemetry_proto_enumTypes[2]
 }
 
 func (x Action) Number() protoreflect.EnumNumber {
@@ -177,160 +186,59 @@ func (x Action) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Action.Descriptor instead.
 func (Action) EnumDescriptor() ([]byte, []int) {
-	return file_proto_telemetry_proto_rawDescGZIP(), []int{2}
+	return file_telemetry_proto_rawDescGZIP(), []int{2}
 }
 
-type DroneTelemetry struct {
-	state     protoimpl.MessageState `protogen:"open.v1"`
-	DroneId   string                 `protobuf:"bytes,1,opt,name=drone_id,json=droneId,proto3" json:"drone_id,omitempty"`
-	Lat       float64                `protobuf:"fixed64,2,opt,name=lat,proto3" json:"lat,omitempty"`
-	Lon       float64                `protobuf:"fixed64,3,opt,name=lon,proto3" json:"lon,omitempty"`
-	Battery   int32                  `protobuf:"varint,4,opt,name=battery,proto3" json:"battery,omitempty"`                          // 0-100
-	Status    DroneStatus            `protobuf:"varint,5,opt,name=status,proto3,enum=telemetry.DroneStatus" json:"status,omitempty"` // Текущий статус глазами дрона
-	Timestamp int64                  `protobuf:"varint,6,opt,name=timestamp,proto3" json:"timestamp,omitempty"`                      // Unix timestamp
-	// Опционально: события (Сцена 3 и 4 - ARRIVED_AT_STORE, DELIVERED)
-	Event         DroneEvent `protobuf:"varint,7,opt,name=event,proto3,enum=telemetry.DroneEvent" json:"event,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
+type TargetType int32
 
-func (x *DroneTelemetry) Reset() {
-	*x = DroneTelemetry{}
-	mi := &file_proto_telemetry_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
+const (
+	TargetType_TARGET_POINT  TargetType = 0
+	TargetType_TARGET_STORE  TargetType = 1
+	TargetType_TARGET_CLIENT TargetType = 2
+	TargetType_TARGET_BASE   TargetType = 3
+)
 
-func (x *DroneTelemetry) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DroneTelemetry) ProtoMessage() {}
-
-func (x *DroneTelemetry) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_telemetry_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
+// Enum value maps for TargetType.
+var (
+	TargetType_name = map[int32]string{
+		0: "TARGET_POINT",
+		1: "TARGET_STORE",
+		2: "TARGET_CLIENT",
+		3: "TARGET_BASE",
 	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use DroneTelemetry.ProtoReflect.Descriptor instead.
-func (*DroneTelemetry) Descriptor() ([]byte, []int) {
-	return file_proto_telemetry_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *DroneTelemetry) GetDroneId() string {
-	if x != nil {
-		return x.DroneId
+	TargetType_value = map[string]int32{
+		"TARGET_POINT":  0,
+		"TARGET_STORE":  1,
+		"TARGET_CLIENT": 2,
+		"TARGET_BASE":   3,
 	}
-	return ""
+)
+
+func (x TargetType) Enum() *TargetType {
+	p := new(TargetType)
+	*p = x
+	return p
 }
 
-func (x *DroneTelemetry) GetLat() float64 {
-	if x != nil {
-		return x.Lat
-	}
-	return 0
+func (x TargetType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
 }
 
-func (x *DroneTelemetry) GetLon() float64 {
-	if x != nil {
-		return x.Lon
-	}
-	return 0
+func (TargetType) Descriptor() protoreflect.EnumDescriptor {
+	return file_telemetry_proto_enumTypes[3].Descriptor()
 }
 
-func (x *DroneTelemetry) GetBattery() int32 {
-	if x != nil {
-		return x.Battery
-	}
-	return 0
+func (TargetType) Type() protoreflect.EnumType {
+	return &file_telemetry_proto_enumTypes[3]
 }
 
-func (x *DroneTelemetry) GetStatus() DroneStatus {
-	if x != nil {
-		return x.Status
-	}
-	return DroneStatus_UNKNOWN
+func (x TargetType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
 }
 
-func (x *DroneTelemetry) GetTimestamp() int64 {
-	if x != nil {
-		return x.Timestamp
-	}
-	return 0
-}
-
-func (x *DroneTelemetry) GetEvent() DroneEvent {
-	if x != nil {
-		return x.Event
-	}
-	return DroneEvent_NONE
-}
-
-type ServerCommand struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	CommandId     string                 `protobuf:"bytes,1,opt,name=command_id,json=commandId,proto3" json:"command_id,omitempty"`
-	Action        Action                 `protobuf:"varint,2,opt,name=action,proto3,enum=telemetry.Action" json:"action,omitempty"`
-	Target        *Location              `protobuf:"bytes,3,opt,name=target,proto3" json:"target,omitempty"` // Куда лететь (Склад или Клиент)
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ServerCommand) Reset() {
-	*x = ServerCommand{}
-	mi := &file_proto_telemetry_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ServerCommand) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ServerCommand) ProtoMessage() {}
-
-func (x *ServerCommand) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_telemetry_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ServerCommand.ProtoReflect.Descriptor instead.
-func (*ServerCommand) Descriptor() ([]byte, []int) {
-	return file_proto_telemetry_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *ServerCommand) GetCommandId() string {
-	if x != nil {
-		return x.CommandId
-	}
-	return ""
-}
-
-func (x *ServerCommand) GetAction() Action {
-	if x != nil {
-		return x.Action
-	}
-	return Action_WAIT
-}
-
-func (x *ServerCommand) GetTarget() *Location {
-	if x != nil {
-		return x.Target
-	}
-	return nil
+// Deprecated: Use TargetType.Descriptor instead.
+func (TargetType) EnumDescriptor() ([]byte, []int) {
+	return file_telemetry_proto_rawDescGZIP(), []int{3}
 }
 
 type Location struct {
@@ -343,7 +251,7 @@ type Location struct {
 
 func (x *Location) Reset() {
 	*x = Location{}
-	mi := &file_proto_telemetry_proto_msgTypes[2]
+	mi := &file_telemetry_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -355,7 +263,7 @@ func (x *Location) String() string {
 func (*Location) ProtoMessage() {}
 
 func (x *Location) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_telemetry_proto_msgTypes[2]
+	mi := &file_telemetry_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -368,7 +276,7 @@ func (x *Location) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Location.ProtoReflect.Descriptor instead.
 func (*Location) Descriptor() ([]byte, []int) {
-	return file_proto_telemetry_proto_rawDescGZIP(), []int{2}
+	return file_telemetry_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Location) GetLat() float64 {
@@ -385,18 +293,171 @@ func (x *Location) GetLon() float64 {
 	return 0
 }
 
+type DroneTelemetry struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DroneId       string                 `protobuf:"bytes,1,opt,name=drone_id,json=droneId,proto3" json:"drone_id,omitempty"`
+	DroneLocation *Location              `protobuf:"bytes,2,opt,name=drone_location,json=droneLocation,proto3" json:"drone_location,omitempty"`
+	Battery       int32                  `protobuf:"varint,3,opt,name=battery,proto3" json:"battery,omitempty"`
+	Status        DroneStatus            `protobuf:"varint,4,opt,name=status,proto3,enum=telemetry.DroneStatus" json:"status,omitempty"`
+	Timestamp     int64                  `protobuf:"varint,5,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	Event         DroneEvent             `protobuf:"varint,6,opt,name=event,proto3,enum=telemetry.DroneEvent" json:"event,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DroneTelemetry) Reset() {
+	*x = DroneTelemetry{}
+	mi := &file_telemetry_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DroneTelemetry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DroneTelemetry) ProtoMessage() {}
+
+func (x *DroneTelemetry) ProtoReflect() protoreflect.Message {
+	mi := &file_telemetry_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DroneTelemetry.ProtoReflect.Descriptor instead.
+func (*DroneTelemetry) Descriptor() ([]byte, []int) {
+	return file_telemetry_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *DroneTelemetry) GetDroneId() string {
+	if x != nil {
+		return x.DroneId
+	}
+	return ""
+}
+
+func (x *DroneTelemetry) GetDroneLocation() *Location {
+	if x != nil {
+		return x.DroneLocation
+	}
+	return nil
+}
+
+func (x *DroneTelemetry) GetBattery() int32 {
+	if x != nil {
+		return x.Battery
+	}
+	return 0
+}
+
+func (x *DroneTelemetry) GetStatus() DroneStatus {
+	if x != nil {
+		return x.Status
+	}
+	return DroneStatus_STATUS_UNKNOWN
+}
+
+func (x *DroneTelemetry) GetTimestamp() int64 {
+	if x != nil {
+		return x.Timestamp
+	}
+	return 0
+}
+
+func (x *DroneTelemetry) GetEvent() DroneEvent {
+	if x != nil {
+		return x.Event
+	}
+	return DroneEvent_EVENT_NONE
+}
+
+type ServerCommand struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CommandId     string                 `protobuf:"bytes,1,opt,name=command_id,json=commandId,proto3" json:"command_id,omitempty"`
+	Action        Action                 `protobuf:"varint,2,opt,name=action,proto3,enum=telemetry.Action" json:"action,omitempty"`
+	Target        *Location              `protobuf:"bytes,3,opt,name=target,proto3" json:"target,omitempty"`
+	Type          TargetType             `protobuf:"varint,4,opt,name=type,proto3,enum=telemetry.TargetType" json:"type,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ServerCommand) Reset() {
+	*x = ServerCommand{}
+	mi := &file_telemetry_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ServerCommand) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ServerCommand) ProtoMessage() {}
+
+func (x *ServerCommand) ProtoReflect() protoreflect.Message {
+	mi := &file_telemetry_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ServerCommand.ProtoReflect.Descriptor instead.
+func (*ServerCommand) Descriptor() ([]byte, []int) {
+	return file_telemetry_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ServerCommand) GetCommandId() string {
+	if x != nil {
+		return x.CommandId
+	}
+	return ""
+}
+
+func (x *ServerCommand) GetAction() Action {
+	if x != nil {
+		return x.Action
+	}
+	return Action_ACTION_WAIT
+}
+
+func (x *ServerCommand) GetTarget() *Location {
+	if x != nil {
+		return x.Target
+	}
+	return nil
+}
+
+func (x *ServerCommand) GetType() TargetType {
+	if x != nil {
+		return x.Type
+	}
+	return TargetType_TARGET_POINT
+}
+
 type DispatchCommandRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	DroneId       string                 `protobuf:"bytes,1,opt,name=drone_id,json=droneId,proto3" json:"drone_id,omitempty"`
 	Action        Action                 `protobuf:"varint,2,opt,name=action,proto3,enum=telemetry.Action" json:"action,omitempty"`
 	Target        *Location              `protobuf:"bytes,3,opt,name=target,proto3" json:"target,omitempty"`
+	Type          TargetType             `protobuf:"varint,4,opt,name=type,proto3,enum=telemetry.TargetType" json:"type,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *DispatchCommandRequest) Reset() {
 	*x = DispatchCommandRequest{}
-	mi := &file_proto_telemetry_proto_msgTypes[3]
+	mi := &file_telemetry_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -408,7 +469,7 @@ func (x *DispatchCommandRequest) String() string {
 func (*DispatchCommandRequest) ProtoMessage() {}
 
 func (x *DispatchCommandRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_telemetry_proto_msgTypes[3]
+	mi := &file_telemetry_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -421,7 +482,7 @@ func (x *DispatchCommandRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DispatchCommandRequest.ProtoReflect.Descriptor instead.
 func (*DispatchCommandRequest) Descriptor() ([]byte, []int) {
-	return file_proto_telemetry_proto_rawDescGZIP(), []int{3}
+	return file_telemetry_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *DispatchCommandRequest) GetDroneId() string {
@@ -435,7 +496,7 @@ func (x *DispatchCommandRequest) GetAction() Action {
 	if x != nil {
 		return x.Action
 	}
-	return Action_WAIT
+	return Action_ACTION_WAIT
 }
 
 func (x *DispatchCommandRequest) GetTarget() *Location {
@@ -445,17 +506,23 @@ func (x *DispatchCommandRequest) GetTarget() *Location {
 	return nil
 }
 
+func (x *DispatchCommandRequest) GetType() TargetType {
+	if x != nil {
+		return x.Type
+	}
+	return TargetType_TARGET_POINT
+}
+
 type DispatchCommandResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	ErrorMessage  string                 `protobuf:"bytes,2,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *DispatchCommandResponse) Reset() {
 	*x = DispatchCommandResponse{}
-	mi := &file_proto_telemetry_proto_msgTypes[4]
+	mi := &file_telemetry_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -467,7 +534,7 @@ func (x *DispatchCommandResponse) String() string {
 func (*DispatchCommandResponse) ProtoMessage() {}
 
 func (x *DispatchCommandResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_telemetry_proto_msgTypes[4]
+	mi := &file_telemetry_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -480,7 +547,7 @@ func (x *DispatchCommandResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DispatchCommandResponse.ProtoReflect.Descriptor instead.
 func (*DispatchCommandResponse) Descriptor() ([]byte, []int) {
-	return file_proto_telemetry_proto_rawDescGZIP(), []int{4}
+	return file_telemetry_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *DispatchCommandResponse) GetSuccess() bool {
@@ -490,126 +557,132 @@ func (x *DispatchCommandResponse) GetSuccess() bool {
 	return false
 }
 
-func (x *DispatchCommandResponse) GetErrorMessage() string {
-	if x != nil {
-		return x.ErrorMessage
-	}
-	return ""
-}
+var File_telemetry_proto protoreflect.FileDescriptor
 
-var File_proto_telemetry_proto protoreflect.FileDescriptor
-
-const file_proto_telemetry_proto_rawDesc = "" +
+const file_telemetry_proto_rawDesc = "" +
 	"\n" +
-	"\x15proto/telemetry.proto\x12\ttelemetry\"\xe4\x01\n" +
+	"\x0ftelemetry.proto\x12\ttelemetry\".\n" +
+	"\bLocation\x12\x10\n" +
+	"\x03lat\x18\x01 \x01(\x01R\x03lat\x12\x10\n" +
+	"\x03lon\x18\x02 \x01(\x01R\x03lon\"\xfc\x01\n" +
 	"\x0eDroneTelemetry\x12\x19\n" +
-	"\bdrone_id\x18\x01 \x01(\tR\adroneId\x12\x10\n" +
-	"\x03lat\x18\x02 \x01(\x01R\x03lat\x12\x10\n" +
-	"\x03lon\x18\x03 \x01(\x01R\x03lon\x12\x18\n" +
-	"\abattery\x18\x04 \x01(\x05R\abattery\x12.\n" +
-	"\x06status\x18\x05 \x01(\x0e2\x16.telemetry.DroneStatusR\x06status\x12\x1c\n" +
-	"\ttimestamp\x18\x06 \x01(\x03R\ttimestamp\x12+\n" +
-	"\x05event\x18\a \x01(\x0e2\x15.telemetry.DroneEventR\x05event\"\x86\x01\n" +
+	"\bdrone_id\x18\x01 \x01(\tR\adroneId\x12:\n" +
+	"\x0edrone_location\x18\x02 \x01(\v2\x13.telemetry.LocationR\rdroneLocation\x12\x18\n" +
+	"\abattery\x18\x03 \x01(\x05R\abattery\x12.\n" +
+	"\x06status\x18\x04 \x01(\x0e2\x16.telemetry.DroneStatusR\x06status\x12\x1c\n" +
+	"\ttimestamp\x18\x05 \x01(\x03R\ttimestamp\x12+\n" +
+	"\x05event\x18\x06 \x01(\x0e2\x15.telemetry.DroneEventR\x05event\"\xb1\x01\n" +
 	"\rServerCommand\x12\x1d\n" +
 	"\n" +
 	"command_id\x18\x01 \x01(\tR\tcommandId\x12)\n" +
 	"\x06action\x18\x02 \x01(\x0e2\x11.telemetry.ActionR\x06action\x12+\n" +
-	"\x06target\x18\x03 \x01(\v2\x13.telemetry.LocationR\x06target\".\n" +
-	"\bLocation\x12\x10\n" +
-	"\x03lat\x18\x01 \x01(\x01R\x03lat\x12\x10\n" +
-	"\x03lon\x18\x02 \x01(\x01R\x03lon\"\x8b\x01\n" +
+	"\x06target\x18\x03 \x01(\v2\x13.telemetry.LocationR\x06target\x12)\n" +
+	"\x04type\x18\x04 \x01(\x0e2\x15.telemetry.TargetTypeR\x04type\"\xb6\x01\n" +
 	"\x16DispatchCommandRequest\x12\x19\n" +
 	"\bdrone_id\x18\x01 \x01(\tR\adroneId\x12)\n" +
 	"\x06action\x18\x02 \x01(\x0e2\x11.telemetry.ActionR\x06action\x12+\n" +
-	"\x06target\x18\x03 \x01(\v2\x13.telemetry.LocationR\x06target\"X\n" +
+	"\x06target\x18\x03 \x01(\v2\x13.telemetry.LocationR\x06target\x12)\n" +
+	"\x04type\x18\x04 \x01(\x0e2\x15.telemetry.TargetTypeR\x04type\"3\n" +
 	"\x17DispatchCommandResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12#\n" +
-	"\rerror_message\x18\x02 \x01(\tR\ferrorMessage*<\n" +
-	"\vDroneStatus\x12\v\n" +
-	"\aUNKNOWN\x10\x00\x12\b\n" +
-	"\x04FREE\x10\x01\x12\b\n" +
-	"\x04BUSY\x10\x02\x12\f\n" +
-	"\bCHARGING\x10\x03*g\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess*X\n" +
+	"\vDroneStatus\x12\x12\n" +
+	"\x0eSTATUS_UNKNOWN\x10\x00\x12\x0f\n" +
+	"\vSTATUS_FREE\x10\x01\x12\x0f\n" +
+	"\vSTATUS_BUSY\x10\x02\x12\x13\n" +
+	"\x0fSTATUS_CHARGING\x10\x03*\xbd\x01\n" +
 	"\n" +
-	"DroneEvent\x12\b\n" +
-	"\x04NONE\x10\x00\x12\x14\n" +
-	"\x10ARRIVED_AT_STORE\x10\x01\x12\x13\n" +
-	"\x0fPICKED_UP_CARGO\x10\x02\x12\x15\n" +
-	"\x11ARRIVED_AT_CLIENT\x10\x03\x12\r\n" +
-	"\tDELIVERED\x10\x04*9\n" +
-	"\x06Action\x12\b\n" +
-	"\x04WAIT\x10\x00\x12\n" +
+	"DroneEvent\x12\x0e\n" +
 	"\n" +
-	"\x06FLY_TO\x10\x01\x12\b\n" +
-	"\x04LAND\x10\x02\x12\x0f\n" +
-	"\vRETURN_BASE\x10\x032\xa9\x01\n" +
+	"EVENT_NONE\x10\x00\x12\x1a\n" +
+	"\x16EVENT_ARRIVED_AT_STORE\x10\x01\x12\x19\n" +
+	"\x15EVENT_PICKED_UP_CARGO\x10\x02\x12\x1b\n" +
+	"\x17EVENT_ARRIVED_AT_CLIENT\x10\x03\x12\x17\n" +
+	"\x13EVENT_DROPPED_CARGO\x10\x04\x12\x19\n" +
+	"\x15EVENT_ARRIVED_AT_BASE\x10\x05\x12\x17\n" +
+	"\x13EVENT_FULLY_CHARGED\x10\x06*o\n" +
+	"\x06Action\x12\x0f\n" +
+	"\vACTION_WAIT\x10\x00\x12\x11\n" +
+	"\rACTION_FLY_TO\x10\x01\x12\x17\n" +
+	"\x13ACTION_PICKUP_CARGO\x10\x02\x12\x15\n" +
+	"\x11ACTION_DROP_CARGO\x10\x03\x12\x11\n" +
+	"\rACTION_CHARGE\x10\x04*T\n" +
+	"\n" +
+	"TargetType\x12\x10\n" +
+	"\fTARGET_POINT\x10\x00\x12\x10\n" +
+	"\fTARGET_STORE\x10\x01\x12\x11\n" +
+	"\rTARGET_CLIENT\x10\x02\x12\x0f\n" +
+	"\vTARGET_BASE\x10\x032\xa9\x01\n" +
 	"\x10TelemetryService\x12?\n" +
 	"\x04Link\x12\x19.telemetry.DroneTelemetry\x1a\x18.telemetry.ServerCommand(\x010\x01\x12T\n" +
-	"\vSendCommand\x12!.telemetry.DispatchCommandRequest\x1a\".telemetry.DispatchCommandResponseB\x11Z\x0f./gen/telemetryb\x06proto3"
+	"\vSendCommand\x12!.telemetry.DispatchCommandRequest\x1a\".telemetry.DispatchCommandResponseB\x14Z\x12hive/gen/telemetryb\x06proto3"
 
 var (
-	file_proto_telemetry_proto_rawDescOnce sync.Once
-	file_proto_telemetry_proto_rawDescData []byte
+	file_telemetry_proto_rawDescOnce sync.Once
+	file_telemetry_proto_rawDescData []byte
 )
 
-func file_proto_telemetry_proto_rawDescGZIP() []byte {
-	file_proto_telemetry_proto_rawDescOnce.Do(func() {
-		file_proto_telemetry_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_telemetry_proto_rawDesc), len(file_proto_telemetry_proto_rawDesc)))
+func file_telemetry_proto_rawDescGZIP() []byte {
+	file_telemetry_proto_rawDescOnce.Do(func() {
+		file_telemetry_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_telemetry_proto_rawDesc), len(file_telemetry_proto_rawDesc)))
 	})
-	return file_proto_telemetry_proto_rawDescData
+	return file_telemetry_proto_rawDescData
 }
 
-var file_proto_telemetry_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_proto_telemetry_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
-var file_proto_telemetry_proto_goTypes = []any{
+var file_telemetry_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
+var file_telemetry_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_telemetry_proto_goTypes = []any{
 	(DroneStatus)(0),                // 0: telemetry.DroneStatus
 	(DroneEvent)(0),                 // 1: telemetry.DroneEvent
 	(Action)(0),                     // 2: telemetry.Action
-	(*DroneTelemetry)(nil),          // 3: telemetry.DroneTelemetry
-	(*ServerCommand)(nil),           // 4: telemetry.ServerCommand
-	(*Location)(nil),                // 5: telemetry.Location
-	(*DispatchCommandRequest)(nil),  // 6: telemetry.DispatchCommandRequest
-	(*DispatchCommandResponse)(nil), // 7: telemetry.DispatchCommandResponse
+	(TargetType)(0),                 // 3: telemetry.TargetType
+	(*Location)(nil),                // 4: telemetry.Location
+	(*DroneTelemetry)(nil),          // 5: telemetry.DroneTelemetry
+	(*ServerCommand)(nil),           // 6: telemetry.ServerCommand
+	(*DispatchCommandRequest)(nil),  // 7: telemetry.DispatchCommandRequest
+	(*DispatchCommandResponse)(nil), // 8: telemetry.DispatchCommandResponse
 }
-var file_proto_telemetry_proto_depIdxs = []int32{
-	0, // 0: telemetry.DroneTelemetry.status:type_name -> telemetry.DroneStatus
-	1, // 1: telemetry.DroneTelemetry.event:type_name -> telemetry.DroneEvent
-	2, // 2: telemetry.ServerCommand.action:type_name -> telemetry.Action
-	5, // 3: telemetry.ServerCommand.target:type_name -> telemetry.Location
-	2, // 4: telemetry.DispatchCommandRequest.action:type_name -> telemetry.Action
-	5, // 5: telemetry.DispatchCommandRequest.target:type_name -> telemetry.Location
-	3, // 6: telemetry.TelemetryService.Link:input_type -> telemetry.DroneTelemetry
-	6, // 7: telemetry.TelemetryService.SendCommand:input_type -> telemetry.DispatchCommandRequest
-	4, // 8: telemetry.TelemetryService.Link:output_type -> telemetry.ServerCommand
-	7, // 9: telemetry.TelemetryService.SendCommand:output_type -> telemetry.DispatchCommandResponse
-	8, // [8:10] is the sub-list for method output_type
-	6, // [6:8] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+var file_telemetry_proto_depIdxs = []int32{
+	4,  // 0: telemetry.DroneTelemetry.drone_location:type_name -> telemetry.Location
+	0,  // 1: telemetry.DroneTelemetry.status:type_name -> telemetry.DroneStatus
+	1,  // 2: telemetry.DroneTelemetry.event:type_name -> telemetry.DroneEvent
+	2,  // 3: telemetry.ServerCommand.action:type_name -> telemetry.Action
+	4,  // 4: telemetry.ServerCommand.target:type_name -> telemetry.Location
+	3,  // 5: telemetry.ServerCommand.type:type_name -> telemetry.TargetType
+	2,  // 6: telemetry.DispatchCommandRequest.action:type_name -> telemetry.Action
+	4,  // 7: telemetry.DispatchCommandRequest.target:type_name -> telemetry.Location
+	3,  // 8: telemetry.DispatchCommandRequest.type:type_name -> telemetry.TargetType
+	5,  // 9: telemetry.TelemetryService.Link:input_type -> telemetry.DroneTelemetry
+	7,  // 10: telemetry.TelemetryService.SendCommand:input_type -> telemetry.DispatchCommandRequest
+	6,  // 11: telemetry.TelemetryService.Link:output_type -> telemetry.ServerCommand
+	8,  // 12: telemetry.TelemetryService.SendCommand:output_type -> telemetry.DispatchCommandResponse
+	11, // [11:13] is the sub-list for method output_type
+	9,  // [9:11] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
-func init() { file_proto_telemetry_proto_init() }
-func file_proto_telemetry_proto_init() {
-	if File_proto_telemetry_proto != nil {
+func init() { file_telemetry_proto_init() }
+func file_telemetry_proto_init() {
+	if File_telemetry_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_telemetry_proto_rawDesc), len(file_proto_telemetry_proto_rawDesc)),
-			NumEnums:      3,
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_telemetry_proto_rawDesc), len(file_telemetry_proto_rawDesc)),
+			NumEnums:      4,
 			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_proto_telemetry_proto_goTypes,
-		DependencyIndexes: file_proto_telemetry_proto_depIdxs,
-		EnumInfos:         file_proto_telemetry_proto_enumTypes,
-		MessageInfos:      file_proto_telemetry_proto_msgTypes,
+		GoTypes:           file_telemetry_proto_goTypes,
+		DependencyIndexes: file_telemetry_proto_depIdxs,
+		EnumInfos:         file_telemetry_proto_enumTypes,
+		MessageInfos:      file_telemetry_proto_msgTypes,
 	}.Build()
-	File_proto_telemetry_proto = out.File
-	file_proto_telemetry_proto_goTypes = nil
-	file_proto_telemetry_proto_depIdxs = nil
+	File_telemetry_proto = out.File
+	file_telemetry_proto_goTypes = nil
+	file_telemetry_proto_depIdxs = nil
 }

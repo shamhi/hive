@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.10
 // 	protoc        v3.21.12
-// source: proto/tracking.proto
+// source: tracking.proto
 
 package tracking
 
@@ -21,19 +21,120 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type DroneStatus int32
+
+const (
+	DroneStatus_STATUS_UNKNOWN  DroneStatus = 0
+	DroneStatus_STATUS_FREE     DroneStatus = 1
+	DroneStatus_STATUS_BUSY     DroneStatus = 2
+	DroneStatus_STATUS_CHARGING DroneStatus = 3
+)
+
+// Enum value maps for DroneStatus.
+var (
+	DroneStatus_name = map[int32]string{
+		0: "STATUS_UNKNOWN",
+		1: "STATUS_FREE",
+		2: "STATUS_BUSY",
+		3: "STATUS_CHARGING",
+	}
+	DroneStatus_value = map[string]int32{
+		"STATUS_UNKNOWN":  0,
+		"STATUS_FREE":     1,
+		"STATUS_BUSY":     2,
+		"STATUS_CHARGING": 3,
+	}
+)
+
+func (x DroneStatus) Enum() *DroneStatus {
+	p := new(DroneStatus)
+	*p = x
+	return p
+}
+
+func (x DroneStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (DroneStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_tracking_proto_enumTypes[0].Descriptor()
+}
+
+func (DroneStatus) Type() protoreflect.EnumType {
+	return &file_tracking_proto_enumTypes[0]
+}
+
+func (x DroneStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use DroneStatus.Descriptor instead.
+func (DroneStatus) EnumDescriptor() ([]byte, []int) {
+	return file_tracking_proto_rawDescGZIP(), []int{0}
+}
+
+type Location struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Lat           float64                `protobuf:"fixed64,1,opt,name=lat,proto3" json:"lat,omitempty"`
+	Lon           float64                `protobuf:"fixed64,2,opt,name=lon,proto3" json:"lon,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Location) Reset() {
+	*x = Location{}
+	mi := &file_tracking_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Location) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Location) ProtoMessage() {}
+
+func (x *Location) ProtoReflect() protoreflect.Message {
+	mi := &file_tracking_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Location.ProtoReflect.Descriptor instead.
+func (*Location) Descriptor() ([]byte, []int) {
+	return file_tracking_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *Location) GetLat() float64 {
+	if x != nil {
+		return x.Lat
+	}
+	return 0
+}
+
+func (x *Location) GetLon() float64 {
+	if x != nil {
+		return x.Lon
+	}
+	return 0
+}
+
 type FindNearestRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Lat           float64                `protobuf:"fixed64,1,opt,name=lat,proto3" json:"lat,omitempty"` // Координаты склада (точки старта)
-	Lon           float64                `protobuf:"fixed64,2,opt,name=lon,proto3" json:"lon,omitempty"`
-	RadiusMeters  int32                  `protobuf:"varint,3,opt,name=radius_meters,json=radiusMeters,proto3" json:"radius_meters,omitempty"` // Например, искать в радиусе 2км
-	MinBattery    int32                  `protobuf:"varint,4,opt,name=min_battery,json=minBattery,proto3" json:"min_battery,omitempty"`       // Фильтр: батарея > 20%
+	StoreLocation *Location              `protobuf:"bytes,1,opt,name=store_location,json=storeLocation,proto3" json:"store_location,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *FindNearestRequest) Reset() {
 	*x = FindNearestRequest{}
-	mi := &file_proto_tracking_proto_msgTypes[0]
+	mi := &file_tracking_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -45,7 +146,7 @@ func (x *FindNearestRequest) String() string {
 func (*FindNearestRequest) ProtoMessage() {}
 
 func (x *FindNearestRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_tracking_proto_msgTypes[0]
+	mi := &file_tracking_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -58,51 +159,28 @@ func (x *FindNearestRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FindNearestRequest.ProtoReflect.Descriptor instead.
 func (*FindNearestRequest) Descriptor() ([]byte, []int) {
-	return file_proto_tracking_proto_rawDescGZIP(), []int{0}
+	return file_tracking_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *FindNearestRequest) GetLat() float64 {
+func (x *FindNearestRequest) GetStoreLocation() *Location {
 	if x != nil {
-		return x.Lat
+		return x.StoreLocation
 	}
-	return 0
-}
-
-func (x *FindNearestRequest) GetLon() float64 {
-	if x != nil {
-		return x.Lon
-	}
-	return 0
-}
-
-func (x *FindNearestRequest) GetRadiusMeters() int32 {
-	if x != nil {
-		return x.RadiusMeters
-	}
-	return 0
-}
-
-func (x *FindNearestRequest) GetMinBattery() int32 {
-	if x != nil {
-		return x.MinBattery
-	}
-	return 0
+	return nil
 }
 
 type FindNearestResponse struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	DroneId        string                 `protobuf:"bytes,1,opt,name=drone_id,json=droneId,proto3" json:"drone_id,omitempty"`
-	Lat            float64                `protobuf:"fixed64,2,opt,name=lat,proto3" json:"lat,omitempty"`
-	Lon            float64                `protobuf:"fixed64,3,opt,name=lon,proto3" json:"lon,omitempty"`
-	DistanceMeters float64                `protobuf:"fixed64,4,opt,name=distance_meters,json=distanceMeters,proto3" json:"distance_meters,omitempty"` // Расстояние до точки запроса
-	Found          bool                   `protobuf:"varint,5,opt,name=found,proto3" json:"found,omitempty"`
+	Found          bool                   `protobuf:"varint,2,opt,name=found,proto3" json:"found,omitempty"`
+	DistanceMeters float64                `protobuf:"fixed64,3,opt,name=distance_meters,json=distanceMeters,proto3" json:"distance_meters,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
 
 func (x *FindNearestResponse) Reset() {
 	*x = FindNearestResponse{}
-	mi := &file_proto_tracking_proto_msgTypes[1]
+	mi := &file_tracking_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -114,7 +192,7 @@ func (x *FindNearestResponse) String() string {
 func (*FindNearestResponse) ProtoMessage() {}
 
 func (x *FindNearestResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_tracking_proto_msgTypes[1]
+	mi := &file_tracking_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -127,7 +205,7 @@ func (x *FindNearestResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FindNearestResponse.ProtoReflect.Descriptor instead.
 func (*FindNearestResponse) Descriptor() ([]byte, []int) {
-	return file_proto_tracking_proto_rawDescGZIP(), []int{1}
+	return file_tracking_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *FindNearestResponse) GetDroneId() string {
@@ -137,18 +215,11 @@ func (x *FindNearestResponse) GetDroneId() string {
 	return ""
 }
 
-func (x *FindNearestResponse) GetLat() float64 {
+func (x *FindNearestResponse) GetFound() bool {
 	if x != nil {
-		return x.Lat
+		return x.Found
 	}
-	return 0
-}
-
-func (x *FindNearestResponse) GetLon() float64 {
-	if x != nil {
-		return x.Lon
-	}
-	return 0
+	return false
 }
 
 func (x *FindNearestResponse) GetDistanceMeters() float64 {
@@ -158,24 +229,113 @@ func (x *FindNearestResponse) GetDistanceMeters() float64 {
 	return 0
 }
 
-func (x *FindNearestResponse) GetFound() bool {
+type GetDroneLocationRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DroneId       string                 `protobuf:"bytes,1,opt,name=drone_id,json=droneId,proto3" json:"drone_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetDroneLocationRequest) Reset() {
+	*x = GetDroneLocationRequest{}
+	mi := &file_tracking_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetDroneLocationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetDroneLocationRequest) ProtoMessage() {}
+
+func (x *GetDroneLocationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tracking_proto_msgTypes[3]
 	if x != nil {
-		return x.Found
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
 	}
-	return false
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetDroneLocationRequest.ProtoReflect.Descriptor instead.
+func (*GetDroneLocationRequest) Descriptor() ([]byte, []int) {
+	return file_tracking_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GetDroneLocationRequest) GetDroneId() string {
+	if x != nil {
+		return x.DroneId
+	}
+	return ""
+}
+
+type GetDroneLocationResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DroneLocation *Location              `protobuf:"bytes,1,opt,name=drone_location,json=droneLocation,proto3" json:"drone_location,omitempty"`
+	Battery       int32                  `protobuf:"varint,2,opt,name=battery,proto3" json:"battery,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetDroneLocationResponse) Reset() {
+	*x = GetDroneLocationResponse{}
+	mi := &file_tracking_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetDroneLocationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetDroneLocationResponse) ProtoMessage() {}
+
+func (x *GetDroneLocationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tracking_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetDroneLocationResponse.ProtoReflect.Descriptor instead.
+func (*GetDroneLocationResponse) Descriptor() ([]byte, []int) {
+	return file_tracking_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *GetDroneLocationResponse) GetDroneLocation() *Location {
+	if x != nil {
+		return x.DroneLocation
+	}
+	return nil
+}
+
+func (x *GetDroneLocationResponse) GetBattery() int32 {
+	if x != nil {
+		return x.Battery
+	}
+	return 0
 }
 
 type SetStatusRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	DroneId       string                 `protobuf:"bytes,1,opt,name=drone_id,json=droneId,proto3" json:"drone_id,omitempty"`
-	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"` // FREE / BUSY
+	Status        DroneStatus            `protobuf:"varint,2,opt,name=status,proto3,enum=tracking.DroneStatus" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SetStatusRequest) Reset() {
 	*x = SetStatusRequest{}
-	mi := &file_proto_tracking_proto_msgTypes[2]
+	mi := &file_tracking_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -187,7 +347,7 @@ func (x *SetStatusRequest) String() string {
 func (*SetStatusRequest) ProtoMessage() {}
 
 func (x *SetStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_tracking_proto_msgTypes[2]
+	mi := &file_tracking_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -200,7 +360,7 @@ func (x *SetStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetStatusRequest.ProtoReflect.Descriptor instead.
 func (*SetStatusRequest) Descriptor() ([]byte, []int) {
-	return file_proto_tracking_proto_rawDescGZIP(), []int{2}
+	return file_tracking_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *SetStatusRequest) GetDroneId() string {
@@ -210,11 +370,11 @@ func (x *SetStatusRequest) GetDroneId() string {
 	return ""
 }
 
-func (x *SetStatusRequest) GetStatus() string {
+func (x *SetStatusRequest) GetStatus() DroneStatus {
 	if x != nil {
 		return x.Status
 	}
-	return ""
+	return DroneStatus_STATUS_UNKNOWN
 }
 
 type SetStatusResponse struct {
@@ -226,7 +386,7 @@ type SetStatusResponse struct {
 
 func (x *SetStatusResponse) Reset() {
 	*x = SetStatusResponse{}
-	mi := &file_proto_tracking_proto_msgTypes[3]
+	mi := &file_tracking_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -238,7 +398,7 @@ func (x *SetStatusResponse) String() string {
 func (*SetStatusResponse) ProtoMessage() {}
 
 func (x *SetStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_tracking_proto_msgTypes[3]
+	mi := &file_tracking_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -251,7 +411,7 @@ func (x *SetStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetStatusResponse.ProtoReflect.Descriptor instead.
 func (*SetStatusResponse) Descriptor() ([]byte, []int) {
-	return file_proto_tracking_proto_rawDescGZIP(), []int{3}
+	return file_tracking_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *SetStatusResponse) GetSuccess() bool {
@@ -261,83 +421,102 @@ func (x *SetStatusResponse) GetSuccess() bool {
 	return false
 }
 
-var File_proto_tracking_proto protoreflect.FileDescriptor
+var File_tracking_proto protoreflect.FileDescriptor
 
-const file_proto_tracking_proto_rawDesc = "" +
+const file_tracking_proto_rawDesc = "" +
 	"\n" +
-	"\x14proto/tracking.proto\x12\btracking\"~\n" +
-	"\x12FindNearestRequest\x12\x10\n" +
+	"\x0etracking.proto\x12\btracking\".\n" +
+	"\bLocation\x12\x10\n" +
 	"\x03lat\x18\x01 \x01(\x01R\x03lat\x12\x10\n" +
-	"\x03lon\x18\x02 \x01(\x01R\x03lon\x12#\n" +
-	"\rradius_meters\x18\x03 \x01(\x05R\fradiusMeters\x12\x1f\n" +
-	"\vmin_battery\x18\x04 \x01(\x05R\n" +
-	"minBattery\"\x93\x01\n" +
+	"\x03lon\x18\x02 \x01(\x01R\x03lon\"O\n" +
+	"\x12FindNearestRequest\x129\n" +
+	"\x0estore_location\x18\x01 \x01(\v2\x12.tracking.LocationR\rstoreLocation\"o\n" +
 	"\x13FindNearestResponse\x12\x19\n" +
-	"\bdrone_id\x18\x01 \x01(\tR\adroneId\x12\x10\n" +
-	"\x03lat\x18\x02 \x01(\x01R\x03lat\x12\x10\n" +
-	"\x03lon\x18\x03 \x01(\x01R\x03lon\x12'\n" +
-	"\x0fdistance_meters\x18\x04 \x01(\x01R\x0edistanceMeters\x12\x14\n" +
-	"\x05found\x18\x05 \x01(\bR\x05found\"E\n" +
+	"\bdrone_id\x18\x01 \x01(\tR\adroneId\x12\x14\n" +
+	"\x05found\x18\x02 \x01(\bR\x05found\x12'\n" +
+	"\x0fdistance_meters\x18\x03 \x01(\x01R\x0edistanceMeters\"4\n" +
+	"\x17GetDroneLocationRequest\x12\x19\n" +
+	"\bdrone_id\x18\x01 \x01(\tR\adroneId\"o\n" +
+	"\x18GetDroneLocationResponse\x129\n" +
+	"\x0edrone_location\x18\x01 \x01(\v2\x12.tracking.LocationR\rdroneLocation\x12\x18\n" +
+	"\abattery\x18\x02 \x01(\x05R\abattery\"\\\n" +
 	"\x10SetStatusRequest\x12\x19\n" +
-	"\bdrone_id\x18\x01 \x01(\tR\adroneId\x12\x16\n" +
-	"\x06status\x18\x02 \x01(\tR\x06status\"-\n" +
+	"\bdrone_id\x18\x01 \x01(\tR\adroneId\x12-\n" +
+	"\x06status\x18\x02 \x01(\x0e2\x15.tracking.DroneStatusR\x06status\"-\n" +
 	"\x11SetStatusResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess2\xa8\x01\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess*X\n" +
+	"\vDroneStatus\x12\x12\n" +
+	"\x0eSTATUS_UNKNOWN\x10\x00\x12\x0f\n" +
+	"\vSTATUS_FREE\x10\x01\x12\x0f\n" +
+	"\vSTATUS_BUSY\x10\x02\x12\x13\n" +
+	"\x0fSTATUS_CHARGING\x10\x032\xfe\x01\n" +
 	"\x0fTrackingService\x12J\n" +
-	"\vFindNearest\x12\x1c.tracking.FindNearestRequest\x1a\x1d.tracking.FindNearestResponse\x12I\n" +
-	"\x0eSetDroneStatus\x12\x1a.tracking.SetStatusRequest\x1a\x1b.tracking.SetStatusResponseB\x10Z\x0e./gen/trackingb\x06proto3"
+	"\vFindNearest\x12\x1c.tracking.FindNearestRequest\x1a\x1d.tracking.FindNearestResponse\x12Y\n" +
+	"\x10GetDroneLocation\x12!.tracking.GetDroneLocationRequest\x1a\".tracking.GetDroneLocationResponse\x12D\n" +
+	"\tSetStatus\x12\x1a.tracking.SetStatusRequest\x1a\x1b.tracking.SetStatusResponseB\x13Z\x11hive/gen/trackingb\x06proto3"
 
 var (
-	file_proto_tracking_proto_rawDescOnce sync.Once
-	file_proto_tracking_proto_rawDescData []byte
+	file_tracking_proto_rawDescOnce sync.Once
+	file_tracking_proto_rawDescData []byte
 )
 
-func file_proto_tracking_proto_rawDescGZIP() []byte {
-	file_proto_tracking_proto_rawDescOnce.Do(func() {
-		file_proto_tracking_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_tracking_proto_rawDesc), len(file_proto_tracking_proto_rawDesc)))
+func file_tracking_proto_rawDescGZIP() []byte {
+	file_tracking_proto_rawDescOnce.Do(func() {
+		file_tracking_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_tracking_proto_rawDesc), len(file_tracking_proto_rawDesc)))
 	})
-	return file_proto_tracking_proto_rawDescData
+	return file_tracking_proto_rawDescData
 }
 
-var file_proto_tracking_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
-var file_proto_tracking_proto_goTypes = []any{
-	(*FindNearestRequest)(nil),  // 0: tracking.FindNearestRequest
-	(*FindNearestResponse)(nil), // 1: tracking.FindNearestResponse
-	(*SetStatusRequest)(nil),    // 2: tracking.SetStatusRequest
-	(*SetStatusResponse)(nil),   // 3: tracking.SetStatusResponse
+var file_tracking_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_tracking_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_tracking_proto_goTypes = []any{
+	(DroneStatus)(0),                 // 0: tracking.DroneStatus
+	(*Location)(nil),                 // 1: tracking.Location
+	(*FindNearestRequest)(nil),       // 2: tracking.FindNearestRequest
+	(*FindNearestResponse)(nil),      // 3: tracking.FindNearestResponse
+	(*GetDroneLocationRequest)(nil),  // 4: tracking.GetDroneLocationRequest
+	(*GetDroneLocationResponse)(nil), // 5: tracking.GetDroneLocationResponse
+	(*SetStatusRequest)(nil),         // 6: tracking.SetStatusRequest
+	(*SetStatusResponse)(nil),        // 7: tracking.SetStatusResponse
 }
-var file_proto_tracking_proto_depIdxs = []int32{
-	0, // 0: tracking.TrackingService.FindNearest:input_type -> tracking.FindNearestRequest
-	2, // 1: tracking.TrackingService.SetDroneStatus:input_type -> tracking.SetStatusRequest
-	1, // 2: tracking.TrackingService.FindNearest:output_type -> tracking.FindNearestResponse
-	3, // 3: tracking.TrackingService.SetDroneStatus:output_type -> tracking.SetStatusResponse
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+var file_tracking_proto_depIdxs = []int32{
+	1, // 0: tracking.FindNearestRequest.store_location:type_name -> tracking.Location
+	1, // 1: tracking.GetDroneLocationResponse.drone_location:type_name -> tracking.Location
+	0, // 2: tracking.SetStatusRequest.status:type_name -> tracking.DroneStatus
+	2, // 3: tracking.TrackingService.FindNearest:input_type -> tracking.FindNearestRequest
+	4, // 4: tracking.TrackingService.GetDroneLocation:input_type -> tracking.GetDroneLocationRequest
+	6, // 5: tracking.TrackingService.SetStatus:input_type -> tracking.SetStatusRequest
+	3, // 6: tracking.TrackingService.FindNearest:output_type -> tracking.FindNearestResponse
+	5, // 7: tracking.TrackingService.GetDroneLocation:output_type -> tracking.GetDroneLocationResponse
+	7, // 8: tracking.TrackingService.SetStatus:output_type -> tracking.SetStatusResponse
+	6, // [6:9] is the sub-list for method output_type
+	3, // [3:6] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
-func init() { file_proto_tracking_proto_init() }
-func file_proto_tracking_proto_init() {
-	if File_proto_tracking_proto != nil {
+func init() { file_tracking_proto_init() }
+func file_tracking_proto_init() {
+	if File_tracking_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_tracking_proto_rawDesc), len(file_proto_tracking_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   4,
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_tracking_proto_rawDesc), len(file_tracking_proto_rawDesc)),
+			NumEnums:      1,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_proto_tracking_proto_goTypes,
-		DependencyIndexes: file_proto_tracking_proto_depIdxs,
-		MessageInfos:      file_proto_tracking_proto_msgTypes,
+		GoTypes:           file_tracking_proto_goTypes,
+		DependencyIndexes: file_tracking_proto_depIdxs,
+		EnumInfos:         file_tracking_proto_enumTypes,
+		MessageInfos:      file_tracking_proto_msgTypes,
 	}.Build()
-	File_proto_tracking_proto = out.File
-	file_proto_tracking_proto_goTypes = nil
-	file_proto_tracking_proto_depIdxs = nil
+	File_tracking_proto = out.File
+	file_tracking_proto_goTypes = nil
+	file_tracking_proto_depIdxs = nil
 }

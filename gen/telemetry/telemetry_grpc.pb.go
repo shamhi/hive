@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v3.21.12
-// source: proto/telemetry.proto
+// source: telemetry.proto
 
 package telemetry
 
@@ -27,11 +27,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TelemetryServiceClient interface {
-	// 1. Bi-Directional Streaming: Дрон шлет координаты, Сервер шлет команды
-	// Используется в "Сцене 1: Дежурство" и "Сцене 4: Исполнение"
 	Link(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[DroneTelemetry, ServerCommand], error)
-	// 2. Unary: Dispatch Service просит отправить команду дрону
-	// Используется в "Сцене 3: Назначение" (Шаг Г)
 	SendCommand(ctx context.Context, in *DispatchCommandRequest, opts ...grpc.CallOption) (*DispatchCommandResponse, error)
 }
 
@@ -70,11 +66,7 @@ func (c *telemetryServiceClient) SendCommand(ctx context.Context, in *DispatchCo
 // All implementations must embed UnimplementedTelemetryServiceServer
 // for forward compatibility.
 type TelemetryServiceServer interface {
-	// 1. Bi-Directional Streaming: Дрон шлет координаты, Сервер шлет команды
-	// Используется в "Сцене 1: Дежурство" и "Сцене 4: Исполнение"
 	Link(grpc.BidiStreamingServer[DroneTelemetry, ServerCommand]) error
-	// 2. Unary: Dispatch Service просит отправить команду дрону
-	// Используется в "Сцене 3: Назначение" (Шаг Г)
 	SendCommand(context.Context, *DispatchCommandRequest) (*DispatchCommandResponse, error)
 	mustEmbedUnimplementedTelemetryServiceServer()
 }
@@ -158,5 +150,5 @@ var TelemetryService_ServiceDesc = grpc.ServiceDesc{
 			ClientStreams: true,
 		},
 	},
-	Metadata: "proto/telemetry.proto",
+	Metadata: "telemetry.proto",
 }

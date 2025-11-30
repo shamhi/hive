@@ -1,35 +1,48 @@
 syntax = "proto3";
 
 package tracking;
-option go_package = "./gen/tracking";
+option go_package = "hive/gen/tracking";
 
 service TrackingService {
-  // Используется Dispatch Service'ом для поиска (Шаг Б)
   rpc FindNearest(FindNearestRequest) returns (FindNearestResponse);
+  rpc GetDroneLocation(GetDroneLocationRequest) returns (GetDroneLocationResponse);
+  rpc SetStatus(SetStatusRequest) returns (SetStatusResponse);
+}
 
-  // Используется Dispatch Service'ом для блокировки дрона (Шаг В)
-  // Чтобы исключить Race Condition
-  rpc SetDroneStatus(SetStatusRequest) returns (SetStatusResponse);
+enum DroneStatus {
+  STATUS_UNKNOWN = 0;
+  STATUS_FREE = 1;
+  STATUS_BUSY = 2;
+  STATUS_CHARGING = 3;
+}
+
+message Location {
+  double lat = 1;
+  double lon = 2;
 }
 
 message FindNearestRequest {
-  double lat = 1;         // Координаты склада (точки старта)
-  double lon = 2;
-  int32 radius_meters = 3; // Например, искать в радиусе 2км
-  int32 min_battery = 4;   // Фильтр: батарея > 20%
+  Location store_location = 1;
 }
 
 message FindNearestResponse {
   string drone_id = 1;
-  double lat = 2;
-  double lon = 3;
-  double distance_meters = 4; // Расстояние до точки запроса
-  bool found = 5;
+  bool found = 2;
+  double distance_meters = 3;
+}
+
+message GetDroneLocationRequest {
+  string drone_id = 1;
+}
+
+message GetDroneLocationResponse {
+  Location drone_location = 1;
+  int32 battery = 2;
 }
 
 message SetStatusRequest {
   string drone_id = 1;
-  string status = 2; // FREE / BUSY
+  DroneStatus status = 2;
 }
 
 message SetStatusResponse {

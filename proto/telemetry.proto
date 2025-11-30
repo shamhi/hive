@@ -1,60 +1,43 @@
 syntax = "proto3";
 
 package telemetry;
-option go_package = "./gen/telemetry";
+option go_package = "hive/gen/telemetry";
 
 service TelemetryService {
-  // 1. Bi-Directional Streaming: Дрон шлет координаты, Сервер шлет команды
-  // Используется в "Сцене 1: Дежурство" и "Сцене 4: Исполнение"
   rpc Link(stream DroneTelemetry) returns (stream ServerCommand);
-
-  // 2. Unary: Dispatch Service просит отправить команду дрону
-  // Используется в "Сцене 3: Назначение" (Шаг Г)
   rpc SendCommand(DispatchCommandRequest) returns (DispatchCommandResponse);
 }
 
-// --- Сообщения от Дрона ---
-
-message DroneTelemetry {
-  string drone_id = 1;
-  double lat = 2;
-  double lon = 3;
-  int32 battery = 4;       // 0-100
-  DroneStatus status = 5;  // Текущий статус глазами дрона
-  int64 timestamp = 6;     // Unix timestamp
-
-  // Опционально: события (Сцена 3 и 4 - ARRIVED_AT_STORE, DELIVERED)
-  DroneEvent event = 7;
-}
-
 enum DroneStatus {
-  UNKNOWN = 0;
-  FREE = 1;        // Готов к заказу
-  BUSY = 2;        // Выполняет заказ
-  CHARGING = 3;    // На зарядке
+  STATUS_UNKNOWN = 0;
+  STATUS_FREE = 1;
+  STATUS_BUSY = 2;
+  STATUS_CHARGING = 3;
 }
 
 enum DroneEvent {
-  NONE = 0;
-  ARRIVED_AT_STORE = 1;
-  PICKED_UP_CARGO = 2;
-  ARRIVED_AT_CLIENT = 3;
-  DELIVERED = 4;
-}
-
-// --- Сообщения от Сервера к Дрону (в стрим) ---
-
-message ServerCommand {
-  string command_id = 1;
-  Action action = 2;
-  Location target = 3; // Куда лететь (Склад или Клиент)
+  EVENT_NONE = 0;
+  EVENT_ARRIVED_AT_STORE = 1;
+  EVENT_PICKED_UP_CARGO = 2;
+  EVENT_ARRIVED_AT_CLIENT = 3;
+  EVENT_DROPPED_CARGO = 4;
+  EVENT_ARRIVED_AT_BASE = 5;
+  EVENT_FULLY_CHARGED = 6;
 }
 
 enum Action {
-  WAIT = 0;            // Жди, виси в воздухе
-  FLY_TO = 1;          // Лети в координаты
-  LAND = 2;            // Садись
-  RETURN_BASE = 3;     // Лети домой
+  ACTION_WAIT = 0;
+  ACTION_FLY_TO = 1;
+  ACTION_PICKUP_CARGO = 2;
+  ACTION_DROP_CARGO = 3;
+  ACTION_CHARGE = 4;
+}
+
+enum TargetType {
+  TARGET_POINT = 0;
+  TARGET_STORE = 1;
+  TARGET_CLIENT = 2;
+  TARGET_BASE = 3;
 }
 
 message Location {
@@ -62,15 +45,29 @@ message Location {
   double lon = 2;
 }
 
-// --- Внутреннее API для Dispatch Service ---
+message DroneTelemetry {
+  string drone_id = 1;
+  Location drone_location = 2;
+  int32 battery = 3;
+  DroneStatus status = 4;
+  int64 timestamp = 5;
+  DroneEvent event = 6;
+}
+
+message ServerCommand {
+  string command_id = 1;
+  Action action = 2;
+  Location target = 3;
+  TargetType type = 4;
+}
 
 message DispatchCommandRequest {
   string drone_id = 1;
   Action action = 2;
   Location target = 3;
+  TargetType type = 4;
 }
 
 message DispatchCommandResponse {
   bool success = 1;
-  string error_message = 2;
 }

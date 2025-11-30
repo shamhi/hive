@@ -1,0 +1,214 @@
+openapi: 3.0.1
+info:
+  title: Hive Drone Delivery API
+  description: API Gateway для взаимодействия клиентов с системой доставки дронами.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local Development
+
+paths:
+  # ---------------------------------------------------------------------------
+  # ORDERS API
+  # ---------------------------------------------------------------------------
+  /api/v1/orders:
+    post:
+      summary: Создать новый заказ
+      operationId: createOrder
+      tags:
+        - Orders
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+      responses:
+        '201':
+          description: Заказ успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateOrderResponse'
+        '400':
+          description: Ошибка валидации (неверные координаты, пустой список)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /api/v1/orders/{id}:
+    get:
+      summary: Получить статус заказа
+      description: Возвращает статус заказа и, если назначен дрон, его текущее местоположение.
+      operationId: getOrder
+      tags:
+        - Orders
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID заказа (UUID)
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Информация о заказе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetOrderResponse'
+        '404':
+          description: Заказ не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ---------------------------------------------------------------------------
+  # USERS API (FUTURE)
+  # Пока закомментировано для MVP
+  # ---------------------------------------------------------------------------
+  # /api/v1/auth/register:
+  #   post:
+  #     summary: Регистрация пользователя
+  #     tags: [Users]
+  #     requestBody:
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               email: {type: string, format: email}
+  #               password: {type: string}
+  #               name: {type: string}
+  #     responses:
+  #       '200':
+  #         description: Успешная регистрация
+  #
+  # /api/v1/users/{id}:
+  #   get:
+  #     summary: Профиль пользователя
+  #     tags: [Users]
+  #     parameters:
+  #       - name: id
+  #         in: path
+  #         required: true
+  #         schema: {type: string, format: uuid}
+  #     responses:
+  #       '200':
+  #         description: Профиль
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/User'
+
+
+components:
+  schemas:
+    # --- Basic Types ---
+    Location:
+      type: object
+      required:
+        - lat
+        - lon
+      properties:
+        lat:
+          type: number
+          format: double
+          example: 55.7531753
+          description: Широта (-90 to 90)
+        lon:
+          type: number
+          format: double
+          example: 37.6104283
+          description: Долгота (-180 to 180)
+
+    # --- Requests ---
+    CreateOrderRequest:
+      type: object
+      required:
+        - user_id
+        - items
+        - delivery_location
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        items:
+          type: array
+          items:
+            type: string
+          minItems: 1
+          example: [ "pizza", "coke" ]
+        delivery_location:
+          $ref: '#/components/schemas/Location'
+
+    # --- Responses ---
+    CreateOrderResponse:
+      type: object
+      properties:
+        order_id:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        estimated_time:
+          type: string
+          example: "15 min"
+
+    GetOrderResponse:
+      type: object
+      properties:
+        order_id:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        drone:
+          $ref: '#/components/schemas/DroneInfo'
+          description: Информация о дроне (присутствует, если статус ASSIGNED/DELIVERING)
+
+    # --- Models ---
+    OrderStatus:
+      type: string
+      enum:
+        - PENDING
+        - ASSIGNED
+        - COMPLETED
+        - FAILED
+      example: "ASSIGNED"
+
+    DroneInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        location:
+          $ref: '#/components/schemas/Location'
+        battery:
+          type: integer
+          minimum: 0
+          maximum: 100
+          example: 85
+
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        email: { type: string }
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 400
+        message:
+          type: string
+          example: "Delivery location is out of service area"

@@ -1,18 +1,20 @@
 syntax = "proto3";
 
 package order;
-option go_package = "./gen/order";
+option go_package = "hive/gen/order";
 
 service OrderService {
   rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse);
-
   rpc GetOrder(GetOrderRequest) returns (GetOrderResponse);
+  rpc UpdateStatus(UpdateStatusRequest) returns (UpdateStatusResponse);
 }
 
-message CreateOrderRequest {
-  string user_id = 1;
-  Location delivery_location = 2; // "Привезите мне СЮДА"
-  repeated string items = 3;      // Список ID товаров
+enum OrderStatus {
+  CREATED = 0;
+  PENDING = 1;
+  ASSIGNED = 2;
+  COMPLETED = 3;
+  FAILED = 4;
 }
 
 message Location {
@@ -20,10 +22,16 @@ message Location {
   double lon = 2;
 }
 
+message CreateOrderRequest {
+  string user_id = 1;
+  repeated string items = 2;
+  Location delivery_location = 3;
+}
+
 message CreateOrderResponse {
   string order_id = 1;
   OrderStatus status = 2;
-  string estimated_time = 3; // "15 min"
+  string estimated_time = 3;
 }
 
 message GetOrderRequest {
@@ -33,14 +41,15 @@ message GetOrderRequest {
 message GetOrderResponse {
   string order_id = 1;
   OrderStatus status = 2;
-  string drone_id = 3; // Если уже назначен
+  string drone_id = 3;
 }
 
-enum OrderStatus {
-  CREATED = 0;
-  SEARCHING_DRONE = 1; // Ищем дрона
-  ASSIGNED = 2;        // Дрон летит на склад
-  DELIVERING = 3;      // Дрон летит к клиенту
-  COMPLETED = 4;
-  FAILED = 5;
+message UpdateStatusRequest {
+  string order_id = 1;
+  OrderStatus new_status = 2;
+  string drone_id = 3;
+}
+
+message UpdateStatusResponse {
+  bool success = 1;
 }

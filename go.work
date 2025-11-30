@@ -1,7 +1,11 @@
 go 1.25.4
 
- use (
+use (
  	./gen
+	./services/api-gateway
 	./services/telemetry
-	./services/simulator
+	./services/order
+	./services/dispatch
+	./services/tracking
 )
+

@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v3.21.12
-// source: proto/dispatch.proto
+// source: dispatch.proto
 
 package dispatch
 
@@ -26,7 +26,6 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DispatchServiceClient interface {
-	// Order Service вызывает этот метод, когда заказ создан (Шаг: Поток Заказа)
 	AssignDrone(ctx context.Context, in *AssignDroneRequest, opts ...grpc.CallOption) (*AssignDroneResponse, error)
 }
 
@@ -52,7 +51,6 @@ func (c *dispatchServiceClient) AssignDrone(ctx context.Context, in *AssignDrone
 // All implementations must embed UnimplementedDispatchServiceServer
 // for forward compatibility.
 type DispatchServiceServer interface {
-	// Order Service вызывает этот метод, когда заказ создан (Шаг: Поток Заказа)
 	AssignDrone(context.Context, *AssignDroneRequest) (*AssignDroneResponse, error)
 	mustEmbedUnimplementedDispatchServiceServer()
 }
@@ -119,5 +117,5 @@ var DispatchService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/dispatch.proto",
+	Metadata: "dispatch.proto",
 }

@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v3.21.12
-// source: proto/tracking.proto
+// source: tracking.proto
 
 package tracking
 
@@ -19,19 +19,18 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	TrackingService_FindNearest_FullMethodName    = "/tracking.TrackingService/FindNearest"
-	TrackingService_SetDroneStatus_FullMethodName = "/tracking.TrackingService/SetDroneStatus"
+	TrackingService_FindNearest_FullMethodName      = "/tracking.TrackingService/FindNearest"
+	TrackingService_GetDroneLocation_FullMethodName = "/tracking.TrackingService/GetDroneLocation"
+	TrackingService_SetStatus_FullMethodName        = "/tracking.TrackingService/SetStatus"
 )
 
 // TrackingServiceClient is the client API for TrackingService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TrackingServiceClient interface {
-	// Используется Dispatch Service'ом для поиска (Шаг Б)
 	FindNearest(ctx context.Context, in *FindNearestRequest, opts ...grpc.CallOption) (*FindNearestResponse, error)
-	// Используется Dispatch Service'ом для блокировки дрона (Шаг В)
-	// Чтобы исключить Race Condition
-	SetDroneStatus(ctx context.Context, in *SetStatusRequest, opts ...grpc.CallOption) (*SetStatusResponse, error)
+	GetDroneLocation(ctx context.Context, in *GetDroneLocationRequest, opts ...grpc.CallOption) (*GetDroneLocationResponse, error)
+	SetStatus(ctx context.Context, in *SetStatusRequest, opts ...grpc.CallOption) (*SetStatusResponse, error)
 }
 
 type trackingServiceClient struct {
@@ -52,10 +51,20 @@ func (c *trackingServiceClient) FindNearest(ctx context.Context, in *FindNearest
 	return out, nil
 }
 
-func (c *trackingServiceClient) SetDroneStatus(ctx context.Context, in *SetStatusRequest, opts ...grpc.CallOption) (*SetStatusResponse, error) {
+func (c *trackingServiceClient) GetDroneLocation(ctx context.Context, in *GetDroneLocationRequest, opts ...grpc.CallOption) (*GetDroneLocationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetDroneLocationResponse)
+	err := c.cc.Invoke(ctx, TrackingService_GetDroneLocation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *trackingServiceClient) SetStatus(ctx context.Context, in *SetStatusRequest, opts ...grpc.CallOption) (*SetStatusResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SetStatusResponse)
-	err := c.cc.Invoke(ctx, TrackingService_SetDroneStatus_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, TrackingService_SetStatus_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -66,11 +75,9 @@ func (c *trackingServiceClient) SetDroneStatus(ctx context.Context, in *SetStatu
 // All implementations must embed UnimplementedTrackingServiceServer
 // for forward compatibility.
 type TrackingServiceServer interface {
-	// Используется Dispatch Service'ом для поиска (Шаг Б)
 	FindNearest(context.Context, *FindNearestRequest) (*FindNearestResponse, error)
-	// Используется Dispatch Service'ом для блокировки дрона (Шаг В)
-	// Чтобы исключить Race Condition
-	SetDroneStatus(context.Context, *SetStatusRequest) (*SetStatusResponse, error)
+	GetDroneLocation(context.Context, *GetDroneLocationRequest) (*GetDroneLocationResponse, error)
+	SetStatus(context.Context, *SetStatusRequest) (*SetStatusResponse, error)
 	mustEmbedUnimplementedTrackingServiceServer()
 }
 
@@ -84,8 +91,11 @@ type UnimplementedTrackingServiceServer struct{}
 func (UnimplementedTrackingServiceServer) FindNearest(context.Context, *FindNearestRequest) (*FindNearestResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FindNearest not implemented")
 }
-func (UnimplementedTrackingServiceServer) SetDroneStatus(context.Context, *SetStatusRequest) (*SetStatusResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetDroneStatus not implemented")
+func (UnimplementedTrackingServiceServer) GetDroneLocation(context.Context, *GetDroneLocationRequest) (*GetDroneLocationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDroneLocation not implemented")
+}
+func (UnimplementedTrackingServiceServer) SetStatus(context.Context, *SetStatusRequest) (*SetStatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetStatus not implemented")
 }
 func (UnimplementedTrackingServiceServer) mustEmbedUnimplementedTrackingServiceServer() {}
 func (UnimplementedTrackingServiceServer) testEmbeddedByValue()                         {}
@@ -126,20 +136,38 @@ func _TrackingService_FindNearest_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _TrackingService_SetDroneStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TrackingService_GetDroneLocation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDroneLocationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrackingServiceServer).GetDroneLocation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TrackingService_GetDroneLocation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrackingServiceServer).GetDroneLocation(ctx, req.(*GetDroneLocationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TrackingService_SetStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SetStatusRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TrackingServiceServer).SetDroneStatus(ctx, in)
+		return srv.(TrackingServiceServer).SetStatus(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: TrackingService_SetDroneStatus_FullMethodName,
+		FullMethod: TrackingService_SetStatus_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TrackingServiceServer).SetDroneStatus(ctx, req.(*SetStatusRequest))
+		return srv.(TrackingServiceServer).SetStatus(ctx, req.(*SetStatusRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -156,10 +184,14 @@ var TrackingService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _TrackingService_FindNearest_Handler,
 		},
 		{
-			MethodName: "SetDroneStatus",
-			Handler:    _TrackingService_SetDroneStatus_Handler,
+			MethodName: "GetDroneLocation",
+			Handler:    _TrackingService_GetDroneLocation_Handler,
+		},
+		{
+			MethodName: "SetStatus",
+			Handler:    _TrackingService_SetStatus_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/tracking.proto",
+	Metadata: "tracking.proto",
 }
