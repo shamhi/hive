@@ -1,9 +1,11 @@
 ## Общая архитектура
+
 https://excalidraw.com/#json=aiozIsaqS5UeVLdOy6A-v,b71CCzkSmriyXZnau0n6Mg
 
 Всего 5 сервисов:
+
 1. [ ] API Gateway (REST от Клиента -> gRPC)
-2. [ ] Telemetry Service (gRPC от Дрона -> Kafka(Producer) -> SendCommand)
+2. [ ] Telemetry Service (gRPC от Дрона -> Kafka(Producer))
 3. [ ] Tracking Service (Redis, гео-поиск ближайшего)
 4. [ ] Order Service (Database, бизнес-логика)
 5. [ ] Dispatch Service (Диспетчер, оркестратор)
@@ -11,17 +13,24 @@ https://excalidraw.com/#json=aiozIsaqS5UeVLdOy6A-v,b71CCzkSmriyXZnau0n6Mg
 6. [ ] Drone Emulator (optional)
 
 По инфраструктуре:
+
 1. [ ] Nginx
 2. [ ] Docker Compose (общий для всего проекта)
 3. [ ] Dockerfile (свой для каждого сервиса)
+4. [ ] Gitlab CI/CD (сборка, линтер, тесты и т.д.)
 
 ### Задачи по сервисам
+
 #### Telemetry Service
+
 Для каждого дрона - свое соединение для обмена данными
 Нужно:
-1. [ ] Реализовать `sync.Map` где хранятся данные вида `{ID: Connection}`, добавлять в эту мапу id дрона и его коннект при первом соединении
+
+1. [ ] Реализовать `sync.Map` где хранятся данные вида `{ID: Connection}`, добавлять в эту мапу id дрона и его коннект
+   при первом соединении
 2. [ ] Принимать данные от дрона
-    * Валидировать их: проверять что батарея в пределах `0-100`, координаты в пределах допустимой территории, статус должен быть одним из описанных в .proto контракте, иначе обрывать соединение
+    * Валидировать их: проверять что батарея в пределах `0-100`, координаты в пределах допустимой территории, статус
+      должен быть одним из описанных в .proto контракте, иначе обрывать соединение
     * Отправлять в Kafka топик `telemetry.raw`данные от дрона
 3. [ ] Реализовать gRPC метод SendCommand (вызывается Dispatch сервисом):
     * Найти соединение в `sync.Map` по id дрона
@@ -29,6 +38,7 @@ https://excalidraw.com/#json=aiozIsaqS5UeVLdOy6A-v,b71CCzkSmriyXZnau0n6Mg
 4. [ ] Реализовать отправку событий от дрона `ARRIVED`, `PICKED_UP`, `DROPPED_CARGO` в Kafka топик `events`
 
 Proto контракт:
+
 ```proto
 syntax = "proto3";  
   
@@ -105,10 +115,11 @@ message DispatchCommandResponse {
 }
 ```
 
-
 #### Tracking Service
+
 Отвечает за хранение данных дронов в Redis (про Redis Geo можно почитать [тут](https://habr.com/ru/articles/679994/))
 Нужно:
+
 1. [ ] Подключиться к Kafka Consumer Group `tracking-group`
 2. [ ] Читать топик `telemetry.raw`:
     * Обновлять гео-индекс: `GEOADD drones <lon> <lat> <drone_id>`
@@ -121,6 +132,7 @@ message DispatchCommandResponse {
 5. [ ] Реализовать gRPC метод `SetStatus` (менять статус дрона в Redis)
 
 Proto контракт:
+
 ```proto
 syntax = "proto3";  
   
@@ -174,10 +186,11 @@ message SetStatusResponse {
 }
 ```
 
-
 #### Order Service
+
 Отвечает за создание заказа и получения информации по нему
 Нужно:
+
 1. [ ] Поднять миграции БД (таблица `orders`)
 2. [ ] Реализовать gRPC метод `CreateOrder`:
     * Сохранить заказ в БД со статусом `PENDING`
@@ -187,6 +200,7 @@ message SetStatusResponse {
 4. [ ] Реализовать gRPC метод `UpdateStatus` (обновлять статус заказа, метод вызывает `dispatch` сервис)
 
 Proto контракт:
+
 ```proto
 syntax = "proto3";  
   
@@ -245,10 +259,11 @@ message UpdateStatusResponse {
 }
 ```
 
-
 #### Dispatch Service
+
 Привязывает дрона к заказу и отправляет ему команды (через `telemetry` сервис)
 Нужно:
+
 1. [ ] Реализовать метод `AssignOrder`:
     * Найти ближайший склад к точке заказа
     * Вызвать `tracking.FindNearest` для получения ближайшего дрона к этому складу
@@ -259,10 +274,12 @@ message UpdateStatusResponse {
     * Если `PICKED_UP_CARGO` -> шлем `FLY_TO(Client)`
     * Если `ARRIVED_AT_CLIENT` -> шлем `DROP_CARGO`
     * Если `DROPPED_CARGO` -> шлем `FLY_TO(Base)`, `order.UpdateStatus(COMPLETED)` и `tracking.SetStatus(FREE)`
-    * Если `ARRIVED_AT_BASE` -> шлем `CHARGE` и `tracking.SetStatus(CHARGING)` если `battery < 80%`, иначе просто `WAIT` (статус остается `FREE`)
+    * Если `ARRIVED_AT_BASE` -> шлем `CHARGE` и `tracking.SetStatus(CHARGING)` если `battery < 80%`, иначе просто
+      `WAIT` (статус остается `FREE`)
     * Если `FULLY_CHARGED` -> шлем `WAIT` и `tracking.SetStatus(FREE)`
 
 Proto контракт:
+
 ```proto
 syntax = "proto3";  
   
@@ -289,10 +306,12 @@ message AssignDroneResponse {
 }
 ```
 
-
 #### API Gateway
-Сервер на `echo`, принимает REST HTTP запросы от клиентского приложения (фронтенда), не содержит бизнес-логики, занимается только маршрутизацией и базовой валидации
+
+Сервер на `echo`, принимает REST HTTP запросы от клиентского приложения (фронтенда), не содержит бизнес-логики,
+занимается только маршрутизацией и базовой валидации
 Нужно:
+
 1. [ ] Поднять HTTP сервер на порту `8080`
 2. [ ] POST `/api/v1/orders`:
     * Принимает JSON:
@@ -335,6 +354,7 @@ message AssignDroneResponse {
 *В будущем добавить регистрацию/авторизацию пользователя и CRUD в БД*
 
 OpenAPI спецификация:
+
 ```openapi
 openapi: 3.0.1
 info:
@@ -552,14 +572,16 @@ components:
           example: "Delivery location is out of service area"
 ```
 
-
-
 #### Drone Emulator (отдельный клиентский скрипт, не относится к сервисам)
-*Отличие эмулятора от симулятора в том, что эмулятор воспроизводит интерфейс и поведение системы, а симулятор точную физику и поведение дрона в реальном мире.
-В MVP нашего проекта используем **эмулятор**, потому что он не учитывает гравитацию, погодные условия и препятствия. Ему важно, чтобы на команду "Лети туда" он начал менять координаты с заданной скоростью*
+
+*Отличие эмулятора от симулятора в том, что эмулятор воспроизводит интерфейс и поведение системы, а симулятор точную
+физику и поведение дрона в реальном мире.
+В MVP нашего проекта используем **эмулятор**, потому что он не учитывает гравитацию, погодные условия и препятствия. Ему
+важно, чтобы на команду "Лети туда" он начал менять координаты с заданной скоростью*
 
 Запускает N "виртуальных дронов", подключается с каждого дрона (отдельной функции) к Telemetry Service
 Нужно:
+
 1. [ ] Для каждого дрона запустить отдельную горутину
 2. [ ] Логика одного дрона:
     * Инициализация:
@@ -573,7 +595,8 @@ components:
             * Если статус `BUSY` (летим):
                 * Изменить `Lat, Lon` в сторону `Target` с фиксированной скоростью (например 10 м/с)
                 * Уменьшить заряд батареи (например -1% раз в 15 секунд)
-                * Проверить: если расстояние до цели <5 метров (учет погрешности) -> отправить событие (`ARRIVED`, `PICKED_UP`, `DROPPED`)
+                * Проверить: если расстояние до цели <5 метров (учет погрешности) -> отправить событие (`ARRIVED`,
+                  `PICKED_UP`, `DROPPED`)
             * Если статус `CHARGING` (на базе на зарядке)
                 * Увеличить заряд (+1% раз в 5 секунд)
                 * Если 100% -> отправить `FULLY_CHARGED`, статус `FREE`
@@ -593,6 +616,7 @@ components:
             * Поставить статус = `CHARGING`
 
 Алгоритм движения (примерный):
+
 ```go
 deltaLat := (targetLat - currentLat) * speedFactor
 deltaLon := (targetLon - currentLon) * speedFactor
