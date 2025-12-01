@@ -12,5 +12,5 @@ type OrderRepository interface {
 }
 
 type DispatchClient interface {
-	AssignDrone(ctx context.Context, orderID string, loc domain.Location) error
+	AssignDrone(ctx context.Context, orderID string, loc domain.Location) (droneID string, err error)
 }

@@ -1,4 +1,4 @@
-package mock
+package mocks
 
 import (
 	"context"
@@ -11,6 +11,6 @@ func NewMockDispatch() *MockDispatch {
 	return &MockDispatch{}
 }
 
-func (m *MockDispatch) AssignDrone(_ context.Context, orderID string, loc domain.Location) error {
-	return nil
+func (m *MockDispatch) AssignDrone(_ context.Context, orderID string, loc domain.Location) (string, error) {
+	return "drone-mock-123", nil
 }

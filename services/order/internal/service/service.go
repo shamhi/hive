@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"hive/services/order/internal/domain"
+	"time"
 )
 
 type OrderService struct {
@@ -12,51 +13,67 @@ type OrderService struct {
 }
 
 func NewOrderService(repo OrderRepository, dispatcher DispatchClient) *OrderService {
-	return &OrderService{
-		repo:       repo,
-		dispatcher: dispatcher,
-	}
+	return &OrderService{repo: repo, dispatcher: dispatcher}
 }
 
-func (s *OrderService) CreateOrder(ctx context.Context, id string, items []string, loc domain.Location) (string, error) {
-	if len(items) == 0 {
-		return "", fmt.Errorf("empty items list")
-	}
+func (s *OrderService) CreateOrder(
+	ctx context.Context,
+	orderID, userID string,
+	items []string,
+	loc domain.Location,
+) (droneID string, etaSeconds int32, err error) {
 
 	order := &domain.Order{
-		ID:       id,
-		Items:    items,
-		Status:   domain.CREATED,
-		Location: loc,
+		ID:        orderID,
+		UserID:    userID,
+		Items:     items,
+		Status:    domain.PENDING,
+		Location:  loc,
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
 	}
 
 	if err := s.repo.Save(ctx, order); err != nil {
-		return "", err
+		return "", 0, fmt.Errorf("failed to save order: %w", err)
 	}
 
-	if err := s.dispatcher.AssignDrone(ctx, order.ID, order.Location); err != nil {
+	droneID, err = s.dispatcher.AssignDrone(ctx, order.ID, order.Location)
+	if err != nil {
 		order.Status = domain.FAILED
-		if err := s.repo.Update(ctx, order); err != nil {
-			return "", err
-		}
-		return "", err
+		_ = s.repo.Update(ctx, order)
+		return "", 0, fmt.Errorf("assign drone failed: %w", err)
 	}
 
-	order.Status = domain.PENDING
+	order.DroneID = droneID
+	order.Status = domain.ASSIGNED
+	order.UpdatedAt = time.Now().UTC()
+
 	if err := s.repo.Update(ctx, order); err != nil {
-		return "", nil
+		return "", 0, fmt.Errorf("failed to update order: %w", err)
 	}
 
-	// TODO: calculate estimatedTime
-
-	return "15min", nil
+	return droneID, 900, nil
 }
 
 func (s *OrderService) GetOrder(ctx context.Context, id string) (*domain.Order, error) {
 	order, err := s.repo.Get(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get order: %w", err)
+	}
+	return order, nil
+}
+
+func (s *OrderService) UpdateStatus(ctx context.Context, orderID string, status domain.OrderStatus) error {
+	order, err := s.repo.Get(ctx, orderID)
+	if err != nil {
+		return err
 	}
 
-	return order, nil
+	order.Status = status
+	order.UpdatedAt = time.Now().UTC()
+
+	if err := s.repo.Update(ctx, order); err != nil {
+		return fmt.Errorf("failed to update order status: %w", err)
+	}
+	return nil
 }

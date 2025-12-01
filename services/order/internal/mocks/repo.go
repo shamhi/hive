@@ -1,9 +1,9 @@
-package mock
+package mocks
 
 import (
 	"context"
-	"fmt"
 	"hive/services/order/internal/domain"
+	"hive/services/order/internal/service"
 	"sync"
 )
 
@@ -31,7 +31,7 @@ func (m *MockRepo) Get(_ context.Context, id string) (*domain.Order, error) {
 	if o, exist := m.orders[id]; exist {
 		return o, nil
 	}
-	return nil, fmt.Errorf("order not found")
+	return nil, service.ErrNotFound
 }
 
 func (m *MockRepo) Update(_ context.Context, o *domain.Order) error {
@@ -40,8 +40,9 @@ func (m *MockRepo) Update(_ context.Context, o *domain.Order) error {
 
 	stgO, exist := m.orders[o.ID]
 	if !exist {
-		return fmt.Errorf("order not found")
+		return service.ErrNotFound
 	}
+	stgO.DroneID = o.DroneID
 	stgO.Items = o.Items
 	stgO.Status = o.Status
 	stgO.Location = o.Location
