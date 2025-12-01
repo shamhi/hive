@@ -192,7 +192,8 @@ type CreateOrderResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
 	Status        OrderStatus            `protobuf:"varint,2,opt,name=status,proto3,enum=order.OrderStatus" json:"status,omitempty"`
-	EstimatedTime string                 `protobuf:"bytes,3,opt,name=estimated_time,json=estimatedTime,proto3" json:"estimated_time,omitempty"`
+	EtaSeconds    int32                  `protobuf:"varint,3,opt,name=eta_seconds,json=etaSeconds,proto3" json:"eta_seconds,omitempty"`
+	DroneId       string                 `protobuf:"bytes,4,opt,name=drone_id,json=droneId,proto3" json:"drone_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -241,9 +242,16 @@ func (x *CreateOrderResponse) GetStatus() OrderStatus {
 	return OrderStatus_CREATED
 }
 
-func (x *CreateOrderResponse) GetEstimatedTime() string {
+func (x *CreateOrderResponse) GetEtaSeconds() int32 {
 	if x != nil {
-		return x.EstimatedTime
+		return x.EtaSeconds
+	}
+	return 0
+}
+
+func (x *CreateOrderResponse) GetDroneId() string {
+	if x != nil {
+		return x.DroneId
 	}
 	return ""
 }
@@ -297,6 +305,8 @@ type GetOrderResponse struct {
 	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
 	Status        OrderStatus            `protobuf:"varint,2,opt,name=status,proto3,enum=order.OrderStatus" json:"status,omitempty"`
 	DroneId       string                 `protobuf:"bytes,3,opt,name=drone_id,json=droneId,proto3" json:"drone_id,omitempty"`
+	CreatedAt     int64                  `protobuf:"varint,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     int64                  `protobuf:"varint,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -352,11 +362,25 @@ func (x *GetOrderResponse) GetDroneId() string {
 	return ""
 }
 
+func (x *GetOrderResponse) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+func (x *GetOrderResponse) GetUpdatedAt() int64 {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return 0
+}
+
 type UpdateStatusRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	NewStatus     OrderStatus            `protobuf:"varint,2,opt,name=new_status,json=newStatus,proto3,enum=order.OrderStatus" json:"new_status,omitempty"`
-	DroneId       string                 `protobuf:"bytes,3,opt,name=drone_id,json=droneId,proto3" json:"drone_id,omitempty"`
+	Status        OrderStatus            `protobuf:"varint,2,opt,name=status,proto3,enum=order.OrderStatus" json:"status,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -398,16 +422,16 @@ func (x *UpdateStatusRequest) GetOrderId() string {
 	return ""
 }
 
-func (x *UpdateStatusRequest) GetNewStatus() OrderStatus {
+func (x *UpdateStatusRequest) GetStatus() OrderStatus {
 	if x != nil {
-		return x.NewStatus
+		return x.Status
 	}
 	return OrderStatus_CREATED
 }
 
-func (x *UpdateStatusRequest) GetDroneId() string {
+func (x *UpdateStatusRequest) GetMessage() string {
 	if x != nil {
-		return x.DroneId
+		return x.Message
 	}
 	return ""
 }
@@ -467,22 +491,27 @@ const file_order_proto_rawDesc = "" +
 	"\x12CreateOrderRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x14\n" +
 	"\x05items\x18\x02 \x03(\tR\x05items\x12<\n" +
-	"\x11delivery_location\x18\x03 \x01(\v2\x0f.order.LocationR\x10deliveryLocation\"\x83\x01\n" +
+	"\x11delivery_location\x18\x03 \x01(\v2\x0f.order.LocationR\x10deliveryLocation\"\x98\x01\n" +
 	"\x13CreateOrderResponse\x12\x19\n" +
 	"\border_id\x18\x01 \x01(\tR\aorderId\x12*\n" +
-	"\x06status\x18\x02 \x01(\x0e2\x12.order.OrderStatusR\x06status\x12%\n" +
-	"\x0eestimated_time\x18\x03 \x01(\tR\restimatedTime\",\n" +
+	"\x06status\x18\x02 \x01(\x0e2\x12.order.OrderStatusR\x06status\x12\x1f\n" +
+	"\veta_seconds\x18\x03 \x01(\x05R\n" +
+	"etaSeconds\x12\x19\n" +
+	"\bdrone_id\x18\x04 \x01(\tR\adroneId\",\n" +
 	"\x0fGetOrderRequest\x12\x19\n" +
-	"\border_id\x18\x01 \x01(\tR\aorderId\"t\n" +
+	"\border_id\x18\x01 \x01(\tR\aorderId\"\xb2\x01\n" +
 	"\x10GetOrderResponse\x12\x19\n" +
 	"\border_id\x18\x01 \x01(\tR\aorderId\x12*\n" +
 	"\x06status\x18\x02 \x01(\x0e2\x12.order.OrderStatusR\x06status\x12\x19\n" +
-	"\bdrone_id\x18\x03 \x01(\tR\adroneId\"~\n" +
-	"\x13UpdateStatusRequest\x12\x19\n" +
-	"\border_id\x18\x01 \x01(\tR\aorderId\x121\n" +
+	"\bdrone_id\x18\x03 \x01(\tR\adroneId\x12\x1d\n" +
 	"\n" +
-	"new_status\x18\x02 \x01(\x0e2\x12.order.OrderStatusR\tnewStatus\x12\x19\n" +
-	"\bdrone_id\x18\x03 \x01(\tR\adroneId\"0\n" +
+	"created_at\x18\x04 \x01(\x03R\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x05 \x01(\x03R\tupdatedAt\"v\n" +
+	"\x13UpdateStatusRequest\x12\x19\n" +
+	"\border_id\x18\x01 \x01(\tR\aorderId\x12*\n" +
+	"\x06status\x18\x02 \x01(\x0e2\x12.order.OrderStatusR\x06status\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\"0\n" +
 	"\x14UpdateStatusResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess*P\n" +
 	"\vOrderStatus\x12\v\n" +
@@ -525,7 +554,7 @@ var file_order_proto_depIdxs = []int32{
 	1, // 0: order.CreateOrderRequest.delivery_location:type_name -> order.Location
 	0, // 1: order.CreateOrderResponse.status:type_name -> order.OrderStatus
 	0, // 2: order.GetOrderResponse.status:type_name -> order.OrderStatus
-	0, // 3: order.UpdateStatusRequest.new_status:type_name -> order.OrderStatus
+	0, // 3: order.UpdateStatusRequest.status:type_name -> order.OrderStatus
 	2, // 4: order.OrderService.CreateOrder:input_type -> order.CreateOrderRequest
 	4, // 5: order.OrderService.GetOrder:input_type -> order.GetOrderRequest
 	6, // 6: order.OrderService.UpdateStatus:input_type -> order.UpdateStatusRequest
