@@ -28,7 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TelemetryServiceClient interface {
 	Link(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[DroneTelemetry, ServerCommand], error)
-	SendCommand(ctx context.Context, in *DispatchCommandRequest, opts ...grpc.CallOption) (*DispatchCommandResponse, error)
+	SendCommand(ctx context.Context, in *SendCommandRequest, opts ...grpc.CallOption) (*SendCommandResponse, error)
 }
 
 type telemetryServiceClient struct {
@@ -52,9 +52,9 @@ func (c *telemetryServiceClient) Link(ctx context.Context, opts ...grpc.CallOpti
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type TelemetryService_LinkClient = grpc.BidiStreamingClient[DroneTelemetry, ServerCommand]
 
-func (c *telemetryServiceClient) SendCommand(ctx context.Context, in *DispatchCommandRequest, opts ...grpc.CallOption) (*DispatchCommandResponse, error) {
+func (c *telemetryServiceClient) SendCommand(ctx context.Context, in *SendCommandRequest, opts ...grpc.CallOption) (*SendCommandResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DispatchCommandResponse)
+	out := new(SendCommandResponse)
 	err := c.cc.Invoke(ctx, TelemetryService_SendCommand_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -67,7 +67,7 @@ func (c *telemetryServiceClient) SendCommand(ctx context.Context, in *DispatchCo
 // for forward compatibility.
 type TelemetryServiceServer interface {
 	Link(grpc.BidiStreamingServer[DroneTelemetry, ServerCommand]) error
-	SendCommand(context.Context, *DispatchCommandRequest) (*DispatchCommandResponse, error)
+	SendCommand(context.Context, *SendCommandRequest) (*SendCommandResponse, error)
 	mustEmbedUnimplementedTelemetryServiceServer()
 }
 
@@ -81,7 +81,7 @@ type UnimplementedTelemetryServiceServer struct{}
 func (UnimplementedTelemetryServiceServer) Link(grpc.BidiStreamingServer[DroneTelemetry, ServerCommand]) error {
 	return status.Errorf(codes.Unimplemented, "method Link not implemented")
 }
-func (UnimplementedTelemetryServiceServer) SendCommand(context.Context, *DispatchCommandRequest) (*DispatchCommandResponse, error) {
+func (UnimplementedTelemetryServiceServer) SendCommand(context.Context, *SendCommandRequest) (*SendCommandResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendCommand not implemented")
 }
 func (UnimplementedTelemetryServiceServer) mustEmbedUnimplementedTelemetryServiceServer() {}
@@ -113,7 +113,7 @@ func _TelemetryService_Link_Handler(srv interface{}, stream grpc.ServerStream) e
 type TelemetryService_LinkServer = grpc.BidiStreamingServer[DroneTelemetry, ServerCommand]
 
 func _TelemetryService_SendCommand_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DispatchCommandRequest)
+	in := new(SendCommandRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func _TelemetryService_SendCommand_Handler(srv interface{}, ctx context.Context,
 		FullMethod: TelemetryService_SendCommand_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TelemetryServiceServer).SendCommand(ctx, req.(*DispatchCommandRequest))
+		return srv.(TelemetryServiceServer).SendCommand(ctx, req.(*SendCommandRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

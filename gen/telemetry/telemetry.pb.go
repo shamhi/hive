@@ -134,26 +134,26 @@ func (DroneEvent) EnumDescriptor() ([]byte, []int) {
 	return file_telemetry_proto_rawDescGZIP(), []int{1}
 }
 
-type Action int32
+type DroneAction int32
 
 const (
-	Action_ACTION_WAIT         Action = 0
-	Action_ACTION_FLY_TO       Action = 1
-	Action_ACTION_PICKUP_CARGO Action = 2
-	Action_ACTION_DROP_CARGO   Action = 3
-	Action_ACTION_CHARGE       Action = 4
+	DroneAction_ACTION_WAIT         DroneAction = 0
+	DroneAction_ACTION_FLY_TO       DroneAction = 1
+	DroneAction_ACTION_PICKUP_CARGO DroneAction = 2
+	DroneAction_ACTION_DROP_CARGO   DroneAction = 3
+	DroneAction_ACTION_CHARGE       DroneAction = 4
 )
 
-// Enum value maps for Action.
+// Enum value maps for DroneAction.
 var (
-	Action_name = map[int32]string{
+	DroneAction_name = map[int32]string{
 		0: "ACTION_WAIT",
 		1: "ACTION_FLY_TO",
 		2: "ACTION_PICKUP_CARGO",
 		3: "ACTION_DROP_CARGO",
 		4: "ACTION_CHARGE",
 	}
-	Action_value = map[string]int32{
+	DroneAction_value = map[string]int32{
 		"ACTION_WAIT":         0,
 		"ACTION_FLY_TO":       1,
 		"ACTION_PICKUP_CARGO": 2,
@@ -162,30 +162,30 @@ var (
 	}
 )
 
-func (x Action) Enum() *Action {
-	p := new(Action)
+func (x DroneAction) Enum() *DroneAction {
+	p := new(DroneAction)
 	*p = x
 	return p
 }
 
-func (x Action) String() string {
+func (x DroneAction) String() string {
 	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
 }
 
-func (Action) Descriptor() protoreflect.EnumDescriptor {
+func (DroneAction) Descriptor() protoreflect.EnumDescriptor {
 	return file_telemetry_proto_enumTypes[2].Descriptor()
 }
 
-func (Action) Type() protoreflect.EnumType {
+func (DroneAction) Type() protoreflect.EnumType {
 	return &file_telemetry_proto_enumTypes[2]
 }
 
-func (x Action) Number() protoreflect.EnumNumber {
+func (x DroneAction) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// Deprecated: Use Action.Descriptor instead.
-func (Action) EnumDescriptor() ([]byte, []int) {
+// Deprecated: Use DroneAction.Descriptor instead.
+func (DroneAction) EnumDescriptor() ([]byte, []int) {
 	return file_telemetry_proto_rawDescGZIP(), []int{2}
 }
 
@@ -380,7 +380,7 @@ func (x *DroneTelemetry) GetEvent() DroneEvent {
 type ServerCommand struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	CommandId     string                 `protobuf:"bytes,1,opt,name=command_id,json=commandId,proto3" json:"command_id,omitempty"`
-	Action        Action                 `protobuf:"varint,2,opt,name=action,proto3,enum=telemetry.Action" json:"action,omitempty"`
+	Action        DroneAction            `protobuf:"varint,2,opt,name=action,proto3,enum=telemetry.DroneAction" json:"action,omitempty"`
 	Target        *Location              `protobuf:"bytes,3,opt,name=target,proto3" json:"target,omitempty"`
 	Type          TargetType             `protobuf:"varint,4,opt,name=type,proto3,enum=telemetry.TargetType" json:"type,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -424,11 +424,11 @@ func (x *ServerCommand) GetCommandId() string {
 	return ""
 }
 
-func (x *ServerCommand) GetAction() Action {
+func (x *ServerCommand) GetAction() DroneAction {
 	if x != nil {
 		return x.Action
 	}
-	return Action_ACTION_WAIT
+	return DroneAction_ACTION_WAIT
 }
 
 func (x *ServerCommand) GetTarget() *Location {
@@ -445,30 +445,30 @@ func (x *ServerCommand) GetType() TargetType {
 	return TargetType_TARGET_POINT
 }
 
-type DispatchCommandRequest struct {
+type SendCommandRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	DroneId       string                 `protobuf:"bytes,1,opt,name=drone_id,json=droneId,proto3" json:"drone_id,omitempty"`
-	Action        Action                 `protobuf:"varint,2,opt,name=action,proto3,enum=telemetry.Action" json:"action,omitempty"`
+	Action        DroneAction            `protobuf:"varint,2,opt,name=action,proto3,enum=telemetry.DroneAction" json:"action,omitempty"`
 	Target        *Location              `protobuf:"bytes,3,opt,name=target,proto3" json:"target,omitempty"`
 	Type          TargetType             `protobuf:"varint,4,opt,name=type,proto3,enum=telemetry.TargetType" json:"type,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *DispatchCommandRequest) Reset() {
-	*x = DispatchCommandRequest{}
+func (x *SendCommandRequest) Reset() {
+	*x = SendCommandRequest{}
 	mi := &file_telemetry_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *DispatchCommandRequest) String() string {
+func (x *SendCommandRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DispatchCommandRequest) ProtoMessage() {}
+func (*SendCommandRequest) ProtoMessage() {}
 
-func (x *DispatchCommandRequest) ProtoReflect() protoreflect.Message {
+func (x *SendCommandRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_telemetry_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -480,60 +480,60 @@ func (x *DispatchCommandRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DispatchCommandRequest.ProtoReflect.Descriptor instead.
-func (*DispatchCommandRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use SendCommandRequest.ProtoReflect.Descriptor instead.
+func (*SendCommandRequest) Descriptor() ([]byte, []int) {
 	return file_telemetry_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *DispatchCommandRequest) GetDroneId() string {
+func (x *SendCommandRequest) GetDroneId() string {
 	if x != nil {
 		return x.DroneId
 	}
 	return ""
 }
 
-func (x *DispatchCommandRequest) GetAction() Action {
+func (x *SendCommandRequest) GetAction() DroneAction {
 	if x != nil {
 		return x.Action
 	}
-	return Action_ACTION_WAIT
+	return DroneAction_ACTION_WAIT
 }
 
-func (x *DispatchCommandRequest) GetTarget() *Location {
+func (x *SendCommandRequest) GetTarget() *Location {
 	if x != nil {
 		return x.Target
 	}
 	return nil
 }
 
-func (x *DispatchCommandRequest) GetType() TargetType {
+func (x *SendCommandRequest) GetType() TargetType {
 	if x != nil {
 		return x.Type
 	}
 	return TargetType_TARGET_POINT
 }
 
-type DispatchCommandResponse struct {
+type SendCommandResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *DispatchCommandResponse) Reset() {
-	*x = DispatchCommandResponse{}
+func (x *SendCommandResponse) Reset() {
+	*x = SendCommandResponse{}
 	mi := &file_telemetry_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *DispatchCommandResponse) String() string {
+func (x *SendCommandResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DispatchCommandResponse) ProtoMessage() {}
+func (*SendCommandResponse) ProtoMessage() {}
 
-func (x *DispatchCommandResponse) ProtoReflect() protoreflect.Message {
+func (x *SendCommandResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_telemetry_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -545,12 +545,12 @@ func (x *DispatchCommandResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DispatchCommandResponse.ProtoReflect.Descriptor instead.
-func (*DispatchCommandResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use SendCommandResponse.ProtoReflect.Descriptor instead.
+func (*SendCommandResponse) Descriptor() ([]byte, []int) {
 	return file_telemetry_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *DispatchCommandResponse) GetSuccess() bool {
+func (x *SendCommandResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
@@ -571,19 +571,19 @@ const file_telemetry_proto_rawDesc = "" +
 	"\abattery\x18\x03 \x01(\x05R\abattery\x12.\n" +
 	"\x06status\x18\x04 \x01(\x0e2\x16.telemetry.DroneStatusR\x06status\x12\x1c\n" +
 	"\ttimestamp\x18\x05 \x01(\x03R\ttimestamp\x12+\n" +
-	"\x05event\x18\x06 \x01(\x0e2\x15.telemetry.DroneEventR\x05event\"\xb1\x01\n" +
+	"\x05event\x18\x06 \x01(\x0e2\x15.telemetry.DroneEventR\x05event\"\xb6\x01\n" +
 	"\rServerCommand\x12\x1d\n" +
 	"\n" +
-	"command_id\x18\x01 \x01(\tR\tcommandId\x12)\n" +
-	"\x06action\x18\x02 \x01(\x0e2\x11.telemetry.ActionR\x06action\x12+\n" +
+	"command_id\x18\x01 \x01(\tR\tcommandId\x12.\n" +
+	"\x06action\x18\x02 \x01(\x0e2\x16.telemetry.DroneActionR\x06action\x12+\n" +
 	"\x06target\x18\x03 \x01(\v2\x13.telemetry.LocationR\x06target\x12)\n" +
-	"\x04type\x18\x04 \x01(\x0e2\x15.telemetry.TargetTypeR\x04type\"\xb6\x01\n" +
-	"\x16DispatchCommandRequest\x12\x19\n" +
-	"\bdrone_id\x18\x01 \x01(\tR\adroneId\x12)\n" +
-	"\x06action\x18\x02 \x01(\x0e2\x11.telemetry.ActionR\x06action\x12+\n" +
+	"\x04type\x18\x04 \x01(\x0e2\x15.telemetry.TargetTypeR\x04type\"\xb7\x01\n" +
+	"\x12SendCommandRequest\x12\x19\n" +
+	"\bdrone_id\x18\x01 \x01(\tR\adroneId\x12.\n" +
+	"\x06action\x18\x02 \x01(\x0e2\x16.telemetry.DroneActionR\x06action\x12+\n" +
 	"\x06target\x18\x03 \x01(\v2\x13.telemetry.LocationR\x06target\x12)\n" +
-	"\x04type\x18\x04 \x01(\x0e2\x15.telemetry.TargetTypeR\x04type\"3\n" +
-	"\x17DispatchCommandResponse\x12\x18\n" +
+	"\x04type\x18\x04 \x01(\x0e2\x15.telemetry.TargetTypeR\x04type\"/\n" +
+	"\x13SendCommandResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess*X\n" +
 	"\vDroneStatus\x12\x12\n" +
 	"\x0eSTATUS_UNKNOWN\x10\x00\x12\x0f\n" +
@@ -599,8 +599,8 @@ const file_telemetry_proto_rawDesc = "" +
 	"\x17EVENT_ARRIVED_AT_CLIENT\x10\x03\x12\x17\n" +
 	"\x13EVENT_DROPPED_CARGO\x10\x04\x12\x19\n" +
 	"\x15EVENT_ARRIVED_AT_BASE\x10\x05\x12\x17\n" +
-	"\x13EVENT_FULLY_CHARGED\x10\x06*o\n" +
-	"\x06Action\x12\x0f\n" +
+	"\x13EVENT_FULLY_CHARGED\x10\x06*t\n" +
+	"\vDroneAction\x12\x0f\n" +
 	"\vACTION_WAIT\x10\x00\x12\x11\n" +
 	"\rACTION_FLY_TO\x10\x01\x12\x17\n" +
 	"\x13ACTION_PICKUP_CARGO\x10\x02\x12\x15\n" +
@@ -611,10 +611,10 @@ const file_telemetry_proto_rawDesc = "" +
 	"\fTARGET_POINT\x10\x00\x12\x10\n" +
 	"\fTARGET_STORE\x10\x01\x12\x11\n" +
 	"\rTARGET_CLIENT\x10\x02\x12\x0f\n" +
-	"\vTARGET_BASE\x10\x032\xa9\x01\n" +
+	"\vTARGET_BASE\x10\x032\xa1\x01\n" +
 	"\x10TelemetryService\x12?\n" +
-	"\x04Link\x12\x19.telemetry.DroneTelemetry\x1a\x18.telemetry.ServerCommand(\x010\x01\x12T\n" +
-	"\vSendCommand\x12!.telemetry.DispatchCommandRequest\x1a\".telemetry.DispatchCommandResponseB\x14Z\x12hive/gen/telemetryb\x06proto3"
+	"\x04Link\x12\x19.telemetry.DroneTelemetry\x1a\x18.telemetry.ServerCommand(\x010\x01\x12L\n" +
+	"\vSendCommand\x12\x1d.telemetry.SendCommandRequest\x1a\x1e.telemetry.SendCommandResponseB\x14Z\x12hive/gen/telemetryb\x06proto3"
 
 var (
 	file_telemetry_proto_rawDescOnce sync.Once
@@ -631,30 +631,30 @@ func file_telemetry_proto_rawDescGZIP() []byte {
 var file_telemetry_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
 var file_telemetry_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_telemetry_proto_goTypes = []any{
-	(DroneStatus)(0),                // 0: telemetry.DroneStatus
-	(DroneEvent)(0),                 // 1: telemetry.DroneEvent
-	(Action)(0),                     // 2: telemetry.Action
-	(TargetType)(0),                 // 3: telemetry.TargetType
-	(*Location)(nil),                // 4: telemetry.Location
-	(*DroneTelemetry)(nil),          // 5: telemetry.DroneTelemetry
-	(*ServerCommand)(nil),           // 6: telemetry.ServerCommand
-	(*DispatchCommandRequest)(nil),  // 7: telemetry.DispatchCommandRequest
-	(*DispatchCommandResponse)(nil), // 8: telemetry.DispatchCommandResponse
+	(DroneStatus)(0),            // 0: telemetry.DroneStatus
+	(DroneEvent)(0),             // 1: telemetry.DroneEvent
+	(DroneAction)(0),            // 2: telemetry.DroneAction
+	(TargetType)(0),             // 3: telemetry.TargetType
+	(*Location)(nil),            // 4: telemetry.Location
+	(*DroneTelemetry)(nil),      // 5: telemetry.DroneTelemetry
+	(*ServerCommand)(nil),       // 6: telemetry.ServerCommand
+	(*SendCommandRequest)(nil),  // 7: telemetry.SendCommandRequest
+	(*SendCommandResponse)(nil), // 8: telemetry.SendCommandResponse
 }
 var file_telemetry_proto_depIdxs = []int32{
 	4,  // 0: telemetry.DroneTelemetry.drone_location:type_name -> telemetry.Location
 	0,  // 1: telemetry.DroneTelemetry.status:type_name -> telemetry.DroneStatus
 	1,  // 2: telemetry.DroneTelemetry.event:type_name -> telemetry.DroneEvent
-	2,  // 3: telemetry.ServerCommand.action:type_name -> telemetry.Action
+	2,  // 3: telemetry.ServerCommand.action:type_name -> telemetry.DroneAction
 	4,  // 4: telemetry.ServerCommand.target:type_name -> telemetry.Location
 	3,  // 5: telemetry.ServerCommand.type:type_name -> telemetry.TargetType
-	2,  // 6: telemetry.DispatchCommandRequest.action:type_name -> telemetry.Action
-	4,  // 7: telemetry.DispatchCommandRequest.target:type_name -> telemetry.Location
-	3,  // 8: telemetry.DispatchCommandRequest.type:type_name -> telemetry.TargetType
+	2,  // 6: telemetry.SendCommandRequest.action:type_name -> telemetry.DroneAction
+	4,  // 7: telemetry.SendCommandRequest.target:type_name -> telemetry.Location
+	3,  // 8: telemetry.SendCommandRequest.type:type_name -> telemetry.TargetType
 	5,  // 9: telemetry.TelemetryService.Link:input_type -> telemetry.DroneTelemetry
-	7,  // 10: telemetry.TelemetryService.SendCommand:input_type -> telemetry.DispatchCommandRequest
+	7,  // 10: telemetry.TelemetryService.SendCommand:input_type -> telemetry.SendCommandRequest
 	6,  // 11: telemetry.TelemetryService.Link:output_type -> telemetry.ServerCommand
-	8,  // 12: telemetry.TelemetryService.SendCommand:output_type -> telemetry.DispatchCommandResponse
+	8,  // 12: telemetry.TelemetryService.SendCommand:output_type -> telemetry.SendCommandResponse
 	11, // [11:13] is the sub-list for method output_type
 	9,  // [9:11] is the sub-list for method input_type
 	9,  // [9:9] is the sub-list for extension type_name

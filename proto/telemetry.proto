@@ -5,7 +5,7 @@ option go_package = "hive/gen/telemetry";
 
 service TelemetryService {
   rpc Link(stream DroneTelemetry) returns (stream ServerCommand);
-  rpc SendCommand(DispatchCommandRequest) returns (DispatchCommandResponse);
+  rpc SendCommand(SendCommandRequest) returns (SendCommandResponse);
 }
 
 enum DroneStatus {
@@ -25,7 +25,7 @@ enum DroneEvent {
   EVENT_FULLY_CHARGED = 6;
 }
 
-enum Action {
+enum DroneAction {
   ACTION_WAIT = 0;
   ACTION_FLY_TO = 1;
   ACTION_PICKUP_CARGO = 2;
@@ -56,18 +56,18 @@ message DroneTelemetry {
 
 message ServerCommand {
   string command_id = 1;
-  Action action = 2;
+  DroneAction action = 2;
   Location target = 3;
   TargetType type = 4;
 }
 
-message DispatchCommandRequest {
+message SendCommandRequest {
   string drone_id = 1;
-  Action action = 2;
+  DroneAction action = 2;
   Location target = 3;
   TargetType type = 4;
 }
 
-message DispatchCommandResponse {
+message SendCommandResponse {
   bool success = 1;
 }
