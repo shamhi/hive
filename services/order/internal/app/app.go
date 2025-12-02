@@ -7,7 +7,7 @@ import (
 	pg "hive/pkg/db/postgres"
 	"hive/pkg/logger"
 	"hive/services/order/internal/config"
-	dispatchAdapter "hive/services/order/internal/infrastructure/client/dispatch"
+	dispatchClient "hive/services/order/internal/infrastructure/client/dispatch"
 	repoPostgres "hive/services/order/internal/repository/postgres"
 	"hive/services/order/internal/service"
 	transportGrpc "hive/services/order/internal/transport/grpc"
@@ -38,9 +38,7 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	dispatchClient := pbDispatch.NewDispatchServiceClient(dispatchConn)
-	dispatcher := dispatchAdapter.NewDispatchAdapter(dispatchClient)
+	dispatcher := dispatchClient.NewDispatchAdapter(pbDispatch.NewDispatchServiceClient(dispatchConn))
 
 	orderService := service.NewOrderService(repo, dispatcher)
 

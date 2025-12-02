@@ -83,7 +83,7 @@ func (r *PostgresRepo) Get(ctx context.Context, id string) (*domain.Order, error
 		statusStr string
 	)
 
-	err = r.db.QueryRow(ctx, sql, args...).Scan(
+	if err = r.db.QueryRow(ctx, sql, args...).Scan(
 		&o.ID,
 		&o.UserID,
 		&o.DroneID,
@@ -93,8 +93,7 @@ func (r *PostgresRepo) Get(ctx context.Context, id string) (*domain.Order, error
 		&o.Location.Lon,
 		&o.CreatedAt,
 		&o.UpdatedAt,
-	)
-	if err != nil {
+	); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, service.ErrNotFound
 		}

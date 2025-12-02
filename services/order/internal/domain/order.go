@@ -21,9 +21,9 @@ type Order struct {
 type OrderStatus string
 
 const (
-	CREATED   OrderStatus = "CREATED"
-	PENDING   OrderStatus = "PENDING"
-	ASSIGNED  OrderStatus = "ASSIGNED"
-	COMPLETED OrderStatus = "COMPLETED"
-	FAILED    OrderStatus = "FAILED"
+	OrderStatusCreated   OrderStatus = "CREATED"
+	OrderStatusPending   OrderStatus = "PENDING"
+	OrderStatusAssigned  OrderStatus = "ASSIGNED"
+	OrderStatusCompleted OrderStatus = "COMPLETED"
+	OrderStatusFailed    OrderStatus = "FAILED"
 )

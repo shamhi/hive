@@ -27,7 +27,7 @@ func (s *OrderService) CreateOrder(
 		ID:        orderID,
 		UserID:    userID,
 		Items:     items,
-		Status:    domain.PENDING,
+		Status:    domain.OrderStatusPending,
 		Location:  loc,
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
@@ -39,13 +39,13 @@ func (s *OrderService) CreateOrder(
 
 	droneID, err = s.dispatcher.AssignDrone(ctx, order.ID, order.Location)
 	if err != nil {
-		order.Status = domain.FAILED
+		order.Status = domain.OrderStatusFailed
 		_ = s.repo.Update(ctx, order)
 		return "", 0, fmt.Errorf("assign drone failed: %w", err)
 	}
 
 	order.DroneID = droneID
-	order.Status = domain.ASSIGNED
+	order.Status = domain.OrderStatusAssigned
 	order.UpdatedAt = time.Now().UTC()
 
 	if err := s.repo.Update(ctx, order); err != nil {

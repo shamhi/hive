@@ -5,12 +5,12 @@ import (
 	"hive/services/order/internal/domain"
 )
 
-type MockDispatch struct{}
+type MockDispatchClient struct{}
 
-func NewMockDispatch() *MockDispatch {
-	return &MockDispatch{}
+func NewMockDispatchClient() *MockDispatchClient {
+	return &MockDispatchClient{}
 }
 
-func (m *MockDispatch) AssignDrone(_ context.Context, orderID string, loc domain.Location) (string, error) {
+func (m *MockDispatchClient) AssignDrone(_ context.Context, orderID string, loc domain.Location) (string, error) {
 	return "drone-mock-123", nil
 }

@@ -7,15 +7,15 @@ import (
 
 func toProtoStatus(s domain.OrderStatus) pb.OrderStatus {
 	switch s {
-	case domain.CREATED:
+	case domain.OrderStatusCreated:
 		return pb.OrderStatus_CREATED
-	case domain.PENDING:
+	case domain.OrderStatusPending:
 		return pb.OrderStatus_PENDING
-	case domain.ASSIGNED:
+	case domain.OrderStatusAssigned:
 		return pb.OrderStatus_ASSIGNED
-	case domain.COMPLETED:
+	case domain.OrderStatusCompleted:
 		return pb.OrderStatus_COMPLETED
-	case domain.FAILED:
+	case domain.OrderStatusFailed:
 		return pb.OrderStatus_FAILED
 	default:
 		return pb.OrderStatus_FAILED
@@ -25,15 +25,15 @@ func toProtoStatus(s domain.OrderStatus) pb.OrderStatus {
 func toDomainStatus(s pb.OrderStatus) (domain.OrderStatus, bool) {
 	switch s {
 	case pb.OrderStatus_CREATED:
-		return domain.CREATED, true
+		return domain.OrderStatusCreated, true
 	case pb.OrderStatus_PENDING:
-		return domain.PENDING, true
+		return domain.OrderStatusPending, true
 	case pb.OrderStatus_ASSIGNED:
-		return domain.ASSIGNED, true
+		return domain.OrderStatusAssigned, true
 	case pb.OrderStatus_COMPLETED:
-		return domain.COMPLETED, true
+		return domain.OrderStatusCompleted, true
 	case pb.OrderStatus_FAILED:
-		return domain.FAILED, true
+		return domain.OrderStatusFailed, true
 	default:
 		return "", false
 	}
