@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	pbTelemetry "hive/gen/telemetry"
+	pbCommon "hive/gen/common"
 	"hive/services/dispatch/internal/domain/drone"
 )
 
@@ -37,10 +38,10 @@ func (c *TelemetryClient) SendCommand(
 		pbAction = pbTelemetry.DroneAction_ACTION_NONE
 	}
 
-	var targetPb *pbTelemetry.Location
+	var targetPb *pbCommon.Location
 	var targetType pbTelemetry.TargetType
 	if target != nil {
-		targetPb = &pbTelemetry.Location{
+		targetPb = &pbCommon.Location{
 			Lat: target.Location.Lat,
 			Lon: target.Location.Lon,
 		}

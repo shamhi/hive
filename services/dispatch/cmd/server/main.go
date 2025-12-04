@@ -34,7 +34,7 @@ func main() {
 	go a.Run(errChan)
 
 	select {
-	case <-errChan:
+	case err := <-errChan:
 		fmt.Fprintf(os.Stderr, "failed to run app: %v\n", err)
 	case <-quitCtx.Done():
 		stopCtx, cancel := context.WithTimeout(context.Background(), cfg.ShutdownTimeout)

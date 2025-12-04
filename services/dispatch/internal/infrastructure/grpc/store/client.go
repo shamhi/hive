@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"fmt"
+	pbCommon "hive/gen/common"
 	pbStore "hive/gen/store"
 	"hive/services/dispatch/internal/domain/shared"
 	"hive/services/dispatch/internal/domain/store"
@@ -18,7 +19,7 @@ func NewStoreClient(client pbStore.StoreServiceClient) *StoreClient {
 
 func (c *StoreClient) FindNearest(ctx context.Context, deliveryLocation *shared.Location) (*store.StoreNearestInfo, error) {
 	req := &pbStore.FindNearestRequest{
-		DeliveryLocation: &pbStore.Location{
+		DeliveryLocation: &pbCommon.Location{
 			Lat: deliveryLocation.Lat,
 			Lon: deliveryLocation.Lon,
 		},

@@ -3,6 +3,7 @@ package tracking
 import (
 	"context"
 	"fmt"
+	pbCommon "hive/gen/common"
 	pbTracking "hive/gen/tracking"
 	"hive/services/dispatch/internal/domain/drone"
 	"hive/services/dispatch/internal/domain/shared"
@@ -23,7 +24,7 @@ func (c *TrackingClient) FindNearest(
 	searchRadius float64,
 ) (*drone.DroneNearestInfo, error) {
 	req := &pbTracking.FindNearestRequest{
-		StoreLocation: &pbTracking.Location{
+		StoreLocation: &pbCommon.Location{
 			Lat: storeLocation.Lat,
 			Lon: storeLocation.Lon,
 		},

@@ -135,25 +135,27 @@ func (a *App) Run(errChan chan<- error) {
 		lg.Info(ctx, "consumer stopped")
 	}(consumerCtx, lg)
 
-	lg.Info(context.Background(), "starting gRPC server", zap.Int("port", a.cfg.GRPCPort))
+	lg.Info(context.Background(), "Running gRPC server",
+		zap.Int("port", a.cfg.GRPCPort),
+		zap.String("env", a.cfg.Env),
+	)
 
 	if err := a.grpcServer.Serve(a.lis); err != nil {
-		errChan <- fmt.Errorf("gRPC server error: %w", err)
+		errChan <- fmt.Errorf("failed to serve gRPC server: %w", err)
 	}
 }
 
 func (a *App) Stop(ctx context.Context) {
 	lg := a.lg.With(zap.String("component", "app"), zap.String("operation", "shutdown"))
 
-	lg.Info(ctx, "initiating graceful shutdown")
+	lg.Info(ctx, "Gracefully shutting down...")
 
 	if a.cancelConsumer != nil {
 		a.cancelConsumer()
-		lg.Info(ctx, "kafka consumer context cancelled")
 	}
 
 	a.consumer.Close()
-	lg.Info(ctx, "kafka consumer closed")
+	lg.Info(ctx, "Kafka consumer closed")
 
 	done := make(chan struct{})
 	go func() {
@@ -170,5 +172,5 @@ func (a *App) Stop(ctx context.Context) {
 		lg.Info(ctx, "gRPC server force stopped")
 	}
 
-	lg.Info(ctx, "shutdown completed successfully")
+	lg.Info(ctx, "Shutdown completed successfully")
 }
