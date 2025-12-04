@@ -137,28 +137,31 @@ func (DroneEvent) EnumDescriptor() ([]byte, []int) {
 type DroneAction int32
 
 const (
-	DroneAction_ACTION_WAIT         DroneAction = 0
-	DroneAction_ACTION_FLY_TO       DroneAction = 1
-	DroneAction_ACTION_PICKUP_CARGO DroneAction = 2
-	DroneAction_ACTION_DROP_CARGO   DroneAction = 3
-	DroneAction_ACTION_CHARGE       DroneAction = 4
+	DroneAction_ACTION_NONE         DroneAction = 0
+	DroneAction_ACTION_WAIT         DroneAction = 1
+	DroneAction_ACTION_FLY_TO       DroneAction = 2
+	DroneAction_ACTION_PICKUP_CARGO DroneAction = 3
+	DroneAction_ACTION_DROP_CARGO   DroneAction = 4
+	DroneAction_ACTION_CHARGE       DroneAction = 5
 )
 
 // Enum value maps for DroneAction.
 var (
 	DroneAction_name = map[int32]string{
-		0: "ACTION_WAIT",
-		1: "ACTION_FLY_TO",
-		2: "ACTION_PICKUP_CARGO",
-		3: "ACTION_DROP_CARGO",
-		4: "ACTION_CHARGE",
+		0: "ACTION_NONE",
+		1: "ACTION_WAIT",
+		2: "ACTION_FLY_TO",
+		3: "ACTION_PICKUP_CARGO",
+		4: "ACTION_DROP_CARGO",
+		5: "ACTION_CHARGE",
 	}
 	DroneAction_value = map[string]int32{
-		"ACTION_WAIT":         0,
-		"ACTION_FLY_TO":       1,
-		"ACTION_PICKUP_CARGO": 2,
-		"ACTION_DROP_CARGO":   3,
-		"ACTION_CHARGE":       4,
+		"ACTION_NONE":         0,
+		"ACTION_WAIT":         1,
+		"ACTION_FLY_TO":       2,
+		"ACTION_PICKUP_CARGO": 3,
+		"ACTION_DROP_CARGO":   4,
+		"ACTION_CHARGE":       5,
 	}
 )
 
@@ -192,25 +195,28 @@ func (DroneAction) EnumDescriptor() ([]byte, []int) {
 type TargetType int32
 
 const (
-	TargetType_TARGET_POINT  TargetType = 0
-	TargetType_TARGET_STORE  TargetType = 1
-	TargetType_TARGET_CLIENT TargetType = 2
-	TargetType_TARGET_BASE   TargetType = 3
+	TargetType_TARGET_NONE   TargetType = 0
+	TargetType_TARGET_POINT  TargetType = 1
+	TargetType_TARGET_STORE  TargetType = 2
+	TargetType_TARGET_CLIENT TargetType = 3
+	TargetType_TARGET_BASE   TargetType = 4
 )
 
 // Enum value maps for TargetType.
 var (
 	TargetType_name = map[int32]string{
-		0: "TARGET_POINT",
-		1: "TARGET_STORE",
-		2: "TARGET_CLIENT",
-		3: "TARGET_BASE",
+		0: "TARGET_NONE",
+		1: "TARGET_POINT",
+		2: "TARGET_STORE",
+		3: "TARGET_CLIENT",
+		4: "TARGET_BASE",
 	}
 	TargetType_value = map[string]int32{
-		"TARGET_POINT":  0,
-		"TARGET_STORE":  1,
-		"TARGET_CLIENT": 2,
-		"TARGET_BASE":   3,
+		"TARGET_NONE":   0,
+		"TARGET_POINT":  1,
+		"TARGET_STORE":  2,
+		"TARGET_CLIENT": 3,
+		"TARGET_BASE":   4,
 	}
 )
 
@@ -428,7 +434,7 @@ func (x *ServerCommand) GetAction() DroneAction {
 	if x != nil {
 		return x.Action
 	}
-	return DroneAction_ACTION_WAIT
+	return DroneAction_ACTION_NONE
 }
 
 func (x *ServerCommand) GetTarget() *Location {
@@ -442,7 +448,7 @@ func (x *ServerCommand) GetType() TargetType {
 	if x != nil {
 		return x.Type
 	}
-	return TargetType_TARGET_POINT
+	return TargetType_TARGET_NONE
 }
 
 type SendCommandRequest struct {
@@ -496,7 +502,7 @@ func (x *SendCommandRequest) GetAction() DroneAction {
 	if x != nil {
 		return x.Action
 	}
-	return DroneAction_ACTION_WAIT
+	return DroneAction_ACTION_NONE
 }
 
 func (x *SendCommandRequest) GetTarget() *Location {
@@ -510,7 +516,7 @@ func (x *SendCommandRequest) GetType() TargetType {
 	if x != nil {
 		return x.Type
 	}
-	return TargetType_TARGET_POINT
+	return TargetType_TARGET_NONE
 }
 
 type SendCommandResponse struct {
@@ -599,19 +605,21 @@ const file_telemetry_proto_rawDesc = "" +
 	"\x17EVENT_ARRIVED_AT_CLIENT\x10\x03\x12\x17\n" +
 	"\x13EVENT_DROPPED_CARGO\x10\x04\x12\x19\n" +
 	"\x15EVENT_ARRIVED_AT_BASE\x10\x05\x12\x17\n" +
-	"\x13EVENT_FULLY_CHARGED\x10\x06*t\n" +
+	"\x13EVENT_FULLY_CHARGED\x10\x06*\x85\x01\n" +
 	"\vDroneAction\x12\x0f\n" +
-	"\vACTION_WAIT\x10\x00\x12\x11\n" +
-	"\rACTION_FLY_TO\x10\x01\x12\x17\n" +
-	"\x13ACTION_PICKUP_CARGO\x10\x02\x12\x15\n" +
-	"\x11ACTION_DROP_CARGO\x10\x03\x12\x11\n" +
-	"\rACTION_CHARGE\x10\x04*T\n" +
+	"\vACTION_NONE\x10\x00\x12\x0f\n" +
+	"\vACTION_WAIT\x10\x01\x12\x11\n" +
+	"\rACTION_FLY_TO\x10\x02\x12\x17\n" +
+	"\x13ACTION_PICKUP_CARGO\x10\x03\x12\x15\n" +
+	"\x11ACTION_DROP_CARGO\x10\x04\x12\x11\n" +
+	"\rACTION_CHARGE\x10\x05*e\n" +
 	"\n" +
-	"TargetType\x12\x10\n" +
-	"\fTARGET_POINT\x10\x00\x12\x10\n" +
-	"\fTARGET_STORE\x10\x01\x12\x11\n" +
-	"\rTARGET_CLIENT\x10\x02\x12\x0f\n" +
-	"\vTARGET_BASE\x10\x032\xa1\x01\n" +
+	"TargetType\x12\x0f\n" +
+	"\vTARGET_NONE\x10\x00\x12\x10\n" +
+	"\fTARGET_POINT\x10\x01\x12\x10\n" +
+	"\fTARGET_STORE\x10\x02\x12\x11\n" +
+	"\rTARGET_CLIENT\x10\x03\x12\x0f\n" +
+	"\vTARGET_BASE\x10\x042\xa1\x01\n" +
 	"\x10TelemetryService\x12?\n" +
 	"\x04Link\x12\x19.telemetry.DroneTelemetry\x1a\x18.telemetry.ServerCommand(\x010\x01\x12L\n" +
 	"\vSendCommand\x12\x1d.telemetry.SendCommandRequest\x1a\x1e.telemetry.SendCommandResponseB\x14Z\x12hive/gen/telemetryb\x06proto3"

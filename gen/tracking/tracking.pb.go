@@ -128,6 +128,8 @@ func (x *Location) GetLon() float64 {
 type FindNearestRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	StoreLocation *Location              `protobuf:"bytes,1,opt,name=store_location,json=storeLocation,proto3" json:"store_location,omitempty"`
+	MinBattery    float64                `protobuf:"fixed64,2,opt,name=min_battery,json=minBattery,proto3" json:"min_battery,omitempty"`
+	RadiusMeters  float64                `protobuf:"fixed64,3,opt,name=radius_meters,json=radiusMeters,proto3" json:"radius_meters,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -169,11 +171,25 @@ func (x *FindNearestRequest) GetStoreLocation() *Location {
 	return nil
 }
 
+func (x *FindNearestRequest) GetMinBattery() float64 {
+	if x != nil {
+		return x.MinBattery
+	}
+	return 0
+}
+
+func (x *FindNearestRequest) GetRadiusMeters() float64 {
+	if x != nil {
+		return x.RadiusMeters
+	}
+	return 0
+}
+
 type FindNearestResponse struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
-	DroneId        string                 `protobuf:"bytes,1,opt,name=drone_id,json=droneId,proto3" json:"drone_id,omitempty"`
-	Found          bool                   `protobuf:"varint,2,opt,name=found,proto3" json:"found,omitempty"`
-	DistanceMeters float64                `protobuf:"fixed64,3,opt,name=distance_meters,json=distanceMeters,proto3" json:"distance_meters,omitempty"`
+	Found          bool                   `protobuf:"varint,1,opt,name=found,proto3" json:"found,omitempty"`
+	DroneId        string                 `protobuf:"bytes,2,opt,name=drone_id,json=droneId,proto3" json:"drone_id,omitempty"`
+	DistanceMeters float64                `protobuf:"fixed64,4,opt,name=distance_meters,json=distanceMeters,proto3" json:"distance_meters,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -208,18 +224,18 @@ func (*FindNearestResponse) Descriptor() ([]byte, []int) {
 	return file_tracking_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *FindNearestResponse) GetDroneId() string {
-	if x != nil {
-		return x.DroneId
-	}
-	return ""
-}
-
 func (x *FindNearestResponse) GetFound() bool {
 	if x != nil {
 		return x.Found
 	}
 	return false
+}
+
+func (x *FindNearestResponse) GetDroneId() string {
+	if x != nil {
+		return x.DroneId
+	}
+	return ""
 }
 
 func (x *FindNearestResponse) GetDistanceMeters() float64 {
@@ -274,11 +290,13 @@ func (x *GetDroneLocationRequest) GetDroneId() string {
 }
 
 type GetDroneLocationResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	DroneLocation *Location              `protobuf:"bytes,1,opt,name=drone_location,json=droneLocation,proto3" json:"drone_location,omitempty"`
-	Battery       int32                  `protobuf:"varint,2,opt,name=battery,proto3" json:"battery,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	Location            *Location              `protobuf:"bytes,1,opt,name=location,proto3" json:"location,omitempty"`
+	Battery             float64                `protobuf:"fixed64,2,opt,name=battery,proto3" json:"battery,omitempty"`
+	SpeedMps            float64                `protobuf:"fixed64,3,opt,name=speed_mps,json=speedMps,proto3" json:"speed_mps,omitempty"`
+	ConsumptionPerMeter float64                `protobuf:"fixed64,4,opt,name=consumption_per_meter,json=consumptionPerMeter,proto3" json:"consumption_per_meter,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *GetDroneLocationResponse) Reset() {
@@ -311,16 +329,30 @@ func (*GetDroneLocationResponse) Descriptor() ([]byte, []int) {
 	return file_tracking_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *GetDroneLocationResponse) GetDroneLocation() *Location {
+func (x *GetDroneLocationResponse) GetLocation() *Location {
 	if x != nil {
-		return x.DroneLocation
+		return x.Location
 	}
 	return nil
 }
 
-func (x *GetDroneLocationResponse) GetBattery() int32 {
+func (x *GetDroneLocationResponse) GetBattery() float64 {
 	if x != nil {
 		return x.Battery
+	}
+	return 0
+}
+
+func (x *GetDroneLocationResponse) GetSpeedMps() float64 {
+	if x != nil {
+		return x.SpeedMps
+	}
+	return 0
+}
+
+func (x *GetDroneLocationResponse) GetConsumptionPerMeter() float64 {
+	if x != nil {
+		return x.ConsumptionPerMeter
 	}
 	return 0
 }
@@ -428,18 +460,23 @@ const file_tracking_proto_rawDesc = "" +
 	"\x0etracking.proto\x12\btracking\".\n" +
 	"\bLocation\x12\x10\n" +
 	"\x03lat\x18\x01 \x01(\x01R\x03lat\x12\x10\n" +
-	"\x03lon\x18\x02 \x01(\x01R\x03lon\"O\n" +
+	"\x03lon\x18\x02 \x01(\x01R\x03lon\"\x95\x01\n" +
 	"\x12FindNearestRequest\x129\n" +
-	"\x0estore_location\x18\x01 \x01(\v2\x12.tracking.LocationR\rstoreLocation\"o\n" +
-	"\x13FindNearestResponse\x12\x19\n" +
-	"\bdrone_id\x18\x01 \x01(\tR\adroneId\x12\x14\n" +
-	"\x05found\x18\x02 \x01(\bR\x05found\x12'\n" +
-	"\x0fdistance_meters\x18\x03 \x01(\x01R\x0edistanceMeters\"4\n" +
+	"\x0estore_location\x18\x01 \x01(\v2\x12.tracking.LocationR\rstoreLocation\x12\x1f\n" +
+	"\vmin_battery\x18\x02 \x01(\x01R\n" +
+	"minBattery\x12#\n" +
+	"\rradius_meters\x18\x03 \x01(\x01R\fradiusMeters\"o\n" +
+	"\x13FindNearestResponse\x12\x14\n" +
+	"\x05found\x18\x01 \x01(\bR\x05found\x12\x19\n" +
+	"\bdrone_id\x18\x02 \x01(\tR\adroneId\x12'\n" +
+	"\x0fdistance_meters\x18\x04 \x01(\x01R\x0edistanceMeters\"4\n" +
 	"\x17GetDroneLocationRequest\x12\x19\n" +
-	"\bdrone_id\x18\x01 \x01(\tR\adroneId\"o\n" +
-	"\x18GetDroneLocationResponse\x129\n" +
-	"\x0edrone_location\x18\x01 \x01(\v2\x12.tracking.LocationR\rdroneLocation\x12\x18\n" +
-	"\abattery\x18\x02 \x01(\x05R\abattery\"\\\n" +
+	"\bdrone_id\x18\x01 \x01(\tR\adroneId\"\xb5\x01\n" +
+	"\x18GetDroneLocationResponse\x12.\n" +
+	"\blocation\x18\x01 \x01(\v2\x12.tracking.LocationR\blocation\x12\x18\n" +
+	"\abattery\x18\x02 \x01(\x01R\abattery\x12\x1b\n" +
+	"\tspeed_mps\x18\x03 \x01(\x01R\bspeedMps\x122\n" +
+	"\x15consumption_per_meter\x18\x04 \x01(\x01R\x13consumptionPerMeter\"\\\n" +
 	"\x10SetStatusRequest\x12\x19\n" +
 	"\bdrone_id\x18\x01 \x01(\tR\adroneId\x12-\n" +
 	"\x06status\x18\x02 \x01(\x0e2\x15.tracking.DroneStatusR\x06status\"-\n" +
@@ -481,7 +518,7 @@ var file_tracking_proto_goTypes = []any{
 }
 var file_tracking_proto_depIdxs = []int32{
 	1, // 0: tracking.FindNearestRequest.store_location:type_name -> tracking.Location
-	1, // 1: tracking.GetDroneLocationResponse.drone_location:type_name -> tracking.Location
+	1, // 1: tracking.GetDroneLocationResponse.location:type_name -> tracking.Location
 	0, // 2: tracking.SetStatusRequest.status:type_name -> tracking.DroneStatus
 	2, // 3: tracking.TrackingService.FindNearest:input_type -> tracking.FindNearestRequest
 	4, // 4: tracking.TrackingService.GetDroneLocation:input_type -> tracking.GetDroneLocationRequest

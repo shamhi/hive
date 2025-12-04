@@ -127,8 +127,7 @@ func (x *AssignDroneRequest) GetDeliveryLocation() *Location {
 
 type AssignDroneResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	DroneId       string                 `protobuf:"bytes,2,opt,name=drone_id,json=droneId,proto3" json:"drone_id,omitempty"`
+	DroneId       string                 `protobuf:"bytes,1,opt,name=drone_id,json=droneId,proto3" json:"drone_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -163,13 +162,6 @@ func (*AssignDroneResponse) Descriptor() ([]byte, []int) {
 	return file_dispatch_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *AssignDroneResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
 func (x *AssignDroneResponse) GetDroneId() string {
 	if x != nil {
 		return x.DroneId
@@ -187,10 +179,9 @@ const file_dispatch_proto_rawDesc = "" +
 	"\x03lon\x18\x02 \x01(\x01R\x03lon\"p\n" +
 	"\x12AssignDroneRequest\x12\x19\n" +
 	"\border_id\x18\x01 \x01(\tR\aorderId\x12?\n" +
-	"\x11delivery_location\x18\x02 \x01(\v2\x12.dispatch.LocationR\x10deliveryLocation\"J\n" +
-	"\x13AssignDroneResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x19\n" +
-	"\bdrone_id\x18\x02 \x01(\tR\adroneId2]\n" +
+	"\x11delivery_location\x18\x02 \x01(\v2\x12.dispatch.LocationR\x10deliveryLocation\"0\n" +
+	"\x13AssignDroneResponse\x12\x19\n" +
+	"\bdrone_id\x18\x01 \x01(\tR\adroneId2]\n" +
 	"\x0fDispatchService\x12J\n" +
 	"\vAssignDrone\x12\x1c.dispatch.AssignDroneRequest\x1a\x1d.dispatch.AssignDroneResponseB\x13Z\x11hive/gen/dispatchb\x06proto3"
 
