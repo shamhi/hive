@@ -26,18 +26,20 @@ enum DroneEvent {
 }
 
 enum DroneAction {
-  ACTION_WAIT = 0;
-  ACTION_FLY_TO = 1;
-  ACTION_PICKUP_CARGO = 2;
-  ACTION_DROP_CARGO = 3;
-  ACTION_CHARGE = 4;
+  ACTION_NONE = 0;
+  ACTION_WAIT = 1;
+  ACTION_FLY_TO = 2;
+  ACTION_PICKUP_CARGO = 3;
+  ACTION_DROP_CARGO = 4;
+  ACTION_CHARGE = 5;
 }
 
 enum TargetType {
-  TARGET_POINT = 0;
-  TARGET_STORE = 1;
-  TARGET_CLIENT = 2;
-  TARGET_BASE = 3;
+  TARGET_NONE = 0;
+  TARGET_POINT = 1;
+  TARGET_STORE = 2;
+  TARGET_CLIENT = 3;
+  TARGET_BASE = 4;
 }
 
 message Location {

@@ -23,12 +23,14 @@ message Location {
 
 message FindNearestRequest {
   Location store_location = 1;
+  double min_battery = 2;
+  double radius_meters = 3;
 }
 
 message FindNearestResponse {
-  string drone_id = 1;
-  bool found = 2;
-  double distance_meters = 3;
+  bool found = 1;
+  string drone_id = 2;
+  double distance_meters = 4;
 }
 
 message GetDroneLocationRequest {
@@ -36,8 +38,10 @@ message GetDroneLocationRequest {
 }
 
 message GetDroneLocationResponse {
-  Location drone_location = 1;
-  int32 battery = 2;
+  Location location = 1;
+  double battery = 2;
+  double speed_mps = 3;
+  double consumption_per_meter = 4;
 }
 
 message SetStatusRequest {

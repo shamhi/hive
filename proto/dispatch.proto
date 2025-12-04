@@ -18,6 +18,5 @@ message AssignDroneRequest {
 }
 
 message AssignDroneResponse {
-  bool success = 1;
-  string drone_id = 2;
+  string drone_id = 1;
 }
