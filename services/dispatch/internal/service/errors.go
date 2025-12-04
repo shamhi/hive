@@ -3,5 +3,5 @@ package service
 import "errors"
 
 var (
-	ErrNotFound = errors.New("order not found")
+	ErrNotFound = errors.New("assignment not found")
 )

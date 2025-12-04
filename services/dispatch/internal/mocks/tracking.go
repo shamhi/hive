@@ -2,7 +2,8 @@ package mocks
 
 import (
 	"context"
-	"hive/services/dispatch/internal/domain"
+	"hive/services/dispatch/internal/domain/drone"
+	"hive/services/dispatch/internal/domain/shared"
 )
 
 type MockTrackingClient struct{}
@@ -11,10 +12,19 @@ func NewMockTrackingClient() *MockTrackingClient {
 	return &MockTrackingClient{}
 }
 
-func (m *MockTrackingClient) FindNearest(_ context.Context, storeLocation domain.Location) (string, error) {
-	return "mock-drone-123", nil
+func (m *MockTrackingClient) FindNearest(
+	_ context.Context,
+	storeLocation *shared.Location,
+	minBattery float64,
+	radius float64,
+) (*drone.DroneNearestInfo, error) {
+	return nil, nil
 }
 
-func (m *MockTrackingClient) SetStatus(_ context.Context, droneID string, status domain.DroneStatus) error {
+func (m *MockTrackingClient) GetDroneLocation(_ context.Context, droneID string) (*drone.DroneInfo, error) {
+	return nil, nil
+}
+
+func (m *MockTrackingClient) SetStatus(_ context.Context, droneID string, status drone.DroneStatus) error {
 	return nil
 }

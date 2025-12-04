@@ -2,24 +2,35 @@ package service
 
 import (
 	"context"
-	"hive/services/dispatch/internal/domain"
+	"hive/services/dispatch/internal/domain/assignment"
+	"hive/services/dispatch/internal/domain/drone"
+	"hive/services/dispatch/internal/domain/order"
+	"hive/services/dispatch/internal/domain/shared"
+	"hive/services/dispatch/internal/domain/store"
 )
 
 type AssignmentRepository interface {
-	Save(ctx context.Context, assignment *domain.Assignment) error
-	Get(ctx context.Context, id string) (*domain.Assignment, error)
-	Update(ctx context.Context, assignment *domain.Assignment) error
+	Save(ctx context.Context, a *assignment.Assignment) error
+	GetByID(ctx context.Context, id string) (*assignment.Assignment, error)
+	GetByDroneID(ctx context.Context, droneID string) (*assignment.Assignment, error)
+	UpdateStatus(ctx context.Context, id string, status assignment.AssignmentStatus) error
 }
 
 type TrackingClient interface {
-	FindNearest(ctx context.Context, storeLocation domain.Location) (droneID string, err error)
-	SetStatus(ctx context.Context, droneID string, status domain.DroneStatus) error
+	FindNearest(ctx context.Context, storeLocation *shared.Location, minBattery, radius float64) (*drone.DroneNearestInfo, error)
+	GetDroneLocation(ctx context.Context, droneID string) (*drone.DroneInfo, error)
+	SetStatus(ctx context.Context, droneID string, status drone.DroneStatus) error
 }
 
 type TelemetryClient interface {
-	SendCommand(ctx context.Context, droneID string, action domain.DroneAction, target domain.Location) error
+	SendCommand(ctx context.Context, droneID string, action drone.DroneAction, target *drone.Target) error
+}
+
+type StoreClient interface {
+	FindNearest(ctx context.Context, deliveryLocation *shared.Location) (*store.StoreNearestInfo, error)
+	GetStoreLocation(ctx context.Context, storeID string) (*store.StoreInfo, error)
 }
 
 type OrderClient interface {
-	UpdateStatus(ctx context.Context, orderID string, status domain.OrderStatus) error
+	UpdateStatus(ctx context.Context, orderID string, status order.OrderStatus) error
 }

@@ -2,7 +2,7 @@ package mocks
 
 import (
 	"context"
-	"hive/services/dispatch/internal/domain"
+	"hive/services/dispatch/internal/domain/drone"
 )
 
 type MockTelemetryClient struct{}
@@ -14,8 +14,8 @@ func NewMockTelemetryClient() *MockTelemetryClient {
 func (m *MockTelemetryClient) SendCommand(
 	_ context.Context,
 	droneID string,
-	action domain.DroneAction,
-	target domain.Location,
+	action drone.DroneAction,
+	target *drone.Target,
 ) error {
 	return nil
 }

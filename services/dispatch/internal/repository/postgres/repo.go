@@ -3,8 +3,10 @@ package postgres
 import (
 	"context"
 	"errors"
-	"hive/services/dispatch/internal/domain"
+	"hive/services/dispatch/internal/domain/assignment"
+	"hive/services/dispatch/internal/domain/shared"
 	"hive/services/dispatch/internal/service"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
@@ -23,7 +25,13 @@ func NewPostgresRepo(db *pgxpool.Pool) *PostgresRepo {
 	}
 }
 
-func (r *PostgresRepo) Save(ctx context.Context, assignment *domain.Assignment) error {
+func (r *PostgresRepo) Save(ctx context.Context, a *assignment.Assignment) error {
+	var lat, lon *float64
+	if a.Target != nil {
+		lat = &a.Target.Lat
+		lon = &a.Target.Lon
+	}
+
 	sql, args, err := r.builder.
 		Insert("assignments").
 		Columns(
@@ -31,16 +39,20 @@ func (r *PostgresRepo) Save(ctx context.Context, assignment *domain.Assignment) 
 			"order_id",
 			"drone_id",
 			"status",
+			"target_lat",
+			"target_lon",
 			"created_at",
 			"updated_at",
 		).
 		Values(
-			assignment.ID,
-			assignment.OrderID,
-			assignment.DroneID,
-			assignment.Status,
-			assignment.CreatedAt,
-			assignment.UpdatedAt,
+			a.ID,
+			a.OrderID,
+			a.DroneID,
+			a.Status,
+			lat,
+			lon,
+			a.CreatedAt,
+			a.UpdatedAt,
 		).
 		ToSql()
 	if err != nil {
@@ -54,13 +66,15 @@ func (r *PostgresRepo) Save(ctx context.Context, assignment *domain.Assignment) 
 	return nil
 }
 
-func (r *PostgresRepo) Get(ctx context.Context, id string) (*domain.Assignment, error) {
+func (r *PostgresRepo) GetByID(ctx context.Context, id string) (*assignment.Assignment, error) {
 	sql, args, err := r.builder.
 		Select(
 			"id",
 			"order_id",
 			"drone_id",
 			"status",
+			"target_lat",
+			"target_lon",
 			"created_at",
 			"updated_at",
 		).
@@ -71,14 +85,17 @@ func (r *PostgresRepo) Get(ctx context.Context, id string) (*domain.Assignment, 
 		return nil, err
 	}
 
-	var assignment domain.Assignment
+	var a assignment.Assignment
+	var targetLat, targetLon *float64
 	if err := r.db.QueryRow(ctx, sql, args...).Scan(
-		&assignment.ID,
-		&assignment.OrderID,
-		&assignment.DroneID,
-		&assignment.Status,
-		&assignment.CreatedAt,
-		&assignment.UpdatedAt,
+		&a.ID,
+		&a.OrderID,
+		&a.DroneID,
+		&a.Status,
+		&targetLat,
+		&targetLon,
+		&a.CreatedAt,
+		&a.UpdatedAt,
 	); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, service.ErrNotFound
@@ -86,17 +103,75 @@ func (r *PostgresRepo) Get(ctx context.Context, id string) (*domain.Assignment, 
 		return nil, err
 	}
 
-	return &assignment, nil
+	if targetLat != nil && targetLon != nil {
+		a.Target = &shared.Location{
+			Lat: *targetLat,
+			Lon: *targetLon,
+		}
+	}
+
+	return &a, nil
 }
 
-func (r *PostgresRepo) Update(ctx context.Context, assignment *domain.Assignment) error {
+func (r *PostgresRepo) GetByDroneID(ctx context.Context, droneID string) (*assignment.Assignment, error) {
+	sql, args, err := r.builder.
+		Select(
+			"id",
+			"order_id",
+			"drone_id",
+			"status",
+			"target_lat",
+			"target_lon",
+			"created_at",
+			"updated_at",
+		).
+		From("assignments").
+		Where(sq.Eq{"drone_id": droneID}).
+		Where(sq.NotEq{"status": []assignment.AssignmentStatus{
+			assignment.AssignmentStatusCompleted,
+			assignment.AssignmentStatusFailed,
+		}}).
+		OrderBy("created_at DESC").
+		Limit(1).
+		ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	var a assignment.Assignment
+	var targetLat, targetLon *float64
+	if err := r.db.QueryRow(ctx, sql, args...).Scan(
+		&a.ID,
+		&a.OrderID,
+		&a.DroneID,
+		&a.Status,
+		&targetLat,
+		&targetLon,
+		&a.CreatedAt,
+		&a.UpdatedAt,
+	); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, service.ErrNotFound
+		}
+		return nil, err
+	}
+
+	if targetLat != nil && targetLon != nil {
+		a.Target = &shared.Location{
+			Lat: *targetLat,
+			Lon: *targetLon,
+		}
+	}
+
+	return &a, nil
+}
+
+func (r *PostgresRepo) UpdateStatus(ctx context.Context, id string, status assignment.AssignmentStatus) error {
 	sql, args, err := r.builder.
 		Update("assignments").
-		Set("order_id", assignment.OrderID).
-		Set("drone_id", assignment.DroneID).
-		Set("status", assignment.Status).
-		Set("updated_at", assignment.UpdatedAt).
-		Where(sq.Eq{"id": assignment.ID}).
+		Set("status", status).
+		Set("updated_at", time.Now().UTC()).
+		Where(sq.Eq{"id": id}).
 		ToSql()
 	if err != nil {
 		return err

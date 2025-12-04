@@ -1,16 +1,12 @@
 package kafka
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"hive/services/dispatch/internal/domain/drone"
 	"hive/services/dispatch/internal/service"
 )
-
-type TelemetryEvent struct {
-	DroneID   string `json:"drone_id"`
-	Event     string `json:"event"`
-	Timestamp int64  `json:"timestamp"`
-}
 
 type Handler struct {
 	dispatch *service.DispatchService
@@ -22,11 +18,11 @@ func NewHandler(dispatch *service.DispatchService) *Handler {
 	}
 }
 
-func (h *Handler) Handle(msg []byte) error {
-	var event TelemetryEvent
+func (h *Handler) Handle(ctx context.Context, msg []byte) error {
+	var event drone.TelemetryEvent
 	if err := json.Unmarshal(msg, &event); err != nil {
-		return fmt.Errorf("failed to unmarshal telemetry event: %w", err)
+		return fmt.Errorf("unmarshal telemetry: %w", err)
 	}
 
-	return h.dispatch.Handl
+	return h.dispatch.HandleTelemetryEvent(ctx, event)
 }
