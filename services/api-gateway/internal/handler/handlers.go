@@ -8,11 +8,14 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	"google.golang.org/grpc"
 )
 
 type Handler struct {
-	orderClient    *order.OrderServiceClient
-	trackingClient *tracking.TrackingServiceClient
+	client order.OrderServiceClient
+	conn   *grpc.ClientConn
+	// orderClient    *order.OrderServiceClient
+	// trackingClient *tracking.TrackingServiceClient
 }
 
 func NewHandler(orderClient *order.OrderServiceClient, trackingClient *tracking.TrackingServiceClient) *Handler {

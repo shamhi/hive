@@ -3,9 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
-	"hive/gen/order"
-	"hive/gen/tracking"
-	"hive/services/api-gateway/internal/client"
+	"hive/services/api-gateway/internal/client" // Добавьте этот импорт
 	"hive/services/api-gateway/internal/config"
 	"hive/services/api-gateway/internal/handler"
 	"net/http"
@@ -21,8 +19,8 @@ import (
 type Server struct {
 	echo           *echo.Echo
 	cfg            *config.Config
-	orderClient    *order.OrderServiceClient
-	trackingClient *tracking.TrackingServiceClient
+	orderClient    *client.OrderClient    // ИЗМЕНИТЬ ТИП!
+	trackingClient *client.TrackingClient // ИЗМЕНИТЬ ТИП!
 	grpcClients    []interface{ Close() error }
 }
 
@@ -44,7 +42,7 @@ func NewServer(cfg *config.Config) (*Server, error) {
 		return nil, fmt.Errorf("failed to create tracking client: %w", err)
 	}
 
-	h := handler.NewHandler(&orderClient.client, &trackingClient.client)
+	h := handler.NewHandler(orderClient*client.OrderClient, trackingClient*client.TrackingClient)
 
 	e.GET("/health", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
@@ -57,8 +55,8 @@ func NewServer(cfg *config.Config) (*Server, error) {
 	return &Server{
 		echo:           e,
 		cfg:            cfg,
-		orderClient:    &orderClient.client,
-		trackingClient: &trackingClient.client,
+		orderClient:    orderClient,    // Уже правильный тип
+		trackingClient: trackingClient, // Уже правильный тип
 		grpcClients:    []interface{ Close() error }{orderClient, trackingClient},
 	}, nil
 }
