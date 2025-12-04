@@ -19,9 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	StoreService_CreateStore_FullMethodName      = "/StoreService/CreateStore"
-	StoreService_GetStoreLocation_FullMethodName = "/StoreService/GetStoreLocation"
-	StoreService_FindNearest_FullMethodName      = "/StoreService/FindNearest"
+	StoreService_CreateStore_FullMethodName      = "/store.StoreService/CreateStore"
+	StoreService_GetStoreLocation_FullMethodName = "/store.StoreService/GetStoreLocation"
+	StoreService_FindNearest_FullMethodName      = "/store.StoreService/FindNearest"
 )
 
 // StoreServiceClient is the client API for StoreService service.
@@ -176,7 +176,7 @@ func _StoreService_FindNearest_Handler(srv interface{}, ctx context.Context, dec
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var StoreService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "StoreService",
+	ServiceName: "store.StoreService",
 	HandlerType: (*StoreServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

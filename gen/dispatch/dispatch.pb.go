@@ -9,6 +9,7 @@ package dispatch
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	common "hive/gen/common"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -21,69 +22,17 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type Location struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Lat           float64                `protobuf:"fixed64,1,opt,name=lat,proto3" json:"lat,omitempty"`
-	Lon           float64                `protobuf:"fixed64,2,opt,name=lon,proto3" json:"lon,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *Location) Reset() {
-	*x = Location{}
-	mi := &file_dispatch_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Location) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Location) ProtoMessage() {}
-
-func (x *Location) ProtoReflect() protoreflect.Message {
-	mi := &file_dispatch_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Location.ProtoReflect.Descriptor instead.
-func (*Location) Descriptor() ([]byte, []int) {
-	return file_dispatch_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *Location) GetLat() float64 {
-	if x != nil {
-		return x.Lat
-	}
-	return 0
-}
-
-func (x *Location) GetLon() float64 {
-	if x != nil {
-		return x.Lon
-	}
-	return 0
-}
-
 type AssignDroneRequest struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
 	OrderId          string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	DeliveryLocation *Location              `protobuf:"bytes,2,opt,name=delivery_location,json=deliveryLocation,proto3" json:"delivery_location,omitempty"`
+	DeliveryLocation *common.Location       `protobuf:"bytes,2,opt,name=delivery_location,json=deliveryLocation,proto3" json:"delivery_location,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
 
 func (x *AssignDroneRequest) Reset() {
 	*x = AssignDroneRequest{}
-	mi := &file_dispatch_proto_msgTypes[1]
+	mi := &file_dispatch_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -95,7 +44,7 @@ func (x *AssignDroneRequest) String() string {
 func (*AssignDroneRequest) ProtoMessage() {}
 
 func (x *AssignDroneRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_dispatch_proto_msgTypes[1]
+	mi := &file_dispatch_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -108,7 +57,7 @@ func (x *AssignDroneRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssignDroneRequest.ProtoReflect.Descriptor instead.
 func (*AssignDroneRequest) Descriptor() ([]byte, []int) {
-	return file_dispatch_proto_rawDescGZIP(), []int{1}
+	return file_dispatch_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *AssignDroneRequest) GetOrderId() string {
@@ -118,7 +67,7 @@ func (x *AssignDroneRequest) GetOrderId() string {
 	return ""
 }
 
-func (x *AssignDroneRequest) GetDeliveryLocation() *Location {
+func (x *AssignDroneRequest) GetDeliveryLocation() *common.Location {
 	if x != nil {
 		return x.DeliveryLocation
 	}
@@ -134,7 +83,7 @@ type AssignDroneResponse struct {
 
 func (x *AssignDroneResponse) Reset() {
 	*x = AssignDroneResponse{}
-	mi := &file_dispatch_proto_msgTypes[2]
+	mi := &file_dispatch_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -146,7 +95,7 @@ func (x *AssignDroneResponse) String() string {
 func (*AssignDroneResponse) ProtoMessage() {}
 
 func (x *AssignDroneResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_dispatch_proto_msgTypes[2]
+	mi := &file_dispatch_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -159,7 +108,7 @@ func (x *AssignDroneResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssignDroneResponse.ProtoReflect.Descriptor instead.
 func (*AssignDroneResponse) Descriptor() ([]byte, []int) {
-	return file_dispatch_proto_rawDescGZIP(), []int{2}
+	return file_dispatch_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *AssignDroneResponse) GetDroneId() string {
@@ -173,13 +122,10 @@ var File_dispatch_proto protoreflect.FileDescriptor
 
 const file_dispatch_proto_rawDesc = "" +
 	"\n" +
-	"\x0edispatch.proto\x12\bdispatch\".\n" +
-	"\bLocation\x12\x10\n" +
-	"\x03lat\x18\x01 \x01(\x01R\x03lat\x12\x10\n" +
-	"\x03lon\x18\x02 \x01(\x01R\x03lon\"p\n" +
+	"\x0edispatch.proto\x12\bdispatch\x1a\fcommon.proto\"n\n" +
 	"\x12AssignDroneRequest\x12\x19\n" +
-	"\border_id\x18\x01 \x01(\tR\aorderId\x12?\n" +
-	"\x11delivery_location\x18\x02 \x01(\v2\x12.dispatch.LocationR\x10deliveryLocation\"0\n" +
+	"\border_id\x18\x01 \x01(\tR\aorderId\x12=\n" +
+	"\x11delivery_location\x18\x02 \x01(\v2\x10.common.LocationR\x10deliveryLocation\"0\n" +
 	"\x13AssignDroneResponse\x12\x19\n" +
 	"\bdrone_id\x18\x01 \x01(\tR\adroneId2]\n" +
 	"\x0fDispatchService\x12J\n" +
@@ -197,16 +143,16 @@ func file_dispatch_proto_rawDescGZIP() []byte {
 	return file_dispatch_proto_rawDescData
 }
 
-var file_dispatch_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_dispatch_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_dispatch_proto_goTypes = []any{
-	(*Location)(nil),            // 0: dispatch.Location
-	(*AssignDroneRequest)(nil),  // 1: dispatch.AssignDroneRequest
-	(*AssignDroneResponse)(nil), // 2: dispatch.AssignDroneResponse
+	(*AssignDroneRequest)(nil),  // 0: dispatch.AssignDroneRequest
+	(*AssignDroneResponse)(nil), // 1: dispatch.AssignDroneResponse
+	(*common.Location)(nil),     // 2: common.Location
 }
 var file_dispatch_proto_depIdxs = []int32{
-	0, // 0: dispatch.AssignDroneRequest.delivery_location:type_name -> dispatch.Location
-	1, // 1: dispatch.DispatchService.AssignDrone:input_type -> dispatch.AssignDroneRequest
-	2, // 2: dispatch.DispatchService.AssignDrone:output_type -> dispatch.AssignDroneResponse
+	2, // 0: dispatch.AssignDroneRequest.delivery_location:type_name -> common.Location
+	0, // 1: dispatch.DispatchService.AssignDrone:input_type -> dispatch.AssignDroneRequest
+	1, // 2: dispatch.DispatchService.AssignDrone:output_type -> dispatch.AssignDroneResponse
 	2, // [2:3] is the sub-list for method output_type
 	1, // [1:2] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
@@ -225,7 +171,7 @@ func file_dispatch_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_dispatch_proto_rawDesc), len(file_dispatch_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
