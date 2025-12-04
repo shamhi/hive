@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	pbDispatch "hive/gen/dispatch"
 	pbOrder "hive/gen/order"
 	pg "hive/pkg/db/postgres"
@@ -29,16 +30,19 @@ type App struct {
 func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	db, err := pg.New(cfg.DBConfig)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to connect to db: %w", err)
 	}
 
 	repo := repoPostgres.NewPostgresRepo(db.Pool)
 
-	dispatchConn, err := grpc.NewClient(cfg.DispatchAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	dispatchConn, err := grpc.NewClient(
+		cfg.DispatchAddr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to connect to dispatch service: %w", err)
 	}
-	dispatchClient := grpcDispatchClient.NewDispatchAdapter(pbDispatch.NewDispatchServiceClient(dispatchConn))
+	dispatchClient := grpcDispatchClient.NewDispatchClient(pbDispatch.NewDispatchServiceClient(dispatchConn))
 
 	orderService := service.NewOrderService(
 		repo,
@@ -47,7 +51,7 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 
 	lis, err := net.Listen("tcp", ":"+strconv.Itoa(cfg.GRPCPort))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to listen on port %d: %w", cfg.GRPCPort, err)
 	}
 
 	grpcServer := grpc.NewServer()
@@ -65,9 +69,13 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 func (a *App) Run(errChan chan<- error) {
 	lg := a.lg.With(zap.String("component", "app"))
 
-	lg.Info(context.Background(), "Running gRPC server", zap.Int("port", a.cfg.GRPCPort))
+	lg.Info(context.Background(), "Running gRPC server",
+		zap.Int("port", a.cfg.GRPCPort),
+		zap.String("env", a.cfg.Env),
+	)
+
 	if err := a.grpcServer.Serve(a.lis); err != nil {
-		errChan <- err
+		errChan <- fmt.Errorf("failed to serve gRPC server: %w", err)
 	}
 }
 

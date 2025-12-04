@@ -9,12 +9,15 @@ import (
 )
 
 type Config struct {
-	Env             string        `env:"ENV" env-default:"local"`
-	GRPCPort        int           `env:"GRPC_PORT" env-required:"true"`
-	DispatchAddr    string        `env:"DISPATCH_ADDR" env-required:"true"`
+	Env      string `env:"ENV" env-default:"local"`
+	GRPCPort int    `env:"GRPC_PORT" env-required:"true"`
+
 	RequestTimeout  time.Duration `env:"REQUEST_TIMEOUT" env-default:"30s"`
 	ShutdownTimeout time.Duration `env:"SHUTDOWN_TIMEOUT" env-default:"10s"`
-	DBConfig        postgres.Config
+
+	DispatchAddr string `env:"DISPATCH_ADDR" env-required:"true"`
+
+	DBConfig postgres.Config
 }
 
 var appConfig Config

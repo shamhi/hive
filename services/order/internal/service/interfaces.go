@@ -2,15 +2,18 @@ package service
 
 import (
 	"context"
-	"hive/services/order/internal/domain"
+	"hive/services/order/internal/domain/order"
+	"hive/services/order/internal/domain/shared"
 )
 
 type OrderRepository interface {
-	Save(ctx context.Context, order *domain.Order) error
-	Get(ctx context.Context, ID string) (*domain.Order, error)
-	Update(ctx context.Context, order *domain.Order) error
+	Save(ctx context.Context, order *order.Order) error
+	GetByID(ctx context.Context, id string) (*order.Order, error)
+	UpdateStatus(ctx context.Context, id string, status order.OrderStatus) error
+	SetDroneID(ctx context.Context, id string, droneID string) error
+	UpdateDroneAndStatus(ctx context.Context, id string, droneID string, status order.OrderStatus) error
 }
 
 type DispatchClient interface {
-	AssignDrone(ctx context.Context, orderID string, loc domain.Location) (droneID string, err error)
+	AssignDrone(ctx context.Context, orderID string, deliveryLocation *shared.Location) (droneID string, err error)
 }

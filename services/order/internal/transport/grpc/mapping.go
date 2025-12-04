@@ -2,38 +2,38 @@ package grpc
 
 import (
 	pb "hive/gen/order"
-	"hive/services/order/internal/domain"
+	"hive/services/order/internal/domain/order"
 )
 
-func toProtoStatus(s domain.OrderStatus) pb.OrderStatus {
+func toProtoStatus(s order.OrderStatus) pb.OrderStatus {
 	switch s {
-	case domain.OrderStatusCreated:
+	case order.OrderStatusCreated:
 		return pb.OrderStatus_CREATED
-	case domain.OrderStatusPending:
+	case order.OrderStatusPending:
 		return pb.OrderStatus_PENDING
-	case domain.OrderStatusAssigned:
+	case order.OrderStatusAssigned:
 		return pb.OrderStatus_ASSIGNED
-	case domain.OrderStatusCompleted:
+	case order.OrderStatusCompleted:
 		return pb.OrderStatus_COMPLETED
-	case domain.OrderStatusFailed:
+	case order.OrderStatusFailed:
 		return pb.OrderStatus_FAILED
 	default:
 		return pb.OrderStatus_FAILED
 	}
 }
 
-func toDomainStatus(s pb.OrderStatus) (domain.OrderStatus, bool) {
+func toDomainStatus(s pb.OrderStatus) (order.OrderStatus, bool) {
 	switch s {
 	case pb.OrderStatus_CREATED:
-		return domain.OrderStatusCreated, true
+		return order.OrderStatusCreated, true
 	case pb.OrderStatus_PENDING:
-		return domain.OrderStatusPending, true
+		return order.OrderStatusPending, true
 	case pb.OrderStatus_ASSIGNED:
-		return domain.OrderStatusAssigned, true
+		return order.OrderStatusAssigned, true
 	case pb.OrderStatus_COMPLETED:
-		return domain.OrderStatusCompleted, true
+		return order.OrderStatusCompleted, true
 	case pb.OrderStatus_FAILED:
-		return domain.OrderStatusFailed, true
+		return order.OrderStatusFailed, true
 	default:
 		return "", false
 	}

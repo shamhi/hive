@@ -3,77 +3,89 @@ package service
 import (
 	"context"
 	"fmt"
-	"hive/services/order/internal/domain"
+	"hive/services/order/internal/domain/order"
+	"hive/services/order/internal/domain/shared"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type OrderService struct {
-	repo       OrderRepository
-	dispatcher DispatchClient
+	repo     OrderRepository
+	dispatch DispatchClient
 }
 
-func NewOrderService(repo OrderRepository, dispatcher DispatchClient) *OrderService {
-	return &OrderService{repo: repo, dispatcher: dispatcher}
+func NewOrderService(
+	repo OrderRepository,
+	dispatch DispatchClient,
+) *OrderService {
+	return &OrderService{
+		repo:     repo,
+		dispatch: dispatch,
+	}
 }
 
 func (s *OrderService) CreateOrder(
 	ctx context.Context,
-	orderID, userID string,
+	userID string,
 	items []string,
-	loc domain.Location,
-) (droneID string, etaSeconds int32, err error) {
+	deliveryLocation shared.Location,
+) (*order.OrderInfo, error) {
+	if userID == "" {
+		return nil, fmt.Errorf("user ID is required")
+	}
+	if len(items) == 0 {
+		return nil, fmt.Errorf("items list cannot be empty")
+	}
+	if deliveryLocation.Lat == 0 && deliveryLocation.Lon == 0 {
+		return nil, fmt.Errorf("delivery location is required")
+	}
 
-	order := &domain.Order{
-		ID:        orderID,
+	o := &order.Order{
+		ID:        uuid.NewString(),
 		UserID:    userID,
 		Items:     items,
-		Status:    domain.OrderStatusPending,
-		Location:  loc,
+		Status:    order.OrderStatusPending,
+		Location:  deliveryLocation,
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
 	}
 
-	if err := s.repo.Save(ctx, order); err != nil {
-		return "", 0, fmt.Errorf("failed to save order: %w", err)
+	if err := s.repo.Save(ctx, o); err != nil {
+		return nil, fmt.Errorf("failed to save order: %w", err)
 	}
 
-	droneID, err = s.dispatcher.AssignDrone(ctx, order.ID, order.Location)
+	droneID, err := s.dispatch.AssignDrone(ctx, o.ID, &o.Location)
 	if err != nil {
-		order.Status = domain.OrderStatusFailed
-		_ = s.repo.Update(ctx, order)
-		return "", 0, fmt.Errorf("assign drone failed: %w", err)
+		_ = s.repo.UpdateStatus(ctx, o.ID, order.OrderStatusFailed)
+		return nil, fmt.Errorf("assign drone failed: %w", err)
 	}
 
-	order.DroneID = droneID
-	order.Status = domain.OrderStatusAssigned
-	order.UpdatedAt = time.Now().UTC()
-
-	if err := s.repo.Update(ctx, order); err != nil {
-		return "", 0, fmt.Errorf("failed to update order: %w", err)
+	if err := s.repo.UpdateDroneAndStatus(ctx, o.ID, droneID, order.OrderStatusAssigned); err != nil {
+		return nil, fmt.Errorf("failed to update order with drone ID: %w", err)
 	}
 
-	return droneID, 900, nil
+	return &order.OrderInfo{
+		ID:         o.ID,
+		Status:     order.OrderStatusAssigned,
+		DroneID:    droneID,
+		EtaSeconds: 900, // TODO: calculate ETA
+	}, nil
 }
 
-func (s *OrderService) GetOrder(ctx context.Context, id string) (*domain.Order, error) {
-	order, err := s.repo.Get(ctx, id)
+func (s *OrderService) GetOrder(ctx context.Context, orderID string) (*order.Order, error) {
+	o, err := s.repo.GetByID(ctx, orderID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get order: %w", err)
 	}
-	return order, nil
+
+	return o, nil
 }
 
-func (s *OrderService) UpdateStatus(ctx context.Context, orderID string, status domain.OrderStatus) error {
-	order, err := s.repo.Get(ctx, orderID)
-	if err != nil {
-		return err
-	}
-
-	order.Status = status
-	order.UpdatedAt = time.Now().UTC()
-
-	if err := s.repo.Update(ctx, order); err != nil {
+func (s *OrderService) UpdateStatus(ctx context.Context, orderID string, status order.OrderStatus) error {
+	if err := s.repo.UpdateStatus(ctx, orderID, status); err != nil {
 		return fmt.Errorf("failed to update order status: %w", err)
 	}
+
 	return nil
 }

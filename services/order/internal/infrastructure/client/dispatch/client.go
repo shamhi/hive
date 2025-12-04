@@ -3,24 +3,29 @@ package dispatch
 import (
 	"context"
 	"fmt"
+	pbCommon "hive/gen/common"
 	pb "hive/gen/dispatch"
-	"hive/services/order/internal/domain"
+	"hive/services/order/internal/domain/shared"
 )
 
 type DispatchClient struct {
 	client pb.DispatchServiceClient
 }
 
-func NewDispatchAdapter(client pb.DispatchServiceClient) *DispatchClient {
+func NewDispatchClient(client pb.DispatchServiceClient) *DispatchClient {
 	return &DispatchClient{client: client}
 }
 
-func (c *DispatchClient) AssignDrone(ctx context.Context, id string, loc domain.Location) (string, error) {
+func (c *DispatchClient) AssignDrone(
+	ctx context.Context,
+	orderID string,
+	deliveryLocation *shared.Location,
+) (string, error) {
 	req := &pb.AssignDroneRequest{
-		OrderId: id,
-		DeliveryLocation: &pb.Location{
-			Lat: loc.Lat,
-			Lon: loc.Lon,
+		OrderId: orderID,
+		DeliveryLocation: &pbCommon.Location{
+			Lat: deliveryLocation.Lat,
+			Lon: deliveryLocation.Lon,
 		},
 	}
 	resp, err := c.client.AssignDrone(ctx, req)
@@ -30,7 +35,7 @@ func (c *DispatchClient) AssignDrone(ctx context.Context, id string, loc domain.
 
 	droneID := resp.GetDroneId()
 	if droneID == "" {
-		return "", fmt.Errorf("no drone assigned for %s", id)
+		return "", fmt.Errorf("no drone assigned for %s", orderID)
 	}
 
 	return droneID, nil

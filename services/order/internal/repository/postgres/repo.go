@@ -3,7 +3,8 @@ package postgres
 import (
 	"context"
 	"errors"
-	"hive/services/order/internal/domain"
+	"fmt"
+	"hive/services/order/internal/domain/order"
 	"hive/services/order/internal/service"
 	"time"
 
@@ -24,7 +25,7 @@ func NewPostgresRepo(db *pgxpool.Pool) *PostgresRepo {
 	}
 }
 
-func (r *PostgresRepo) Save(ctx context.Context, o *domain.Order) error {
+func (r *PostgresRepo) Save(ctx context.Context, o *order.Order) error {
 	sql, args, err := r.builder.
 		Insert("orders").
 		Columns(
@@ -43,7 +44,7 @@ func (r *PostgresRepo) Save(ctx context.Context, o *domain.Order) error {
 			o.UserID,
 			o.DroneID,
 			o.Items,
-			string(o.Status),
+			o.Status,
 			o.Location.Lat,
 			o.Location.Lon,
 			o.CreatedAt,
@@ -58,7 +59,7 @@ func (r *PostgresRepo) Save(ctx context.Context, o *domain.Order) error {
 	return err
 }
 
-func (r *PostgresRepo) Get(ctx context.Context, id string) (*domain.Order, error) {
+func (r *PostgresRepo) GetByID(ctx context.Context, id string) (*order.Order, error) {
 	sql, args, err := r.builder.
 		Select(
 			"id",
@@ -78,17 +79,13 @@ func (r *PostgresRepo) Get(ctx context.Context, id string) (*domain.Order, error
 		return nil, err
 	}
 
-	var (
-		o         domain.Order
-		statusStr string
-	)
-
+	var o order.Order
 	if err = r.db.QueryRow(ctx, sql, args...).Scan(
 		&o.ID,
 		&o.UserID,
 		&o.DroneID,
 		&o.Items,
-		&statusStr,
+		&o.Status,
 		&o.Location.Lat,
 		&o.Location.Lon,
 		&o.CreatedAt,
@@ -100,20 +97,15 @@ func (r *PostgresRepo) Get(ctx context.Context, id string) (*domain.Order, error
 		return nil, err
 	}
 
-	o.Status = domain.OrderStatus(statusStr)
 	return &o, nil
 }
 
-func (r *PostgresRepo) Update(ctx context.Context, o *domain.Order) error {
+func (r *PostgresRepo) UpdateStatus(ctx context.Context, id string, status order.OrderStatus) error {
 	sql, args, err := r.builder.
 		Update("orders").
-		Set("drone_id", o.DroneID).
-		Set("items", o.Items).
-		Set("status", string(o.Status)).
-		Set("delivery_lat", o.Location.Lat).
-		Set("delivery_lon", o.Location.Lon).
+		Set("status", status).
 		Set("updated_at", time.Now().UTC()).
-		Where(sq.Eq{"id": o.ID}).
+		Where(sq.Eq{"id": id}).
 		ToSql()
 	if err != nil {
 		return err
@@ -128,4 +120,56 @@ func (r *PostgresRepo) Update(ctx context.Context, o *domain.Order) error {
 	}
 
 	return nil
+}
+
+func (r *PostgresRepo) SetDroneID(ctx context.Context, id string, droneID string) error {
+	sql, args, err := r.builder.
+		Update("orders").
+		Set("drone_id", droneID).
+		Set("updated_at", time.Now().UTC()).
+		Where(sq.Eq{"id": id}).
+		ToSql()
+	if err != nil {
+		return err
+	}
+
+	tag, err := r.db.Exec(ctx, sql, args...)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return service.ErrNotFound
+	}
+
+	return nil
+}
+
+func (r *PostgresRepo) UpdateDroneAndStatus(ctx context.Context, id string, droneID string, status order.OrderStatus) error {
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	sql, args, err := r.builder.
+		Update("orders").
+		Set("drone_id", droneID).
+		Set("status", status).
+		Set("updated_at", time.Now().UTC()).
+		Where(sq.Eq{"id": id}).
+		ToSql()
+	if err != nil {
+		return err
+	}
+
+	tag, err := tx.Exec(ctx, sql, args...)
+	if err != nil {
+		return err
+	}
+
+	if tag.RowsAffected() == 0 {
+		return service.ErrNotFound
+	}
+
+	return tx.Commit(ctx)
 }

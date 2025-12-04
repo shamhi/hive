@@ -4,10 +4,9 @@ import (
 	"context"
 	"errors"
 	pb "hive/gen/order"
-	"hive/services/order/internal/domain"
+	"hive/services/order/internal/domain/shared"
 	"hive/services/order/internal/service"
 
-	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -32,34 +31,24 @@ func (s *Server) CreateOrder(ctx context.Context, req *pb.CreateOrderRequest) (*
 		return nil, status.Error(codes.InvalidArgument, "delivery location is required")
 	}
 
-	orderID := uuid.NewString()
-
-	loc := domain.Location{
-		Lat: req.GetDeliveryLocation().GetLat(),
-		Lon: req.GetDeliveryLocation().GetLon(),
-	}
-
-	droneID, etaSeconds, err := s.orderService.CreateOrder(
+	orderInfo, err := s.orderService.CreateOrder(
 		ctx,
-		orderID,
 		req.GetUserId(),
 		req.GetItems(),
-		loc,
+		shared.Location{
+			Lat: req.GetDeliveryLocation().GetLat(),
+			Lon: req.GetDeliveryLocation().GetLon(),
+		},
 	)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	order, err := s.orderService.GetOrder(ctx, orderID)
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
 	return &pb.CreateOrderResponse{
-		OrderId:    order.ID,
-		Status:     toProtoStatus(order.Status),
-		EtaSeconds: etaSeconds,
-		DroneId:    droneID,
+		OrderId:    orderInfo.ID,
+		Status:     toProtoStatus(orderInfo.Status),
+		DroneId:    orderInfo.DroneID,
+		EtaSeconds: orderInfo.EtaSeconds,
 	}, nil
 }
 
