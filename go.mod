@@ -1,6 +1,6 @@
 module hive
 
-go 1.25.4
+go 1.25.5
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
@@ -35,5 +35,6 @@ require (
 	golang.org/x/sync v0.18.0 // indirect
 	golang.org/x/sys v0.38.0 // indirect
 	golang.org/x/text v0.31.0 // indirect
+	golang.org/x/time v0.12.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251022142026-3a174f9686a8 // indirect
 )
