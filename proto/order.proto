@@ -3,6 +3,8 @@ syntax = "proto3";
 package order;
 option go_package = "hive/gen/order";
 
+import "common.proto";
+
 service OrderService {
   rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse);
   rpc GetOrder(GetOrderRequest) returns (GetOrderResponse);
@@ -17,22 +19,17 @@ enum OrderStatus {
   FAILED = 4;
 }
 
-message Location {
-  double lat = 1;
-  double lon = 2;
-}
-
 message CreateOrderRequest {
   string user_id = 1;
   repeated string items = 2;
-  Location delivery_location = 3;
+  common.Location delivery_location = 3;
 }
 
 message CreateOrderResponse {
   string order_id = 1;
   OrderStatus status = 2;
-  int32 eta_seconds = 3;
-  string drone_id = 4;
+  string drone_id = 3;
+  int32 eta_seconds = 4;
 }
 
 message GetOrderRequest {

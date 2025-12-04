@@ -3,18 +3,16 @@ syntax = "proto3";
 package dispatch;
 option go_package = "hive/gen/dispatch";
 
+import "common.proto";
+
 service DispatchService {
   rpc AssignDrone(AssignDroneRequest) returns (AssignDroneResponse);
 }
 
-message Location {
-  double lat = 1;
-  double lon = 2;
-}
 
 message AssignDroneRequest {
   string order_id = 1;
-  Location delivery_location = 2;
+  common.Location delivery_location = 2;
 }
 
 message AssignDroneResponse {

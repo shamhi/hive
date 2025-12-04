@@ -1,6 +1,9 @@
 syntax = "proto3";
 
+package store;
 option go_package = "hive/gen/store";
+
+import "common.proto";
 
 service StoreService {
   rpc CreateStore(CreateStoreRequest) returns (CreateStoreResponse);
@@ -8,15 +11,10 @@ service StoreService {
   rpc FindNearest(FindNearestRequest) returns (FindNearestResponse);
 }
 
-message Location {
-  double lat = 1;
-  double lon = 2;
-}
-
 message CreateStoreRequest {
   string name = 1;
   string address = 2;
-  Location location = 3;
+  common.Location location = 3;
 }
 
 message CreateStoreResponse {
@@ -28,11 +26,11 @@ message GetStoreLocationRequest {
 }
 
 message GetStoreLocationResponse {
-  Location location = 1;
+  common.Location location = 1;
 }
 
 message FindNearestRequest {
-  Location delivery_location = 1;
+  common.Location delivery_location = 1;
 }
 
 message FindNearestResponse {

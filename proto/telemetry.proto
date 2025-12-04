@@ -3,6 +3,8 @@ syntax = "proto3";
 package telemetry;
 option go_package = "hive/gen/telemetry";
 
+import "common.proto";
+
 service TelemetryService {
   rpc Link(stream DroneTelemetry) returns (stream ServerCommand);
   rpc SendCommand(SendCommandRequest) returns (SendCommandResponse);
@@ -42,14 +44,9 @@ enum TargetType {
   TARGET_BASE = 4;
 }
 
-message Location {
-  double lat = 1;
-  double lon = 2;
-}
-
 message DroneTelemetry {
   string drone_id = 1;
-  Location drone_location = 2;
+  common.Location drone_location = 2;
   int32 battery = 3;
   DroneStatus status = 4;
   int64 timestamp = 5;
@@ -59,14 +56,14 @@ message DroneTelemetry {
 message ServerCommand {
   string command_id = 1;
   DroneAction action = 2;
-  Location target = 3;
+  common.Location target = 3;
   TargetType type = 4;
 }
 
 message SendCommandRequest {
   string drone_id = 1;
   DroneAction action = 2;
-  Location target = 3;
+  common.Location target = 3;
   TargetType type = 4;
 }
 

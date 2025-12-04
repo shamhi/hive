@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package base;
+option go_package = "hive/gen/base";
+
+import "common.proto";
+
+service BaseService {
+  rpc CreateBase(CreateBaseRequest) returns (CreateBaseResponse);
+  rpc GetBaseLocation(GetBaseLocationRequest) returns (GetBaseLocationResponse);
+  rpc FindNearest(FindNearestRequest) returns (FindNearestResponse);
+}
+
+message CreateBaseRequest {
+  string name = 1;
+  string address = 2;
+  common.Location location = 3;
+}
+
+message CreateBaseResponse {
+  string base_id = 1;
+}
+
+message GetBaseLocationRequest {
+  string base_id = 1;
+}
+
+message GetBaseLocationResponse {
+  common.Location location = 1;
+}
+
+message FindNearestRequest {
+  common.Location drone_location = 1;
+}
+
+message FindNearestResponse {
+  string base_id = 1;
+  bool found = 2;
+  double distance_meters = 5;
+}
