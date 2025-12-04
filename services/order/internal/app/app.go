@@ -7,7 +7,7 @@ import (
 	pg "hive/pkg/db/postgres"
 	"hive/pkg/logger"
 	"hive/services/order/internal/config"
-	dispatchClient "hive/services/order/internal/infrastructure/client/dispatch"
+	grpcDispatchClient "hive/services/order/internal/infrastructure/client/dispatch"
 	repoPostgres "hive/services/order/internal/repository/postgres"
 	"hive/services/order/internal/service"
 	transportGrpc "hive/services/order/internal/transport/grpc"
@@ -38,9 +38,12 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	if err != nil {
 		return nil, err
 	}
-	dispatcher := dispatchClient.NewDispatchAdapter(pbDispatch.NewDispatchServiceClient(dispatchConn))
+	dispatchClient := grpcDispatchClient.NewDispatchAdapter(pbDispatch.NewDispatchServiceClient(dispatchConn))
 
-	orderService := service.NewOrderService(repo, dispatcher)
+	orderService := service.NewOrderService(
+		repo,
+		dispatchClient,
+	)
 
 	lis, err := net.Listen("tcp", ":"+strconv.Itoa(cfg.GRPCPort))
 	if err != nil {
@@ -60,8 +63,7 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 }
 
 func (a *App) Run(errChan chan<- error) {
-	const op = "app.Run"
-	lg := a.lg.With(zap.String("op", op))
+	lg := a.lg.With(zap.String("component", "app"))
 
 	lg.Info(context.Background(), "Running gRPC server", zap.Int("port", a.cfg.GRPCPort))
 	if err := a.grpcServer.Serve(a.lis); err != nil {
@@ -70,10 +72,9 @@ func (a *App) Run(errChan chan<- error) {
 }
 
 func (a *App) Stop(ctx context.Context) {
-	const op = "app.Stop"
-	lg := a.lg.With(zap.String("op", op))
+	lg := a.lg.With(zap.String("component", "app"))
 
-	lg.Info(context.Background(), "Shutting down...")
+	lg.Info(ctx, "Shutting down...")
 
 	done := make(chan struct{})
 	go func() {
@@ -83,10 +84,10 @@ func (a *App) Stop(ctx context.Context) {
 
 	select {
 	case <-done:
-		lg.Info(context.Background(), "gRPC server gracefully stopped")
+		lg.Info(ctx, "gRPC server gracefully stopped")
 	case <-ctx.Done():
-		lg.Warn(context.Background(), "Timeout reached, force stopping...")
+		lg.Warn(ctx, "Timeout reached, force stopping...")
 		a.grpcServer.Stop()
-		lg.Info(context.Background(), "gRPC server force stopped")
+		lg.Info(ctx, "gRPC server force stopped")
 	}
 }

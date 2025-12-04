@@ -7,15 +7,15 @@ import (
 	"hive/services/order/internal/domain"
 )
 
-type DispatchAdapter struct {
+type DispatchClient struct {
 	client pb.DispatchServiceClient
 }
 
-func NewDispatchAdapter(client pb.DispatchServiceClient) *DispatchAdapter {
-	return &DispatchAdapter{client: client}
+func NewDispatchAdapter(client pb.DispatchServiceClient) *DispatchClient {
+	return &DispatchClient{client: client}
 }
 
-func (a *DispatchAdapter) AssignDrone(ctx context.Context, id string, loc domain.Location) (string, error) {
+func (c *DispatchClient) AssignDrone(ctx context.Context, id string, loc domain.Location) (string, error) {
 	req := &pb.AssignDroneRequest{
 		OrderId: id,
 		DeliveryLocation: &pb.Location{
@@ -23,13 +23,9 @@ func (a *DispatchAdapter) AssignDrone(ctx context.Context, id string, loc domain
 			Lon: loc.Lon,
 		},
 	}
-	resp, err := a.client.AssignDrone(ctx, req)
+	resp, err := c.client.AssignDrone(ctx, req)
 	if err != nil {
 		return "", fmt.Errorf("failed to assign drone: %w", err)
-	}
-
-	if !resp.GetSuccess() {
-		return "", fmt.Errorf("assignment failed for %s", id)
 	}
 
 	droneID := resp.GetDroneId()
