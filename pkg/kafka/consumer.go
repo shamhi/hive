@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"hive/pkg/logger"
+	"strings"
 
 	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
@@ -16,7 +17,7 @@ type Consumer struct {
 
 func NewConsumer(cfg Config, topic string, lg logger.Logger) *Consumer {
 	r := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:     cfg.Brokers,
+		Brokers:     strings.Split(cfg.Brokers, ","),
 		GroupID:     cfg.GroupID,
 		Topic:       topic,
 		StartOffset: kafka.LastOffset,
@@ -45,7 +46,7 @@ func (c *Consumer) Start(ctx context.Context, handler func(context.Context, []by
 			}
 
 			if err := handler(ctx, msg.Value); err != nil {
-				lg.Error(context.Background(), "failed to handle message", zap.Error(err))
+				lg.Error(ctx, "failed to handle message", zap.Error(err))
 			}
 		}
 	}

@@ -1,6 +1,10 @@
 package kafka
 
-import "github.com/segmentio/kafka-go"
+import (
+	"strings"
+
+	"github.com/segmentio/kafka-go"
+)
 
 type Producer struct {
 	Writer *kafka.Writer
@@ -9,7 +13,7 @@ type Producer struct {
 func NewProducer(cfg Config) *Producer {
 	return &Producer{
 		Writer: &kafka.Writer{
-			Addr:     kafka.TCP(cfg.Brokers...),
+			Addr:     kafka.TCP(strings.Split(cfg.Brokers, ",")...),
 			Balancer: &kafka.LeastBytes{},
 		},
 	}
