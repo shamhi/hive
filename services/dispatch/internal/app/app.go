@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"hive/services/dispatch/internal/interceptor"
 
 	pb "hive/gen/dispatch"
 	pbOrder "hive/gen/order"
@@ -22,7 +23,6 @@ import (
 	transportGrpc "hive/services/dispatch/internal/transport/grpc"
 	transportKafka "hive/services/dispatch/internal/transport/kafka"
 	"net"
-	"strconv"
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -34,6 +34,7 @@ type App struct {
 	lg             logger.Logger
 	lis            net.Listener
 	grpcServer     *grpc.Server
+	grpcConns      []*grpc.ClientConn
 	consumer       *kafka.Consumer
 	handler        *transportKafka.Handler
 	cancelConsumer context.CancelFunc
@@ -50,6 +51,7 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	orderConn, err := grpc.NewClient(
 		cfg.OrderAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(interceptor.TimeoutUnaryClientInterceptor(lg, cfg.RequestTimeout)),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to order service: %w", err)
@@ -59,8 +61,10 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	storeConn, err := grpc.NewClient(
 		cfg.StoreAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(interceptor.TimeoutUnaryClientInterceptor(lg, cfg.RequestTimeout)),
 	)
 	if err != nil {
+		orderConn.Close()
 		return nil, fmt.Errorf("failed to connect to store service: %w", err)
 	}
 	storeClient := grpcStoreClient.NewStoreClient(pbStore.NewStoreServiceClient(storeConn))
@@ -68,8 +72,11 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	trackingConn, err := grpc.NewClient(
 		cfg.TrackingAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(interceptor.TimeoutUnaryClientInterceptor(lg, cfg.RequestTimeout)),
 	)
 	if err != nil {
+		orderConn.Close()
+		storeConn.Close()
 		return nil, fmt.Errorf("failed to connect to tracking service: %w", err)
 	}
 	trackingClient := grpcTrackingClient.NewTrackingClient(pbTracking.NewTrackingServiceClient(trackingConn))
@@ -77,8 +84,12 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	telemetryConn, err := grpc.NewClient(
 		cfg.TelemetryAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(interceptor.TimeoutUnaryClientInterceptor(lg, cfg.RequestTimeout)),
 	)
 	if err != nil {
+		orderConn.Close()
+		storeConn.Close()
+		trackingConn.Close()
 		return nil, fmt.Errorf("failed to connect to telemetry service: %w", err)
 	}
 	telemetryClient := grpcTelemetryClient.NewTelemetryClient(pbTelemetry.NewTelemetryServiceClient(telemetryConn))
@@ -94,12 +105,20 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	consumer := kafka.NewConsumer(cfg.KafkaConfig, cfg.TelemetryTopic, lg)
 	kafkaHandler := transportKafka.NewHandler(dispatchService)
 
-	lis, err := net.Listen("tcp", ":"+strconv.Itoa(cfg.GRPCPort))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GRPCPort))
 	if err != nil {
+		orderConn.Close()
+		storeConn.Close()
+		trackingConn.Close()
+		telemetryConn.Close()
 		return nil, fmt.Errorf("failed to listen on port %d: %w", cfg.GRPCPort, err)
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			interceptor.LoggingUnaryServerInterceptor(lg),
+		),
+	)
 	dispatchServer := transportGrpc.NewServer(
 		dispatchService,
 		&transportGrpc.Config{
@@ -114,6 +133,7 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 		lg:         lg,
 		lis:        lis,
 		grpcServer: grpcServer,
+		grpcConns:  []*grpc.ClientConn{orderConn, storeConn, trackingConn, telemetryConn},
 		consumer:   consumer,
 		handler:    kafkaHandler,
 	}, nil
@@ -125,15 +145,7 @@ func (a *App) Run(errChan chan<- error) {
 	consumerCtx, cancelConsumer := context.WithCancel(context.Background())
 	a.cancelConsumer = cancelConsumer
 
-	go func(ctx context.Context, lg logger.Logger) {
-		lg = lg.With(zap.String("component", "kafka-consumer"))
-
-		if err := a.consumer.Start(ctx, a.handler.Handle); err != nil {
-			lg.Error(ctx, "consumer exited with error", zap.Error(err))
-		}
-
-		lg.Info(ctx, "consumer stopped")
-	}(consumerCtx, lg)
+	go a.runConsumer(consumerCtx, lg)
 
 	lg.Info(context.Background(), "Running gRPC server",
 		zap.Int("port", a.cfg.GRPCPort),
@@ -141,21 +153,42 @@ func (a *App) Run(errChan chan<- error) {
 	)
 
 	if err := a.grpcServer.Serve(a.lis); err != nil {
+		a.cancelConsumer()
 		errChan <- fmt.Errorf("failed to serve gRPC server: %w", err)
 	}
 }
 
+func (a *App) runConsumer(ctx context.Context, lg logger.Logger) {
+	lg = lg.With(zap.String("component", "kafka-consumer"))
+
+	if err := a.consumer.Start(ctx, a.handler.Handle); err != nil {
+		lg.Error(ctx, "consumer exited with error", zap.Error(err))
+	}
+
+	lg.Info(ctx, "consumer stopped")
+}
+
 func (a *App) Stop(ctx context.Context) {
-	lg := a.lg.With(zap.String("component", "app"), zap.String("operation", "shutdown"))
+	lg := a.lg.With(zap.String("component", "app"))
 
 	lg.Info(ctx, "Gracefully shutting down...")
 
 	if a.cancelConsumer != nil {
 		a.cancelConsumer()
+		lg.Info(ctx, "Kafka consumer context cancelled")
 	}
 
-	a.consumer.Close()
+	if a.consumer != nil {
+		a.consumer.Close()
+	}
 	lg.Info(ctx, "Kafka consumer closed")
+
+	for _, conn := range a.grpcConns {
+		if err := conn.Close(); err != nil {
+			lg.Warn(ctx, "failed to close gRPC connection", zap.Error(err))
+		}
+	}
+	lg.Info(ctx, "gRPC connections closed")
 
 	done := make(chan struct{})
 	go func() {

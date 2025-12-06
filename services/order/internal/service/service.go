@@ -37,9 +37,6 @@ func (s *OrderService) CreateOrder(
 	if len(items) == 0 {
 		return nil, fmt.Errorf("items list cannot be empty")
 	}
-	if deliveryLocation.Lat == 0 && deliveryLocation.Lon == 0 {
-		return nil, fmt.Errorf("delivery location is required")
-	}
 
 	o := &order.Order{
 		ID:        uuid.NewString(),

@@ -7,7 +7,7 @@ import (
 )
 
 type OrderRepository interface {
-	Save(ctx context.Context, order *order.Order) error
+	Save(ctx context.Context, o *order.Order) error
 	GetByID(ctx context.Context, id string) (*order.Order, error)
 	UpdateStatus(ctx context.Context, id string, status order.OrderStatus) error
 	SetDroneID(ctx context.Context, id string, droneID string) error

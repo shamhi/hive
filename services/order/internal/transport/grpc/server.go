@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	pb "hive/gen/order"
+	"hive/services/order/internal/domain/mapping"
 	"hive/services/order/internal/domain/shared"
 	"hive/services/order/internal/service"
 
@@ -46,7 +47,7 @@ func (s *Server) CreateOrder(ctx context.Context, req *pb.CreateOrderRequest) (*
 
 	return &pb.CreateOrderResponse{
 		OrderId:    orderInfo.ID,
-		Status:     toProtoStatus(orderInfo.Status),
+		Status:     mapping.OrderStatusToProto(orderInfo.Status),
 		DroneId:    orderInfo.DroneID,
 		EtaSeconds: orderInfo.EtaSeconds,
 	}, nil
@@ -57,7 +58,7 @@ func (s *Server) GetOrder(ctx context.Context, req *pb.GetOrderRequest) (*pb.Get
 		return nil, status.Error(codes.InvalidArgument, "order ID is required")
 	}
 
-	order, err := s.orderService.GetOrder(ctx, req.GetOrderId())
+	o, err := s.orderService.GetOrder(ctx, req.GetOrderId())
 	if err != nil {
 		if errors.Is(err, service.ErrNotFound) {
 			return nil, status.Error(codes.NotFound, err.Error())
@@ -66,11 +67,11 @@ func (s *Server) GetOrder(ctx context.Context, req *pb.GetOrderRequest) (*pb.Get
 	}
 
 	return &pb.GetOrderResponse{
-		OrderId:   order.ID,
-		Status:    toProtoStatus(order.Status),
-		DroneId:   order.DroneID,
-		CreatedAt: order.CreatedAt.Unix(),
-		UpdatedAt: order.UpdatedAt.Unix(),
+		OrderId:   o.ID,
+		Status:    mapping.OrderStatusToProto(o.Status),
+		DroneId:   o.DroneID,
+		CreatedAt: o.CreatedAt.Unix(),
+		UpdatedAt: o.UpdatedAt.Unix(),
 	}, nil
 }
 
@@ -79,7 +80,7 @@ func (s *Server) UpdateStatus(ctx context.Context, req *pb.UpdateStatusRequest) 
 		return nil, status.Error(codes.InvalidArgument, "order ID is required")
 	}
 
-	newStatus, ok := toDomainStatus(req.GetStatus())
+	newStatus, ok := mapping.OrderStatusFromProto(req.GetStatus())
 	if !ok {
 		return nil, status.Error(codes.InvalidArgument, "invalid order status")
 	}

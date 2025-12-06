@@ -17,8 +17,8 @@ type AssignmentRepository interface {
 }
 
 type TrackingClient interface {
-	FindNearest(ctx context.Context, storeLocation *shared.Location, minBattery, radius float64) (*drone.DroneNearestInfo, error)
-	GetDroneLocation(ctx context.Context, droneID string) (*drone.DroneInfo, error)
+	FindNearest(ctx context.Context, storeLocation *shared.Location, minBattery, radius float64) (*drone.DroneNearest, error)
+	GetDroneLocation(ctx context.Context, droneID string) (*drone.Drone, error)
 	SetStatus(ctx context.Context, droneID string, status drone.DroneStatus) error
 }
 
@@ -27,8 +27,8 @@ type TelemetryClient interface {
 }
 
 type StoreClient interface {
-	FindNearest(ctx context.Context, deliveryLocation *shared.Location) (*store.StoreNearestInfo, error)
-	GetStoreLocation(ctx context.Context, storeID string) (*store.StoreInfo, error)
+	FindNearest(ctx context.Context, deliveryLocation *shared.Location) (*store.StoreNearest, error)
+	GetStoreLocation(ctx context.Context, storeID string) (*store.Store, error)
 }
 
 type OrderClient interface {

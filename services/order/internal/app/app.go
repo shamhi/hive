@@ -9,11 +9,11 @@ import (
 	"hive/pkg/logger"
 	"hive/services/order/internal/config"
 	grpcDispatchClient "hive/services/order/internal/infrastructure/client/dispatch"
+	"hive/services/order/internal/interceptor"
 	repoPostgres "hive/services/order/internal/repository/postgres"
 	"hive/services/order/internal/service"
 	transportGrpc "hive/services/order/internal/transport/grpc"
 	"net"
-	"strconv"
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -25,6 +25,8 @@ type App struct {
 	lg         logger.Logger
 	lis        net.Listener
 	grpcServer *grpc.Server
+	grpcConns  []*grpc.ClientConn
+	postgresDB *pg.Database
 }
 
 func New(cfg *config.Config, lg logger.Logger) (*App, error) {
@@ -38,6 +40,7 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	dispatchConn, err := grpc.NewClient(
 		cfg.DispatchAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(interceptor.TimeoutUnaryClientInterceptor(lg, cfg.RequestTimeout)),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to dispatch service: %w", err)
@@ -49,12 +52,16 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 		dispatchClient,
 	)
 
-	lis, err := net.Listen("tcp", ":"+strconv.Itoa(cfg.GRPCPort))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GRPCPort))
 	if err != nil {
 		return nil, fmt.Errorf("failed to listen on port %d: %w", cfg.GRPCPort, err)
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			interceptor.LoggingUnaryServerInterceptor(lg),
+		),
+	)
 	orderServer := transportGrpc.NewServer(orderService)
 	pbOrder.RegisterOrderServiceServer(grpcServer, orderServer)
 
@@ -63,6 +70,7 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 		lg:         lg,
 		lis:        lis,
 		grpcServer: grpcServer,
+		grpcConns:  []*grpc.ClientConn{dispatchConn},
 	}, nil
 }
 
@@ -82,7 +90,19 @@ func (a *App) Run(errChan chan<- error) {
 func (a *App) Stop(ctx context.Context) {
 	lg := a.lg.With(zap.String("component", "app"))
 
-	lg.Info(ctx, "Shutting down...")
+	lg.Info(ctx, "Gracefully shutting down...")
+
+	for _, conn := range a.grpcConns {
+		if err := conn.Close(); err != nil {
+			lg.Warn(ctx, "failed to close gRPC connection", zap.Error(err))
+		}
+	}
+	lg.Info(ctx, "gRPC connections closed")
+
+	if a.postgresDB != nil {
+		a.postgresDB.Close()
+		lg.Info(ctx, "Postgres connection closed")
+	}
 
 	done := make(chan struct{})
 	go func() {
@@ -94,8 +114,10 @@ func (a *App) Stop(ctx context.Context) {
 	case <-done:
 		lg.Info(ctx, "gRPC server gracefully stopped")
 	case <-ctx.Done():
-		lg.Warn(ctx, "Timeout reached, force stopping...")
+		lg.Warn(ctx, "shutdown timeout reached, force stopping gRPC server")
 		a.grpcServer.Stop()
 		lg.Info(ctx, "gRPC server force stopped")
 	}
+
+	lg.Info(ctx, "Shutdown completed successfully")
 }

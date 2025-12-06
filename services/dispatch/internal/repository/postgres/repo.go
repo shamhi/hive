@@ -127,10 +127,8 @@ func (r *PostgresRepo) GetByDroneID(ctx context.Context, droneID string) (*assig
 		).
 		From("assignments").
 		Where(sq.Eq{"drone_id": droneID}).
-		Where(sq.NotEq{"status": []assignment.AssignmentStatus{
-			assignment.AssignmentStatusCompleted,
-			assignment.AssignmentStatusFailed,
-		}}).
+		Where(sq.NotEq{"status": assignment.AssignmentStatusCompleted}).
+		Where(sq.NotEq{"status": assignment.AssignmentStatusFailed}).
 		OrderBy("created_at DESC").
 		Limit(1).
 		ToSql()

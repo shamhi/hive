@@ -35,6 +35,8 @@ var appConfig Config
 func ParseFlags() (*Config, error) {
 	flag.StringVar(&appConfig.Env, "env", appConfig.Env, "local | dev | prod")
 	flag.IntVar(&appConfig.GRPCPort, "grpc_port", appConfig.GRPCPort, "gRPC port of this server")
+	flag.DurationVar(&appConfig.RequestTimeout, "request_timeout", appConfig.RequestTimeout, "timeout of dispatch requesting")
+	flag.DurationVar(&appConfig.ShutdownTimeout, "shutdown_timeout", appConfig.ShutdownTimeout, "timeout of server shutdown")
 	flag.Float64Var(&appConfig.MinDroneBattery, "min_battery", appConfig.MinDroneBattery, "minimum battery percentage for drone assignment")
 	flag.Float64Var(&appConfig.DroneSearchRadius, "search_radius", appConfig.DroneSearchRadius, "search radius in meters for drone assignment")
 	flag.StringVar(&appConfig.OrderAddr, "order_addr", appConfig.OrderAddr, "address of order server")
@@ -42,13 +44,27 @@ func ParseFlags() (*Config, error) {
 	flag.StringVar(&appConfig.TrackingAddr, "tracking_addr", appConfig.TrackingAddr, "address of tracking server")
 	flag.StringVar(&appConfig.TelemetryAddr, "telemetry_addr", appConfig.TelemetryAddr, "address of telemetry server")
 	flag.StringVar(&appConfig.TelemetryTopic, "telemetry_topic", appConfig.TelemetryTopic, "kafka topic for telemetry events")
-	flag.DurationVar(&appConfig.RequestTimeout, "request_timeout", appConfig.RequestTimeout, "timeout of dispatch requesting")
-	flag.DurationVar(&appConfig.ShutdownTimeout, "shutdown_timeout", appConfig.ShutdownTimeout, "time")
-	flag.Parse()
+
+	flag.StringVar(&appConfig.DBConfig.Host, "db_host", appConfig.DBConfig.Host, "Postgres host")
+	flag.IntVar(&appConfig.DBConfig.Port, "db_port", appConfig.DBConfig.Port, "Postgres port")
+	flag.StringVar(&appConfig.DBConfig.Username, "db_user", appConfig.DBConfig.Username, "Postgres user")
+	flag.StringVar(&appConfig.DBConfig.Password, "db_password", appConfig.DBConfig.Password, "Postgres password")
+	flag.StringVar(&appConfig.DBConfig.DBName, "db_name", appConfig.DBConfig.DBName, "Postgres database name")
+
+	flag.StringVar(&appConfig.KafkaConfig.Brokers, "kafka_brokers", appConfig.KafkaConfig.Brokers, "Kafka brokers, comma separated")
+	flag.StringVar(&appConfig.KafkaConfig.GroupID, "kafka_group_id", appConfig.KafkaConfig.GroupID, "Kafka consumer group ID")
 
 	if err := env.Parse(&appConfig); err != nil {
 		return nil, err
 	}
+	if err := env.Parse(&appConfig.DBConfig); err != nil {
+		return nil, err
+	}
+	if err := env.Parse(&appConfig.KafkaConfig); err != nil {
+		return nil, err
+	}
+
+	flag.Parse()
 
 	return &appConfig, nil
 }

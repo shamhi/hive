@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/labstack/gommon/log"
 )
 
 type DispatchService struct {
@@ -43,41 +44,41 @@ func (s *DispatchService) AssignDrone(
 	deliveryLocation *shared.Location,
 	minDroneBattery float64,
 	droneSearchRadius float64,
-) (droneID string, err error) {
+) (*drone.Drone, error) {
 	if orderID == "" {
-		return "", fmt.Errorf("order ID is required")
+		return nil, fmt.Errorf("order ID is required")
 	}
 	if deliveryLocation == nil {
-		return "", fmt.Errorf("delivery location is required")
+		return nil, fmt.Errorf("delivery location is required")
 	}
 
 	nearestStore, err := s.store.FindNearest(ctx, deliveryLocation)
 	if err != nil {
-		return "", fmt.Errorf("failed to find nearest store: %w", err)
+		return nil, fmt.Errorf("failed to find nearest store: %w", err)
 	}
 
 	storeInfo, err := s.store.GetStoreLocation(ctx, nearestStore.ID)
 	if err != nil {
-		return "", fmt.Errorf("failed to get store location: %w", err)
+		return nil, fmt.Errorf("failed to get store location: %w", err)
 	}
 
 	nearestDrone, err := s.tracking.FindNearest(ctx, &storeInfo.Location, minDroneBattery, droneSearchRadius)
 	if err != nil {
-		return "", fmt.Errorf("failed to find nearest drone: %w", err)
+		return nil, fmt.Errorf("failed to find nearest drone: %w", err)
 	}
 
-	droneID = nearestDrone.ID
+	droneID := nearestDrone.ID
 
 	droneInfo, err := s.tracking.GetDroneLocation(ctx, droneID)
 	if err != nil {
-		return "", fmt.Errorf("failed to get drone location: %w", err)
+		return nil, fmt.Errorf("failed to get drone location: %w", err)
 	}
 
 	baseLocation := &shared.Location{Lat: 54.9813120, Lon: 37.1938342}                                          // TODO: Base service for finding nearest available base
 	totalDistance := nearestDrone.Distance + nearestStore.Distance + utils.Dist(deliveryLocation, baseLocation) // TODO: nearestBase.Distance
 	batteryRequired := totalDistance * droneInfo.ConsumptionPerMeter
 	if batteryRequired > droneInfo.Battery {
-		return "", fmt.Errorf("drone %s does not have enough battery for the trip", droneID)
+		return nil, fmt.Errorf("drone %s does not have enough battery for the trip", droneID)
 	}
 
 	a := &assignment.Assignment{
@@ -93,13 +94,18 @@ func (s *DispatchService) AssignDrone(
 		UpdatedAt: time.Now().UTC(),
 	}
 	if err := s.repo.Save(ctx, a); err != nil {
-		return "", fmt.Errorf("failed to save assignment: %w", err)
+		return nil, fmt.Errorf("failed to save assignment: %w", err)
 	}
 
-	fail := func(err error) (string, error) {
-		_ = s.repo.UpdateStatus(ctx, a.ID, assignment.AssignmentStatusFailed)
-		_ = s.tracking.SetStatus(ctx, droneID, drone.DroneStatusFree)
-		return "", err
+	fail := func(cause error) (*drone.Drone, error) {
+		if err := s.repo.UpdateStatus(ctx, a.ID, assignment.AssignmentStatusFailed); err != nil {
+			// TODO: add zap logger
+			log.Info("failed to update assignment status to FAILED:", err)
+		}
+		if err := s.tracking.SetStatus(ctx, droneID, drone.DroneStatusFree); err != nil {
+			log.Info("failed to set drone status to FREE:", err)
+		}
+		return nil, cause
 	}
 
 	if err := s.order.UpdateStatus(ctx, orderID, order.OrderStatusAssigned); err != nil {
@@ -123,7 +129,7 @@ func (s *DispatchService) AssignDrone(
 		return fail(fmt.Errorf("failed to update assignment status: %w", err))
 	}
 
-	return droneID, nil
+	return droneInfo, nil
 }
 
 func (s *DispatchService) HandleTelemetryEvent(ctx context.Context, event drone.TelemetryEvent) error {
@@ -146,6 +152,10 @@ func (s *DispatchService) HandleTelemetryEvent(ctx context.Context, event drone.
 	case drone.DroneEventPickedUpCargo:
 		if err := s.repo.UpdateStatus(ctx, a.ID, assignment.AssignmentStatusPickedUpCargo); err != nil {
 			return fmt.Errorf("failed to update assignment status: %w", err)
+		}
+
+		if a.Target == nil {
+			return fmt.Errorf("assignment target location is nil")
 		}
 
 		target := &drone.Target{Location: a.Target, Type: drone.TargetTypeClient}
@@ -177,7 +187,7 @@ func (s *DispatchService) HandleTelemetryEvent(ctx context.Context, event drone.
 			return fmt.Errorf("failed to update order status: %w", err)
 		}
 
-		baseLocation := &shared.Location{Lat: 0, Lon: 0} // TODO: Base service to get actual base location
+		baseLocation := &shared.Location{Lat: 54.9813120, Lon: 37.1938342} // TODO: Base service to get actual base location
 		target := &drone.Target{Location: baseLocation, Type: drone.TargetTypeBase}
 		if err := s.telemetry.SendCommand(ctx, event.DroneID, drone.DroneActionFlyTo, target); err != nil {
 			return fmt.Errorf("failed to send fly to base command: %w", err)

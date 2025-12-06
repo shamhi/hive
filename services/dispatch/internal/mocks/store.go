@@ -12,10 +12,10 @@ func NewMockStoreClient() *MockStoreClient {
 	return &MockStoreClient{}
 }
 
-func (m *MockStoreClient) FindNearest(_ context.Context, deliveryLocation *shared.Location) (*store.StoreNearestInfo, error) {
+func (m *MockStoreClient) FindNearest(_ context.Context, deliveryLocation *shared.Location) (*store.StoreNearest, error) {
 	return nil, nil
 }
 
-func (m *MockStoreClient) GetStoreLocation(_ context.Context, storeID string) (*store.StoreInfo, error) {
+func (m *MockStoreClient) GetStoreLocation(_ context.Context, storeID string) (*store.Store, error) {
 	return nil, nil
 }

@@ -6,6 +6,7 @@ import (
 	pbCommon "hive/gen/common"
 	pbTracking "hive/gen/tracking"
 	"hive/services/dispatch/internal/domain/drone"
+	"hive/services/dispatch/internal/domain/mapping"
 	"hive/services/dispatch/internal/domain/shared"
 )
 
@@ -22,7 +23,7 @@ func (c *TrackingClient) FindNearest(
 	storeLocation *shared.Location,
 	minBattery float64,
 	searchRadius float64,
-) (*drone.DroneNearestInfo, error) {
+) (*drone.DroneNearest, error) {
 	req := &pbTracking.FindNearestRequest{
 		StoreLocation: &pbCommon.Location{
 			Lat: storeLocation.Lat,
@@ -47,13 +48,13 @@ func (c *TrackingClient) FindNearest(
 		return nil, fmt.Errorf("invalid distance returned for nearest drone")
 	}
 
-	return &drone.DroneNearestInfo{
+	return &drone.DroneNearest{
 		ID:       resp.GetDroneId(),
 		Distance: resp.GetDistanceMeters(),
 	}, nil
 }
 
-func (c *TrackingClient) GetDroneLocation(ctx context.Context, droneID string) (*drone.DroneInfo, error) {
+func (c *TrackingClient) GetDroneLocation(ctx context.Context, droneID string) (*drone.Drone, error) {
 	req := &pbTracking.GetDroneLocationRequest{
 		DroneId: droneID,
 	}
@@ -77,7 +78,7 @@ func (c *TrackingClient) GetDroneLocation(ctx context.Context, droneID string) (
 		return nil, fmt.Errorf("no location data returned for drone")
 	}
 
-	return &drone.DroneInfo{
+	return &drone.Drone{
 		ID: droneID,
 		Location: shared.Location{
 			Lat: locationPb.GetLat(),
@@ -90,21 +91,9 @@ func (c *TrackingClient) GetDroneLocation(ctx context.Context, droneID string) (
 }
 
 func (c *TrackingClient) SetStatus(ctx context.Context, droneID string, status drone.DroneStatus) error {
-	var newStatus pbTracking.DroneStatus
-	switch status {
-	case drone.DroneStatusFree:
-		newStatus = pbTracking.DroneStatus_STATUS_FREE
-	case drone.DroneStatusBusy:
-		newStatus = pbTracking.DroneStatus_STATUS_BUSY
-	case drone.DroneStatusCharging:
-		newStatus = pbTracking.DroneStatus_STATUS_CHARGING
-	default:
-		newStatus = pbTracking.DroneStatus_STATUS_UNKNOWN
-	}
-
 	req := &pbTracking.SetStatusRequest{
 		DroneId: droneID,
-		Status:  newStatus,
+		Status:  mapping.DroneStatusToProto(status),
 	}
 	resp, err := c.client.SetStatus(ctx, req)
 	if err != nil {

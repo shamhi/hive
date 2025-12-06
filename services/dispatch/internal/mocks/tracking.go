@@ -17,11 +17,11 @@ func (m *MockTrackingClient) FindNearest(
 	storeLocation *shared.Location,
 	minBattery float64,
 	radius float64,
-) (*drone.DroneNearestInfo, error) {
+) (*drone.DroneNearest, error) {
 	return nil, nil
 }
 
-func (m *MockTrackingClient) GetDroneLocation(_ context.Context, droneID string) (*drone.DroneInfo, error) {
+func (m *MockTrackingClient) GetDroneLocation(_ context.Context, droneID string) (*drone.Drone, error) {
 	return nil, nil
 }
 

@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	pbTelemetry "hive/gen/telemetry"
-	pbCommon "hive/gen/common"
 	"hive/services/dispatch/internal/domain/drone"
+	"hive/services/dispatch/internal/domain/mapping"
 )
 
 type TelemetryClient struct {
@@ -22,49 +22,16 @@ func (c *TelemetryClient) SendCommand(
 	action drone.DroneAction,
 	target *drone.Target,
 ) error {
-	var pbAction pbTelemetry.DroneAction
-	switch action {
-	case drone.DroneActionWait:
-		pbAction = pbTelemetry.DroneAction_ACTION_WAIT
-	case drone.DroneActionFlyTo:
-		pbAction = pbTelemetry.DroneAction_ACTION_FLY_TO
-	case drone.DroneActionPickupCargo:
-		pbAction = pbTelemetry.DroneAction_ACTION_PICKUP_CARGO
-	case drone.DroneActionDropCargo:
-		pbAction = pbTelemetry.DroneAction_ACTION_DROP_CARGO
-	case drone.DroneActionCharge:
-		pbAction = pbTelemetry.DroneAction_ACTION_CHARGE
-	default:
-		pbAction = pbTelemetry.DroneAction_ACTION_NONE
-	}
-
-	var targetPb *pbCommon.Location
-	var targetType pbTelemetry.TargetType
-	if target != nil {
-		targetPb = &pbCommon.Location{
-			Lat: target.Location.Lat,
-			Lon: target.Location.Lon,
-		}
-
-		switch target.Type {
-		case drone.TargetTypePoint:
-			targetType = pbTelemetry.TargetType_TARGET_POINT
-		case drone.TargetTypeStore:
-			targetType = pbTelemetry.TargetType_TARGET_STORE
-		case drone.TargetTypeClient:
-			targetType = pbTelemetry.TargetType_TARGET_CLIENT
-		case drone.TargetTypeBase:
-			targetType = pbTelemetry.TargetType_TARGET_BASE
-		default:
-			targetType = pbTelemetry.TargetType_TARGET_NONE
-		}
-	}
-
 	req := &pbTelemetry.SendCommandRequest{
 		DroneId: droneID,
-		Action:  pbAction,
-		Target:  targetPb,
-		Type:    targetType,
+		Action:  mapping.DroneActionToProto(action),
+		Type:    pbTelemetry.TargetType_TARGET_NONE,
+	}
+	if target != nil && target.Location != nil {
+		req.Target = mapping.LocationToProto(target.Location)
+		req.Type = mapping.DroneTargetTypeToProto(target.Type)
+	} else if action == drone.DroneActionFlyTo {
+		return fmt.Errorf("target is required for action %s", action)
 	}
 
 	resp, err := c.client.SendCommand(ctx, req)

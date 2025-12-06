@@ -31,7 +31,7 @@ func (s *Server) AssignDrone(ctx context.Context, req *pb.AssignDroneRequest) (*
 		return nil, status.Error(codes.InvalidArgument, "delivery location is required")
 	}
 
-	droneID, err := s.dispatchService.AssignDrone(
+	droneInfo, err := s.dispatchService.AssignDrone(
 		ctx,
 		req.GetOrderId(),
 		&shared.Location{
@@ -45,5 +45,5 @@ func (s *Server) AssignDrone(ctx context.Context, req *pb.AssignDroneRequest) (*
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &pb.AssignDroneResponse{DroneId: droneID}, nil
+	return &pb.AssignDroneResponse{DroneId: droneInfo.ID}, nil
 }

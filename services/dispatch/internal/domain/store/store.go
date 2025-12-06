@@ -4,6 +4,8 @@ import "hive/services/dispatch/internal/domain/shared"
 
 type Store struct {
 	ID       string
+	Name     string
+	Address  string
 	Location shared.Location
 }
 

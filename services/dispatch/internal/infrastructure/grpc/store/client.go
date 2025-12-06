@@ -17,7 +17,7 @@ func NewStoreClient(client pbStore.StoreServiceClient) *StoreClient {
 	return &StoreClient{client: client}
 }
 
-func (c *StoreClient) FindNearest(ctx context.Context, deliveryLocation *shared.Location) (*store.StoreNearestInfo, error) {
+func (c *StoreClient) FindNearest(ctx context.Context, deliveryLocation *shared.Location) (*store.StoreNearest, error) {
 	req := &pbStore.FindNearestRequest{
 		DeliveryLocation: &pbCommon.Location{
 			Lat: deliveryLocation.Lat,
@@ -40,13 +40,13 @@ func (c *StoreClient) FindNearest(ctx context.Context, deliveryLocation *shared.
 		return nil, fmt.Errorf("invalid distance returned for nearest store")
 	}
 
-	return &store.StoreNearestInfo{
+	return &store.StoreNearest{
 		ID:       resp.GetStoreId(),
 		Distance: resp.GetDistanceMeters(),
 	}, nil
 }
 
-func (c *StoreClient) GetStoreLocation(ctx context.Context, storeID string) (*store.StoreInfo, error) {
+func (c *StoreClient) GetStoreLocation(ctx context.Context, storeID string) (*store.Store, error) {
 	req := &pbStore.GetStoreLocationRequest{
 		StoreId: storeID,
 	}
@@ -59,8 +59,10 @@ func (c *StoreClient) GetStoreLocation(ctx context.Context, storeID string) (*st
 		return nil, fmt.Errorf("store location not found")
 	}
 
-	return &store.StoreInfo{
-		ID: storeID,
+	return &store.Store{
+		ID:      storeID,
+		Name:    resp.GetName(),
+		Address: resp.GetAddress(),
 		Location: shared.Location{
 			Lat: resp.GetLocation().GetLat(),
 			Lon: resp.GetLocation().GetLon(),
