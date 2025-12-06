@@ -2,12 +2,12 @@ package store
 
 import "hive/services/dispatch/internal/domain/shared"
 
-type StoreInfo struct {
+type Store struct {
 	ID       string
 	Location shared.Location
 }
 
-type StoreNearestInfo struct {
+type StoreNearest struct {
 	ID       string
 	Distance float64
 }
