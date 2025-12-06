@@ -172,7 +172,9 @@ func (x *GetStoreLocationRequest) GetStoreId() string {
 
 type GetStoreLocationResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Location      *common.Location       `protobuf:"bytes,1,opt,name=location,proto3" json:"location,omitempty"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Address       string                 `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
+	Location      *common.Location       `protobuf:"bytes,3,opt,name=location,proto3" json:"location,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -205,6 +207,20 @@ func (x *GetStoreLocationResponse) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetStoreLocationResponse.ProtoReflect.Descriptor instead.
 func (*GetStoreLocationResponse) Descriptor() ([]byte, []int) {
 	return file_store_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GetStoreLocationResponse) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *GetStoreLocationResponse) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
 }
 
 func (x *GetStoreLocationResponse) GetLocation() *common.Location {
@@ -330,9 +346,11 @@ const file_store_proto_rawDesc = "" +
 	"\x13CreateStoreResponse\x12\x19\n" +
 	"\bstore_id\x18\x01 \x01(\tR\astoreId\"4\n" +
 	"\x17GetStoreLocationRequest\x12\x19\n" +
-	"\bstore_id\x18\x01 \x01(\tR\astoreId\"H\n" +
-	"\x18GetStoreLocationResponse\x12,\n" +
-	"\blocation\x18\x01 \x01(\v2\x10.common.LocationR\blocation\"S\n" +
+	"\bstore_id\x18\x01 \x01(\tR\astoreId\"v\n" +
+	"\x18GetStoreLocationResponse\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
+	"\aaddress\x18\x02 \x01(\tR\aaddress\x12,\n" +
+	"\blocation\x18\x03 \x01(\v2\x10.common.LocationR\blocation\"S\n" +
 	"\x12FindNearestRequest\x12=\n" +
 	"\x11delivery_location\x18\x01 \x01(\v2\x10.common.LocationR\x10deliveryLocation\"o\n" +
 	"\x13FindNearestResponse\x12\x19\n" +

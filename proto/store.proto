@@ -26,7 +26,9 @@ message GetStoreLocationRequest {
 }
 
 message GetStoreLocationResponse {
-  common.Location location = 1;
+  string name = 1;
+  string address = 2;
+  common.Location location = 3;
 }
 
 message FindNearestRequest {

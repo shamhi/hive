@@ -25,28 +25,31 @@ const (
 type OrderStatus int32
 
 const (
-	OrderStatus_CREATED   OrderStatus = 0
-	OrderStatus_PENDING   OrderStatus = 1
-	OrderStatus_ASSIGNED  OrderStatus = 2
-	OrderStatus_COMPLETED OrderStatus = 3
-	OrderStatus_FAILED    OrderStatus = 4
+	OrderStatus_UNKNOWN   OrderStatus = 0
+	OrderStatus_CREATED   OrderStatus = 1
+	OrderStatus_PENDING   OrderStatus = 2
+	OrderStatus_ASSIGNED  OrderStatus = 3
+	OrderStatus_COMPLETED OrderStatus = 4
+	OrderStatus_FAILED    OrderStatus = 5
 )
 
 // Enum value maps for OrderStatus.
 var (
 	OrderStatus_name = map[int32]string{
-		0: "CREATED",
-		1: "PENDING",
-		2: "ASSIGNED",
-		3: "COMPLETED",
-		4: "FAILED",
+		0: "UNKNOWN",
+		1: "CREATED",
+		2: "PENDING",
+		3: "ASSIGNED",
+		4: "COMPLETED",
+		5: "FAILED",
 	}
 	OrderStatus_value = map[string]int32{
-		"CREATED":   0,
-		"PENDING":   1,
-		"ASSIGNED":  2,
-		"COMPLETED": 3,
-		"FAILED":    4,
+		"UNKNOWN":   0,
+		"CREATED":   1,
+		"PENDING":   2,
+		"ASSIGNED":  3,
+		"COMPLETED": 4,
+		"FAILED":    5,
 	}
 )
 
@@ -188,7 +191,7 @@ func (x *CreateOrderResponse) GetStatus() OrderStatus {
 	if x != nil {
 		return x.Status
 	}
-	return OrderStatus_CREATED
+	return OrderStatus_UNKNOWN
 }
 
 func (x *CreateOrderResponse) GetDroneId() string {
@@ -301,7 +304,7 @@ func (x *GetOrderResponse) GetStatus() OrderStatus {
 	if x != nil {
 		return x.Status
 	}
-	return OrderStatus_CREATED
+	return OrderStatus_UNKNOWN
 }
 
 func (x *GetOrderResponse) GetDroneId() string {
@@ -375,7 +378,7 @@ func (x *UpdateStatusRequest) GetStatus() OrderStatus {
 	if x != nil {
 		return x.Status
 	}
-	return OrderStatus_CREATED
+	return OrderStatus_UNKNOWN
 }
 
 func (x *UpdateStatusRequest) GetMessage() string {
@@ -459,14 +462,15 @@ const file_order_proto_rawDesc = "" +
 	"\x06status\x18\x02 \x01(\x0e2\x12.order.OrderStatusR\x06status\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\"0\n" +
 	"\x14UpdateStatusResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess*P\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess*]\n" +
 	"\vOrderStatus\x12\v\n" +
-	"\aCREATED\x10\x00\x12\v\n" +
-	"\aPENDING\x10\x01\x12\f\n" +
-	"\bASSIGNED\x10\x02\x12\r\n" +
-	"\tCOMPLETED\x10\x03\x12\n" +
+	"\aUNKNOWN\x10\x00\x12\v\n" +
+	"\aCREATED\x10\x01\x12\v\n" +
+	"\aPENDING\x10\x02\x12\f\n" +
+	"\bASSIGNED\x10\x03\x12\r\n" +
+	"\tCOMPLETED\x10\x04\x12\n" +
 	"\n" +
-	"\x06FAILED\x10\x042\xda\x01\n" +
+	"\x06FAILED\x10\x052\xda\x01\n" +
 	"\fOrderService\x12D\n" +
 	"\vCreateOrder\x12\x19.order.CreateOrderRequest\x1a\x1a.order.CreateOrderResponse\x12;\n" +
 	"\bGetOrder\x12\x16.order.GetOrderRequest\x1a\x17.order.GetOrderResponse\x12G\n" +

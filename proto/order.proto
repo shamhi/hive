@@ -12,11 +12,12 @@ service OrderService {
 }
 
 enum OrderStatus {
-  CREATED = 0;
-  PENDING = 1;
-  ASSIGNED = 2;
-  COMPLETED = 3;
-  FAILED = 4;
+  UNKNOWN = 0;
+  CREATED = 1;
+  PENDING = 2;
+  ASSIGNED = 3;
+  COMPLETED = 4;
+  FAILED = 5;
 }
 
 message CreateOrderRequest {

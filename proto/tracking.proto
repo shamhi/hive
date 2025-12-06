@@ -4,18 +4,12 @@ package tracking;
 option go_package = "hive/gen/tracking";
 
 import "common.proto";
+import "telemetry.proto";
 
 service TrackingService {
   rpc FindNearest(FindNearestRequest) returns (FindNearestResponse);
   rpc GetDroneLocation(GetDroneLocationRequest) returns (GetDroneLocationResponse);
   rpc SetStatus(SetStatusRequest) returns (SetStatusResponse);
-}
-
-enum DroneStatus {
-  STATUS_UNKNOWN = 0;
-  STATUS_FREE = 1;
-  STATUS_BUSY = 2;
-  STATUS_CHARGING = 3;
 }
 
 message FindNearestRequest {
@@ -43,7 +37,7 @@ message GetDroneLocationResponse {
 
 message SetStatusRequest {
   string drone_id = 1;
-  DroneStatus status = 2;
+  telemetry.DroneStatus status = 2;
 }
 
 message SetStatusResponse {

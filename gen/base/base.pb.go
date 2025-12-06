@@ -172,7 +172,9 @@ func (x *GetBaseLocationRequest) GetBaseId() string {
 
 type GetBaseLocationResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Location      *common.Location       `protobuf:"bytes,1,opt,name=location,proto3" json:"location,omitempty"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Address       string                 `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
+	Location      *common.Location       `protobuf:"bytes,3,opt,name=location,proto3" json:"location,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -205,6 +207,20 @@ func (x *GetBaseLocationResponse) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetBaseLocationResponse.ProtoReflect.Descriptor instead.
 func (*GetBaseLocationResponse) Descriptor() ([]byte, []int) {
 	return file_base_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GetBaseLocationResponse) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *GetBaseLocationResponse) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
 }
 
 func (x *GetBaseLocationResponse) GetLocation() *common.Location {
@@ -331,9 +347,11 @@ const file_base_proto_rawDesc = "" +
 	"\x12CreateBaseResponse\x12\x17\n" +
 	"\abase_id\x18\x01 \x01(\tR\x06baseId\"1\n" +
 	"\x16GetBaseLocationRequest\x12\x17\n" +
-	"\abase_id\x18\x01 \x01(\tR\x06baseId\"G\n" +
-	"\x17GetBaseLocationResponse\x12,\n" +
-	"\blocation\x18\x01 \x01(\v2\x10.common.LocationR\blocation\"M\n" +
+	"\abase_id\x18\x01 \x01(\tR\x06baseId\"u\n" +
+	"\x17GetBaseLocationResponse\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
+	"\aaddress\x18\x02 \x01(\tR\aaddress\x12,\n" +
+	"\blocation\x18\x03 \x01(\v2\x10.common.LocationR\blocation\"M\n" +
 	"\x12FindNearestRequest\x127\n" +
 	"\x0edrone_location\x18\x01 \x01(\v2\x10.common.LocationR\rdroneLocation\"m\n" +
 	"\x13FindNearestResponse\x12\x17\n" +
