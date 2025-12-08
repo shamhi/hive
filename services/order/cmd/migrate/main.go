@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/caarlos0/env/v6"
+	"github.com/caarlos0/env/v11"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/lib/pq"
 
