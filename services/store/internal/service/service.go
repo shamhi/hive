@@ -60,10 +60,10 @@ func (s *StoreService) GetLocation(
 
 func (s *StoreService) FindNearest(
 	ctx context.Context,
-	deliveryLocation shared.Location,
+	location shared.Location,
 	radiusMeters float64,
 ) (*store.StoreNearest, error) {
-	stNearest, err := s.repo.GetNearest(ctx, deliveryLocation, radiusMeters)
+	stNearest, err := s.repo.GetNearest(ctx, location, radiusMeters)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find nearest store: %w", err)
 	}

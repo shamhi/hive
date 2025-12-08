@@ -72,7 +72,7 @@ func (r *RedisRepo) GetByID(ctx context.Context, id string) (*store.Store, error
 
 func (r *RedisRepo) GetNearest(
 	ctx context.Context,
-	deliveryLocation shared.Location,
+	location shared.Location,
 	radiusMeters float64,
 ) (*store.StoreNearest, error) {
 	result, err := r.client.GeoSearchLocation(
@@ -80,8 +80,8 @@ func (r *RedisRepo) GetNearest(
 		"stores:geo",
 		&redis.GeoSearchLocationQuery{
 			GeoSearchQuery: redis.GeoSearchQuery{
-				Longitude:  deliveryLocation.Lon,
-				Latitude:   deliveryLocation.Lat,
+				Longitude:  location.Lon,
+				Latitude:   location.Lat,
 				Radius:     radiusMeters,
 				RadiusUnit: "m",
 				Sort:       "ASC",
