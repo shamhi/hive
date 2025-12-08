@@ -60,10 +60,10 @@ func (s *BaseService) GetLocation(
 
 func (s *BaseService) FindNearest(
 	ctx context.Context,
-	droneLocation shared.Location,
+	location shared.Location,
 	radiusMeters float64,
 ) (*base.BaseNearest, error) {
-	stNearest, err := s.repo.GetNearest(ctx, droneLocation, radiusMeters)
+	stNearest, err := s.repo.GetNearest(ctx, location, radiusMeters)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find nearest base: %w", err)
 	}
