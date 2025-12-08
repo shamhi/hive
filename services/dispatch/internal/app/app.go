@@ -3,6 +3,8 @@ package app
 import (
 	"context"
 	"fmt"
+	pbBase "hive/gen/base"
+	grpcStoreClient "hive/services/dispatch/internal/infrastructure/grpc/store"
 	"hive/services/dispatch/internal/interceptor"
 
 	pb "hive/gen/dispatch"
@@ -14,8 +16,8 @@ import (
 	"hive/pkg/kafka"
 	"hive/pkg/logger"
 	"hive/services/dispatch/internal/config"
+	grpcBaseClient "hive/services/dispatch/internal/infrastructure/grpc/base"
 	grpcOrderClient "hive/services/dispatch/internal/infrastructure/grpc/order"
-	grpcStoreClient "hive/services/dispatch/internal/infrastructure/grpc/store"
 	grpcTelemetryClient "hive/services/dispatch/internal/infrastructure/grpc/telemetry"
 	grpcTrackingClient "hive/services/dispatch/internal/infrastructure/grpc/tracking"
 	repoPostgres "hive/services/dispatch/internal/repository/postgres"
@@ -69,6 +71,18 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	}
 	storeClient := grpcStoreClient.NewStoreClient(pbStore.NewStoreServiceClient(storeConn))
 
+	baseConn, err := grpc.NewClient(
+		cfg.BaseAddr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(interceptor.TimeoutUnaryClientInterceptor(lg, cfg.RequestTimeout)),
+	)
+	if err != nil {
+		orderConn.Close()
+		storeConn.Close()
+		return nil, fmt.Errorf("failed to connect to base service: %w", err)
+	}
+	baseClient := grpcBaseClient.NewBaseClient(pbBase.NewBaseServiceClient(baseConn))
+
 	trackingConn, err := grpc.NewClient(
 		cfg.TrackingAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -77,6 +91,7 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	if err != nil {
 		orderConn.Close()
 		storeConn.Close()
+		baseConn.Close()
 		return nil, fmt.Errorf("failed to connect to tracking service: %w", err)
 	}
 	trackingClient := grpcTrackingClient.NewTrackingClient(pbTracking.NewTrackingServiceClient(trackingConn))
@@ -89,6 +104,7 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	if err != nil {
 		orderConn.Close()
 		storeConn.Close()
+		baseConn.Close()
 		trackingConn.Close()
 		return nil, fmt.Errorf("failed to connect to telemetry service: %w", err)
 	}
@@ -98,17 +114,19 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 		repo,
 		orderClient,
 		storeClient,
+		baseClient,
 		trackingClient,
 		telemetryClient,
 	)
 
-	consumer := kafka.NewConsumer(cfg.KafkaConfig, cfg.TelemetryTopic, lg)
+	consumer := kafka.NewConsumer(cfg.KafkaConfig, cfg.TelemetryEventsTopic, lg)
 	kafkaHandler := transportKafka.NewHandler(dispatchService)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GRPCPort))
 	if err != nil {
 		orderConn.Close()
 		storeConn.Close()
+		baseConn.Close()
 		trackingConn.Close()
 		telemetryConn.Close()
 		return nil, fmt.Errorf("failed to listen on port %d: %w", cfg.GRPCPort, err)
@@ -133,7 +151,7 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 		lg:         lg,
 		lis:        lis,
 		grpcServer: grpcServer,
-		grpcConns:  []*grpc.ClientConn{orderConn, storeConn, trackingConn, telemetryConn},
+		grpcConns:  []*grpc.ClientConn{orderConn, storeConn, baseConn, trackingConn, telemetryConn},
 		consumer:   consumer,
 		handler:    kafkaHandler,
 	}, nil

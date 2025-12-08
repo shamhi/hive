@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"hive/services/dispatch/internal/domain/assignment"
+	"hive/services/dispatch/internal/domain/base"
 	"hive/services/dispatch/internal/domain/drone"
 	"hive/services/dispatch/internal/domain/order"
 	"hive/services/dispatch/internal/domain/shared"
@@ -29,6 +30,11 @@ type TelemetryClient interface {
 type StoreClient interface {
 	FindNearest(ctx context.Context, deliveryLocation *shared.Location) (*store.StoreNearest, error)
 	GetStoreLocation(ctx context.Context, storeID string) (*store.Store, error)
+}
+
+type BaseClient interface {
+	FindNearest(ctx context.Context, deliveryLocation *shared.Location) (*base.BaseNearest, error)
+	GetBaseLocation(ctx context.Context, baseID string) (*base.Base, error)
 }
 
 type OrderClient interface {

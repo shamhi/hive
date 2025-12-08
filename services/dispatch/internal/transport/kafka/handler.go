@@ -19,10 +19,10 @@ func NewHandler(dispatch *service.DispatchService) *Handler {
 }
 
 func (h *Handler) Handle(ctx context.Context, msg []byte) error {
-	var event drone.TelemetryEvent
-	if err := json.Unmarshal(msg, &event); err != nil {
+	var data drone.TelemetryEvent
+	if err := json.Unmarshal(msg, &data); err != nil {
 		return fmt.Errorf("unmarshal telemetry: %w", err)
 	}
 
-	return h.dispatch.HandleTelemetryEvent(ctx, event)
+	return h.dispatch.HandleTelemetryEvent(ctx, data)
 }

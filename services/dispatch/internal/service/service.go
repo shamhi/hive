@@ -7,17 +7,16 @@ import (
 	"hive/services/dispatch/internal/domain/drone"
 	"hive/services/dispatch/internal/domain/order"
 	"hive/services/dispatch/internal/domain/shared"
-	"hive/services/dispatch/internal/utils"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/labstack/gommon/log"
 )
 
 type DispatchService struct {
 	repo      AssignmentRepository
 	order     OrderClient
 	store     StoreClient
+	base      BaseClient
 	tracking  TrackingClient
 	telemetry TelemetryClient
 }
@@ -26,6 +25,7 @@ func NewDispatchService(
 	repo AssignmentRepository,
 	order OrderClient,
 	store StoreClient,
+	base BaseClient,
 	tracking TrackingClient,
 	telemetry TelemetryClient,
 ) *DispatchService {
@@ -33,6 +33,7 @@ func NewDispatchService(
 		repo:      repo,
 		order:     order,
 		store:     store,
+		base:      base,
 		tracking:  tracking,
 		telemetry: telemetry,
 	}
@@ -51,31 +52,41 @@ func (s *DispatchService) AssignDrone(
 	if deliveryLocation == nil {
 		return nil, fmt.Errorf("delivery location is required")
 	}
+	if minDroneBattery < 0 {
+		return nil, fmt.Errorf("min drone battery must be non-negative")
+	}
+	if droneSearchRadius <= 0 {
+		return nil, fmt.Errorf("drone search radius must be positive")
+	}
 
 	nearestStore, err := s.store.FindNearest(ctx, deliveryLocation)
 	if err != nil {
-		return nil, fmt.Errorf("failed to find nearest store: %w", err)
+		return nil, fmt.Errorf("failed to find nearest store for order %s: %w", orderID, err)
 	}
 
 	storeInfo, err := s.store.GetStoreLocation(ctx, nearestStore.ID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get store location: %w", err)
+		return nil, fmt.Errorf("failed to get store location %s for order %s: %w", nearestStore.ID, orderID, err)
 	}
 
 	nearestDrone, err := s.tracking.FindNearest(ctx, &storeInfo.Location, minDroneBattery, droneSearchRadius)
 	if err != nil {
-		return nil, fmt.Errorf("failed to find nearest drone: %w", err)
+		return nil, fmt.Errorf("failed to find nearest drone for order %s: %w", orderID, err)
 	}
 
 	droneID := nearestDrone.ID
 
 	droneInfo, err := s.tracking.GetDroneLocation(ctx, droneID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get drone location: %w", err)
+		return nil, fmt.Errorf("failed to get drone location for drone %s: %w", droneID, err)
 	}
 
-	baseLocation := &shared.Location{Lat: 54.9813120, Lon: 37.1938342}                                          // TODO: Base service for finding nearest available base
-	totalDistance := nearestDrone.Distance + nearestStore.Distance + utils.Dist(deliveryLocation, baseLocation) // TODO: nearestBase.Distance
+	nearestBase, err := s.base.FindNearest(ctx, deliveryLocation)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find nearest base: %w", err)
+	}
+
+	totalDistance := nearestDrone.Distance + nearestStore.Distance + nearestBase.Distance
 	batteryRequired := totalDistance * droneInfo.ConsumptionPerMeter
 	if batteryRequired > droneInfo.Battery {
 		return nil, fmt.Errorf("drone %s does not have enough battery for the trip", droneID)
@@ -98,13 +109,9 @@ func (s *DispatchService) AssignDrone(
 	}
 
 	fail := func(cause error) (*drone.Drone, error) {
-		if err := s.repo.UpdateStatus(ctx, a.ID, assignment.AssignmentStatusFailed); err != nil {
-			// TODO: add zap logger
-			log.Info("failed to update assignment status to FAILED:", err)
-		}
-		if err := s.tracking.SetStatus(ctx, droneID, drone.DroneStatusFree); err != nil {
-			log.Info("failed to set drone status to FREE:", err)
-		}
+		// TODO: add logger
+		_ = s.repo.UpdateStatus(ctx, a.ID, assignment.AssignmentStatusFailed)
+		_ = s.tracking.SetStatus(ctx, droneID, drone.DroneStatusFree)
 		return nil, cause
 	}
 
@@ -135,7 +142,7 @@ func (s *DispatchService) AssignDrone(
 func (s *DispatchService) HandleTelemetryEvent(ctx context.Context, event drone.TelemetryEvent) error {
 	a, err := s.repo.GetByDroneID(ctx, event.DroneID)
 	if err != nil {
-		return fmt.Errorf("failed to get assignment by drone ID: %w", err)
+		return fmt.Errorf("failed to get assignment by drone ID %s: %w", event.DroneID, err)
 	}
 
 	switch event.Event {
@@ -180,15 +187,24 @@ func (s *DispatchService) HandleTelemetryEvent(ctx context.Context, event drone.
 		return nil
 	case drone.DroneEventDroppedCargo:
 		if err := s.repo.UpdateStatus(ctx, a.ID, assignment.AssignmentStatusDroppedCargo); err != nil {
-			return fmt.Errorf("failed to update assignment status: %w", err)
+			return fmt.Errorf("failed to update assignment %s status to DROPPED_CARGO: %w", a.ID, err)
 		}
 
 		if err := s.order.UpdateStatus(ctx, a.OrderID, order.OrderStatusCompleted); err != nil {
-			return fmt.Errorf("failed to update order status: %w", err)
+			return fmt.Errorf("failed to update order %s status to COMPLETED: %w", a.OrderID, err)
 		}
 
-		baseLocation := &shared.Location{Lat: 54.9813120, Lon: 37.1938342} // TODO: Base service to get actual base location
-		target := &drone.Target{Location: baseLocation, Type: drone.TargetTypeBase}
+		nearestBase, err := s.base.FindNearest(ctx, &event.DroneLocation)
+		if err != nil {
+			return fmt.Errorf("failed to find nearest base: %w", err)
+		}
+
+		baseInfo, err := s.base.GetBaseLocation(ctx, nearestBase.ID)
+		if err != nil {
+			return fmt.Errorf("failed to get base location: %w", err)
+		}
+
+		target := &drone.Target{Location: &baseInfo.Location, Type: drone.TargetTypeBase}
 		if err := s.telemetry.SendCommand(ctx, event.DroneID, drone.DroneActionFlyTo, target); err != nil {
 			return fmt.Errorf("failed to send fly to base command: %w", err)
 		}

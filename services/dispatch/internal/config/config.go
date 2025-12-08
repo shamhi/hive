@@ -6,7 +6,7 @@ import (
 	"hive/pkg/kafka"
 	"time"
 
-	"github.com/caarlos0/env/v6"
+	"github.com/caarlos0/env/v11"
 )
 
 type Config struct {
@@ -19,12 +19,13 @@ type Config struct {
 	MinDroneBattery   float64 `env:"MIN_DRONE_BATTERY" env-default:"50"`
 	DroneSearchRadius float64 `env:"DRONE_SEARCH_RADIUS" env-default:"30000"`
 
+	TelemetryAddr string `env:"TELEMETRY_ADDR" env-required:"true"`
 	OrderAddr     string `env:"ORDER_ADDR" env-required:"true"`
 	StoreAddr     string `env:"STORE_ADDR" env-required:"true"`
+	BaseAddr      string `env:"BASE_ADDR" env-required:"true"`
 	TrackingAddr  string `env:"TRACKING_ADDR" env-required:"true"`
-	TelemetryAddr string `env:"TELEMETRY_ADDR" env-required:"true"`
 
-	TelemetryTopic string `env:"TELEMETRY_TOPIC" env-default:"telemetry-events"`
+	TelemetryEventsTopic string `env:"TELEMETRY_EVENTS_TOPIC" env-default:"telemetry-events"`
 
 	KafkaConfig kafka.Config
 	DBConfig    postgres.Config
@@ -39,11 +40,12 @@ func ParseFlags() (*Config, error) {
 	flag.DurationVar(&appConfig.ShutdownTimeout, "shutdown_timeout", appConfig.ShutdownTimeout, "timeout of server shutdown")
 	flag.Float64Var(&appConfig.MinDroneBattery, "min_battery", appConfig.MinDroneBattery, "minimum battery percentage for drone assignment")
 	flag.Float64Var(&appConfig.DroneSearchRadius, "search_radius", appConfig.DroneSearchRadius, "search radius in meters for drone assignment")
+	flag.StringVar(&appConfig.TelemetryAddr, "telemetry_addr", appConfig.TelemetryAddr, "address of telemetry server")
 	flag.StringVar(&appConfig.OrderAddr, "order_addr", appConfig.OrderAddr, "address of order server")
 	flag.StringVar(&appConfig.StoreAddr, "store_addr", appConfig.StoreAddr, "address of store server")
+	flag.StringVar(&appConfig.BaseAddr, "base_addr", appConfig.BaseAddr, "address of base server")
 	flag.StringVar(&appConfig.TrackingAddr, "tracking_addr", appConfig.TrackingAddr, "address of tracking server")
-	flag.StringVar(&appConfig.TelemetryAddr, "telemetry_addr", appConfig.TelemetryAddr, "address of telemetry server")
-	flag.StringVar(&appConfig.TelemetryTopic, "telemetry_topic", appConfig.TelemetryTopic, "kafka topic for telemetry events")
+	flag.StringVar(&appConfig.TelemetryEventsTopic, "telemetry_events_topic", appConfig.TelemetryEventsTopic, "kafka topic for telemetry events")
 
 	flag.StringVar(&appConfig.DBConfig.Host, "db_host", appConfig.DBConfig.Host, "Postgres host")
 	flag.IntVar(&appConfig.DBConfig.Port, "db_port", appConfig.DBConfig.Port, "Postgres port")
