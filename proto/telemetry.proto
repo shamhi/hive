@@ -47,7 +47,7 @@ enum TargetType {
 message DroneTelemetry {
   string drone_id = 1;
   common.Location drone_location = 2;
-  int32 battery = 3;
+  double battery = 3;
   DroneStatus status = 4;
   int64 timestamp = 5;
   DroneEvent event = 6;
