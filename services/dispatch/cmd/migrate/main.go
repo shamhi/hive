@@ -18,7 +18,7 @@ import (
 )
 
 func main() {
-	cmd := flag.String("cmd", "up", "migration command: up | down | version")
+	cmd := flag.String("command", "up", "migration command: up | down | version")
 	migrationsPath := flag.String("path", "migrations", "path to migrations folder")
 	flag.Parse()
 
