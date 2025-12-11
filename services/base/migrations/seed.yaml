@@ -1,0 +1,106 @@
+items:
+    - id: 496fe847-6e01-49a9-97f1-3362978ae71f
+      name: McCullough Inc
+      address: |-
+        423 Wilkinson Ville Apt. 590
+        Lake Brendon, TX 66717-7245
+      lat: 55.69280336784972
+      lon: 37.414022425865255
+    - id: 8f647aec-97fd-4c0b-93de-75eea9f65803
+      name: Medhurst, Medhurst and Medhurst
+      address: |-
+        866 Bode Brooks Apt. 121
+        New Alessandramouth, CT 70016
+      lat: 55.71939473833605
+      lon: 37.74459931315433
+    - id: ed1c9070-d6f7-4a87-8f63-ef6bbf31d0f4
+      name: O'Reilly, O'Reilly and O'Reilly
+      address: |-
+        9826 Hermiston Creek Apt. 395
+        North Della, KS 16440
+      lat: 55.724346469528314
+      lon: 37.55763395395326
+    - id: ebf5d673-d035-4366-84ec-1a3c51c77da5
+      name: Ferry-Ferry
+      address: |-
+        989 Casper Road
+        East Linda, AK 09201-0876
+      lat: 55.65817230335859
+      lon: 37.66445208347158
+    - id: 876155e5-e6aa-4a00-a615-bc07419727c0
+      name: O'Keefe, O'Keefe and O'Keefe
+      address: |-
+        481 Grady Wall Suite 529
+        Elijahfort, TN 13282-1804
+      lat: 55.71825522973133
+      lon: 37.71549603870859
+    - id: 7a452bc0-359a-4bd6-a059-e195a9f92b9c
+      name: Johns, Johns and Johns
+      address: |-
+        7468 Fritsch Locks
+        Hicklefort, AK 29549
+      lat: 55.760465617434065
+      lon: 37.6640309865951
+    - id: 60658532-f09f-4f1a-a175-66ab0284aca9
+      name: Will and Sons
+      address: |-
+        861 Tyler Inlet Apt. 437
+        Kutchtown, KS 16692-4291
+      lat: 55.83400528559242
+      lon: 37.72101233996614
+    - id: 7a26f7c1-8e6a-4f8e-8f71-cf653473833d
+      name: Mraz Group
+      address: |-
+        652 O'Keefe Mews Apt. 836
+        East Kaileeland, UT 33921-8797
+      lat: 55.842991488795015
+      lon: 37.43111117056561
+    - id: ae7124cf-d1f4-46f4-b4ca-a4ac8a1d0932
+      name: Boehm LLC
+      address: |-
+        832 Paucek Camp
+        Israelstad, HI 99768-9138
+      lat: 55.673078972102125
+      lon: 37.51140213558509
+    - id: 71db9ba8-9d63-4ff7-a226-2de3510d9c6e
+      name: Kuvalis and Sons
+      address: |-
+        57 Agnes Crescent
+        East Ramirotown, WA 84120-8909
+      lat: 55.63499268625852
+      lon: 37.64628356744143
+    - id: 669662f9-1c72-4f86-951d-be1481461da8
+      name: Daniel Inc
+      address: |-
+        181 Sauer Expressway Apt. 049
+        Perryburgh, UT 99916-6160
+      lat: 55.61288986569326
+      lon: 37.73288561420447
+    - id: 11f79b0c-b38c-4f39-b478-56dd7240525d
+      name: Bernhard, Bernhard and Bernhard
+      address: |-
+        24 Margaret Spur
+        Lake Merleland, NV 32448-5659
+      lat: 55.82930171223085
+      lon: 37.65520361058113
+    - id: 133548f2-32a0-4e40-95ac-b22806110f93
+      name: Graham Inc
+      address: |-
+        307 Bogan Ports Suite 323
+        Jessycahaven, LA 42507
+      lat: 55.63784734497312
+      lon: 37.70182258179744
+    - id: f5e37111-03ab-42d4-bedb-9c4d9ddf07b0
+      name: Kilback, Kilback and Kilback
+      address: |-
+        708 Ferry Ranch
+        New Lottiemouth, PA 74154
+      lat: 55.730321934912084
+      lon: 37.6212774804468
+    - id: 673efea4-8857-4f8c-9ced-f7f3ee4fe26b
+      name: Carroll-Carroll
+      address: |-
+        4717 Schimmel Falls
+        Jamiemouth, RI 24081
+      lat: 55.757651207470275
+      lon: 37.82324618526959
