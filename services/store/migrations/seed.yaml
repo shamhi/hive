@@ -1,0 +1,106 @@
+items:
+    - id: ced876f6-5c45-42a7-ac49-f6b08cae47d7
+      name: Kuphal LLC
+      address: |-
+        740 Ludie Falls
+        Pfannerstillmouth, DC 02825
+      lat: 55.79080239480499
+      lon: 37.51231903664162
+    - id: 269215f2-7a03-469f-be7b-45122bb64fdd
+      name: McLaughlin, McLaughlin and McLaughlin
+      address: |-
+        22 Collier Common Suite 240
+        New Maude, ID 96560-0015
+      lat: 55.83605014196113
+      lon: 37.750541696137184
+    - id: 0d85e3a2-5677-4e31-8e83-88530a2f843f
+      name: Schimmel-Schimmel
+      address: |-
+        7629 Jacobi Bridge Apt. 770
+        North Juliannestad, GA 09744-7264
+      lat: 55.65280113630211
+      lon: 37.72749065307464
+    - id: 541d7146-be5e-4f33-a605-45df0ef6ffa2
+      name: Cartwright PLC
+      address: |-
+        823 Velva Flat
+        Bauchport, UT 77554
+      lat: 55.80164446292457
+      lon: 37.40672740059264
+    - id: 3fa80ea9-22b0-48e6-a407-59b5b2478936
+      name: Schinner and Sons
+      address: |-
+        59 Austyn Street Suite 362
+        Fisherburgh, MA 91607
+      lat: 55.70932985138986
+      lon: 37.46273109470629
+    - id: f63e8564-ec6f-41a4-a366-061ce8c935fe
+      name: Sawayn, Sawayn and Sawayn
+      address: |-
+        484 Rodrigo Mews
+        South Edwina, MI 05299-1776
+      lat: 55.77779999792625
+      lon: 37.533913712605724
+    - id: 5b12ba80-3e0f-4feb-a1bd-8fe62656bf40
+      name: Wisozk-Wisozk
+      address: |-
+        2877 Raleigh Circles Suite 977
+        Florianstad, UT 17631-1467
+      lat: 55.76416047220455
+      lon: 37.722313013711485
+    - id: b2f49f1c-c612-4ba4-925f-358a8a158f95
+      name: Klein-Klein
+      address: |-
+        9832 Bode Isle Apt. 937
+        Beierport, CO 98614-3068
+      lat: 55.846121542080475
+      lon: 37.58361166550184
+    - id: 2b6b870e-dc03-4294-99b4-ddaa4609c65c
+      name: Marks and Sons
+      address: |-
+        4533 Wiza Canyon Apt. 683
+        Port Billie, WY 08420
+      lat: 55.67920718985007
+      lon: 37.500976572374334
+    - id: 33216381-f431-443b-b856-fbabf29dc853
+      name: Johnson PLC
+      address: |-
+        289 Jade Islands
+        Port Maxwell, SC 94291-1257
+      lat: 55.78436600410806
+      lon: 37.7247297715841
+    - id: 1b2bd164-030d-4d47-89b3-14abcb725981
+      name: Schaefer-Schaefer
+      address: |-
+        84 Effertz Spur Apt. 942
+        Lake Rodrick, MS 35697-7098
+      lat: 55.76624324685362
+      lon: 37.57414548187422
+    - id: 1f37d776-48a5-49d3-a039-20bc5ee27235
+      name: Doyle-Doyle
+      address: |-
+        26 Ocie Hill
+        Baumbachborough, NY 16379-9023
+      lat: 55.7717450668356
+      lon: 37.41595796239116
+    - id: 50ff33bb-68e5-4aea-a14e-729a81c5e6d0
+      name: Volkman LLC
+      address: |-
+        80 Jeanie Mall Apt. 032
+        West Adan, CO 90404
+      lat: 55.73883552252021
+      lon: 37.719666685977714
+    - id: aa77c412-cdbb-4924-984e-82765392eb60
+      name: Homenick PLC
+      address: |-
+        54 Paucek Mall
+        West Rhiannon, SD 71196
+      lat: 55.663192705132985
+      lon: 37.46756324261119
+    - id: 596cba6e-1331-4055-9154-dbfeaf77f82e
+      name: Medhurst-Medhurst
+      address: |-
+        05 Schneider Walk
+        Reymundoshire, NE 99518
+      lat: 55.79095433356065
+      lon: 37.626053594243864
