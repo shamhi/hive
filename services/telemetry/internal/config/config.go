@@ -5,7 +5,7 @@ import (
 	"hive/pkg/kafka"
 	"time"
 
-	"github.com/caarlos0/env/v11"
+	"github.com/ilyakaznacheev/cleanenv"
 )
 
 type Config struct {
@@ -32,10 +32,7 @@ func ParseFlags() (*Config, error) {
 	flag.StringVar(&appConfig.KafkaConfig.Brokers, "kafka_brokers", appConfig.KafkaConfig.Brokers, "Kafka brokers, comma separated")
 	flag.StringVar(&appConfig.KafkaConfig.GroupID, "kafka_group_id", appConfig.KafkaConfig.GroupID, "Kafka consumer group ID")
 
-	if err := env.Parse(&appConfig); err != nil {
-		return nil, err
-	}
-	if err := env.Parse(&appConfig.KafkaConfig); err != nil {
+	if err := cleanenv.ReadEnv(&appConfig); err != nil {
 		return nil, err
 	}
 

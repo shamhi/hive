@@ -119,6 +119,8 @@ func DroneStatusFromProto(status pb.DroneStatus) (drone.DroneStatus, bool) {
 
 func DroneEventFromProto(event pb.DroneEvent) (drone.DroneEvent, bool) {
 	switch event {
+	case pb.DroneEvent_EVENT_NONE:
+		return drone.DroneEventNone, true
 	case pb.DroneEvent_EVENT_ARRIVED_AT_STORE:
 		return drone.DroneEventArrivedAtStore, true
 	case pb.DroneEvent_EVENT_PICKED_UP_CARGO:
