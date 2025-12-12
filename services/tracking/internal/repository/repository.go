@@ -27,7 +27,7 @@ func (t *TrackingRepository) UpdateGeo(ctx context.Context, droneID string, lon,
 }
 
 func (t *TrackingRepository) UpdateState(ctx context.Context, droneID string, battery float64, status string) error {
-	// TODO: принимать структуру drone.TelemetryData и работать с ним
+	// TODO: принимать структуру drone.Drone и работать с ней
 	key := "drone:" + droneID
 	return t.rdb.Client.HSet(ctx, key, map[string]any{
 		"battery": battery,
