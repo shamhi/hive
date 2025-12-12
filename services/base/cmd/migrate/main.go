@@ -8,7 +8,7 @@ import (
 	rd "hive/pkg/db/redis"
 	"os"
 
-	"github.com/caarlos0/env/v11"
+	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/redis/go-redis/v9"
 	"gopkg.in/yaml.v3"
 )
@@ -38,7 +38,7 @@ func main() {
 
 	flag.Parse()
 
-	if err := env.Parse(&cfg); err != nil {
+	if err := cleanenv.ReadEnv(&cfg); err != nil {
 		fatal("failed to parse env config", err)
 	}
 

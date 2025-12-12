@@ -5,7 +5,7 @@ import (
 	"hive/pkg/db/postgres"
 	"time"
 
-	"github.com/caarlos0/env/v11"
+	"github.com/ilyakaznacheev/cleanenv"
 )
 
 type Config struct {
@@ -35,10 +35,7 @@ func ParseFlags() (*Config, error) {
 	flag.StringVar(&appConfig.DBConfig.Password, "db_password", appConfig.DBConfig.Password, "Postgres password")
 	flag.StringVar(&appConfig.DBConfig.DBName, "db_name", appConfig.DBConfig.DBName, "Postgres database name")
 
-	if err := env.Parse(&appConfig); err != nil {
-		return nil, err
-	}
-	if err := env.Parse(&appConfig.DBConfig); err != nil {
+	if err := cleanenv.ReadEnv(&appConfig); err != nil {
 		return nil, err
 	}
 

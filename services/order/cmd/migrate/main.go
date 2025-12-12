@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/caarlos0/env/v11"
 	"github.com/golang-migrate/migrate/v4"
+	"github.com/ilyakaznacheev/cleanenv"
 	_ "github.com/lib/pq"
 
 	"github.com/golang-migrate/migrate/v4/database/postgres"
@@ -23,7 +23,7 @@ func main() {
 	flag.Parse()
 
 	var cfg pg.Config
-	if err := env.Parse(&cfg); err != nil {
+	if err := cleanenv.ReadEnv(&cfg); err != nil {
 		fatal("failed to parse env config", err)
 	}
 

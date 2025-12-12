@@ -5,7 +5,7 @@ import (
 	"hive/pkg/db/redis"
 	"time"
 
-	"github.com/caarlos0/env/v11"
+	"github.com/ilyakaznacheev/cleanenv"
 )
 
 type Config struct {
@@ -32,10 +32,7 @@ func ParseFlags() (*Config, error) {
 	flag.StringVar(&appConfig.RedisConfig.Password, "redis_password", appConfig.RedisConfig.Password, "Redis password")
 	flag.IntVar(&appConfig.RedisConfig.DB, "redis_db", appConfig.RedisConfig.DB, "Redis database number")
 
-	if err := env.Parse(&appConfig); err != nil {
-		return nil, err
-	}
-	if err := env.Parse(&appConfig.RedisConfig); err != nil {
+	if err := cleanenv.ReadEnv(&appConfig); err != nil {
 		return nil, err
 	}
 
