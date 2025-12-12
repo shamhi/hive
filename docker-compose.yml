@@ -81,19 +81,49 @@ services:
       kafka:
         condition: service_healthy
 
-  #  TODO
-  #  tracking:
-  #    build:
-  #      context: .
-  #      dockerfile: services/tracking/Dockerfile
-  #      target: server
-  #    container_name: HIVE_tracking
-  #    restart: unless-stopped
-  #    env_file:
-  #      - services/tracking/config/.env
-  #    depends_on:
-  #      redis:
-  #        condition: service_healthy
+  telemetry-emulator:
+    build:
+      context: .
+      dockerfile: services/telemetry/Dockerfile
+      target: emulator
+    command:
+      - "-addr"
+      - "telemetry:50050"
+      - "-period"
+      - "500ms"
+      - "-n"
+      - "10"
+    container_name: HIVE_telemetry-emulator
+    restart: unless-stopped
+    depends_on:
+      telemetry:
+        condition: service_started
+
+  tracking-server:
+    build:
+      context: .
+      dockerfile: services/tracking/Dockerfile
+      target: server
+    container_name: HIVE_tracking
+    restart: unless-stopped
+    env_file:
+      - services/tracking/config/.env
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  tracking-kafka:
+    build:
+      context: .
+      dockerfile: services/tracking/Dockerfile
+      target: kafka
+    container_name: HIVE_tracking-kafka
+    restart: unless-stopped
+    env_file:
+      - services/tracking/config/.env
+    depends_on:
+      redis:
+        condition: service_healthy
 
   base:
     build:
