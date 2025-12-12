@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package order;
+
+option go_package = "api-gateway/gen/order";
+
+message Location {
+  double lat = 1;
+  double lon = 2;
+}
+
+service OrderService {
+  rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse);
+  rpc GetOrder(GetOrderRequest) returns (GetOrderResponse);
+  rpc UpdateStatus(UpdateStatusRequest) returns (UpdateStatusResponse);
+}
+
+message CreateOrderRequest {
+  string user_id = 1;
+  repeated string items = 2;
+  Location delivery_location = 3;
+}
+
+message CreateOrderResponse {
+  string order_id = 1;
+  string status = 2;
+  optional string estimated_time = 3;
+}
+
+message GetOrderRequest {
+  string order_id = 1;
+}
+
+message GetOrderResponse {
+  string order_id = 1;
+  string status = 2;
+  optional string drone_id = 3;
+  optional string estimated_time = 4;
+  optional Location drone_location = 5;
+  optional int32 battery = 6;
+}
+
+message UpdateStatusRequest {
+  string order_id = 1;
+  string status = 2;
+}
+
+message UpdateStatusResponse {
+  bool success = 1;
+}
