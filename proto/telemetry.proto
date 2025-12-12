@@ -48,9 +48,11 @@ message DroneTelemetry {
   string drone_id = 1;
   common.Location drone_location = 2;
   double battery = 3;
-  DroneStatus status = 4;
-  int64 timestamp = 5;
-  DroneEvent event = 6;
+  double speed_mps = 4;
+  double consumption_per_meter = 5;
+  DroneStatus status = 6;
+  int64 timestamp = 7;
+  DroneEvent event = 8;
 }
 
 message ServerCommand {
