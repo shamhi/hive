@@ -249,15 +249,17 @@ func (TargetType) EnumDescriptor() ([]byte, []int) {
 }
 
 type DroneTelemetry struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	DroneId       string                 `protobuf:"bytes,1,opt,name=drone_id,json=droneId,proto3" json:"drone_id,omitempty"`
-	DroneLocation *common.Location       `protobuf:"bytes,2,opt,name=drone_location,json=droneLocation,proto3" json:"drone_location,omitempty"`
-	Battery       float64                `protobuf:"fixed64,3,opt,name=battery,proto3" json:"battery,omitempty"`
-	Status        DroneStatus            `protobuf:"varint,4,opt,name=status,proto3,enum=telemetry.DroneStatus" json:"status,omitempty"`
-	Timestamp     int64                  `protobuf:"varint,5,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	Event         DroneEvent             `protobuf:"varint,6,opt,name=event,proto3,enum=telemetry.DroneEvent" json:"event,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	DroneId             string                 `protobuf:"bytes,1,opt,name=drone_id,json=droneId,proto3" json:"drone_id,omitempty"`
+	DroneLocation       *common.Location       `protobuf:"bytes,2,opt,name=drone_location,json=droneLocation,proto3" json:"drone_location,omitempty"`
+	Battery             float64                `protobuf:"fixed64,3,opt,name=battery,proto3" json:"battery,omitempty"`
+	SpeedMps            float64                `protobuf:"fixed64,4,opt,name=speed_mps,json=speedMps,proto3" json:"speed_mps,omitempty"`
+	ConsumptionPerMeter float64                `protobuf:"fixed64,5,opt,name=consumption_per_meter,json=consumptionPerMeter,proto3" json:"consumption_per_meter,omitempty"`
+	Status              DroneStatus            `protobuf:"varint,6,opt,name=status,proto3,enum=telemetry.DroneStatus" json:"status,omitempty"`
+	Timestamp           int64                  `protobuf:"varint,7,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	Event               DroneEvent             `protobuf:"varint,8,opt,name=event,proto3,enum=telemetry.DroneEvent" json:"event,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *DroneTelemetry) Reset() {
@@ -307,6 +309,20 @@ func (x *DroneTelemetry) GetDroneLocation() *common.Location {
 func (x *DroneTelemetry) GetBattery() float64 {
 	if x != nil {
 		return x.Battery
+	}
+	return 0
+}
+
+func (x *DroneTelemetry) GetSpeedMps() float64 {
+	if x != nil {
+		return x.SpeedMps
+	}
+	return 0
+}
+
+func (x *DroneTelemetry) GetConsumptionPerMeter() float64 {
+	if x != nil {
+		return x.ConsumptionPerMeter
 	}
 	return 0
 }
@@ -516,14 +532,16 @@ var File_telemetry_proto protoreflect.FileDescriptor
 
 const file_telemetry_proto_rawDesc = "" +
 	"\n" +
-	"\x0ftelemetry.proto\x12\ttelemetry\x1a\fcommon.proto\"\xf9\x01\n" +
+	"\x0ftelemetry.proto\x12\ttelemetry\x1a\fcommon.proto\"\xca\x02\n" +
 	"\x0eDroneTelemetry\x12\x19\n" +
 	"\bdrone_id\x18\x01 \x01(\tR\adroneId\x127\n" +
 	"\x0edrone_location\x18\x02 \x01(\v2\x10.common.LocationR\rdroneLocation\x12\x18\n" +
-	"\abattery\x18\x03 \x01(\x01R\abattery\x12.\n" +
-	"\x06status\x18\x04 \x01(\x0e2\x16.telemetry.DroneStatusR\x06status\x12\x1c\n" +
-	"\ttimestamp\x18\x05 \x01(\x03R\ttimestamp\x12+\n" +
-	"\x05event\x18\x06 \x01(\x0e2\x15.telemetry.DroneEventR\x05event\"\xb3\x01\n" +
+	"\abattery\x18\x03 \x01(\x01R\abattery\x12\x1b\n" +
+	"\tspeed_mps\x18\x04 \x01(\x01R\bspeedMps\x122\n" +
+	"\x15consumption_per_meter\x18\x05 \x01(\x01R\x13consumptionPerMeter\x12.\n" +
+	"\x06status\x18\x06 \x01(\x0e2\x16.telemetry.DroneStatusR\x06status\x12\x1c\n" +
+	"\ttimestamp\x18\a \x01(\x03R\ttimestamp\x12+\n" +
+	"\x05event\x18\b \x01(\x0e2\x15.telemetry.DroneEventR\x05event\"\xb3\x01\n" +
 	"\rServerCommand\x12\x1d\n" +
 	"\n" +
 	"command_id\x18\x01 \x01(\tR\tcommandId\x12.\n" +
