@@ -126,13 +126,15 @@ func (s *Server) handleRecv(ctx context.Context, req *pb.DroneTelemetry) error {
 		return fmt.Errorf("invalid drone location")
 	}
 
-	data := drone.TelemetryData{
-		DroneID:       req.GetDroneId(),
-		DroneLocation: *loc,
-		Battery:       req.GetBattery(),
-		Status:        st,
-		Timestamp:     req.GetTimestamp(),
-		Event:         ev,
+	tm := drone.Telemetry{
+		DroneID:             req.GetDroneId(),
+		DroneLocation:       *loc,
+		Battery:             req.GetBattery(),
+		SpeedMps:            req.GetSpeedMps(),
+		ConsumptionPerMeter: req.GetConsumptionPerMeter(),
+		Status:              st,
+		Timestamp:           req.GetTimestamp(),
+		Event:               ev,
 	}
-	return s.svc.HandleTelemetry(ctx, data)
+	return s.svc.HandleTelemetry(ctx, tm)
 }
