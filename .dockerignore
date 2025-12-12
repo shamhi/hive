@@ -16,6 +16,7 @@ out
 vendor
 
 *.log
+*.md
 *.tmp
 *.temp
 
