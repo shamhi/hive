@@ -148,10 +148,12 @@ func (d *droneState) step(dt time.Duration) *pb.DroneTelemetry {
 			Lat: d.lat,
 			Lon: d.lon,
 		},
-		Battery:   d.battery,
-		Status:    d.status,
-		Timestamp: time.Now().UnixMilli(),
-		Event:     ev,
+		Battery:             d.battery,
+		SpeedMps:            d.speedMps,
+		ConsumptionPerMeter: d.consumptionPerM,
+		Status:              d.status,
+		Timestamp:           time.Now().UnixMilli(),
+		Event:               ev,
 	}
 }
 
