@@ -9,7 +9,5 @@ type TelemetryData struct {
 	SpeedMps            float64         `json:"speed_mps"`
 	ConsumptionPerMeter float64         `json:"consumption_per_meter"`
 	Status              DroneStatus     `json:"status"`
-
-	Timestamp int64      `json:"timestamp"`
-	Event     DroneEvent `json:"event"`
+	Timestamp           int64           `json:"timestamp"`
 }

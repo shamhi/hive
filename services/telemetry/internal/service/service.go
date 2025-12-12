@@ -58,16 +58,26 @@ func (s *TelemetryService) UnregisterConnection(droneID string) {
 	}
 }
 
-func (s *TelemetryService) HandleTelemetry(ctx context.Context, data drone.TelemetryData) error {
+func (s *TelemetryService) HandleTelemetry(ctx context.Context, tm drone.Telemetry) error {
+	data := drone.TelemetryData{
+		DroneID:             tm.DroneID,
+		DroneLocation:       tm.DroneLocation,
+		Battery:             tm.Battery,
+		SpeedMps:            tm.SpeedMps,
+		ConsumptionPerMeter: tm.ConsumptionPerMeter,
+		Status:              tm.Status,
+		Timestamp:           tm.Timestamp,
+	}
 	if err := s.publishData(ctx, data); err != nil {
 		return fmt.Errorf("failed to publish telemetry data: %w", err)
 	}
-	if data.Event != drone.DroneEventNone {
+
+	if tm.Event != drone.DroneEventNone {
 		if err := s.publishEvent(ctx, drone.TelemetryEvent{
-			DroneID:       data.DroneID,
-			DroneLocation: data.DroneLocation,
-			Event:         data.Event,
-			Timestamp:     data.Timestamp,
+			DroneID:       tm.DroneID,
+			DroneLocation: tm.DroneLocation,
+			Event:         tm.Event,
+			Timestamp:     tm.Timestamp,
 		}); err != nil {
 			return fmt.Errorf("failed to publish telemetry event: %w", err)
 		}
