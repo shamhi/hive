@@ -1,30 +1,76 @@
 package handlers
 
 import (
-	"hive/services/api/internal/models"
-	"hive/services/api/repository"
 	"net/http"
 	"time"
 
+	"hive/services/api/internal/clients"
+
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 )
 
-type OrderHandler struct {
-	repo *repository.OrderRepository
+type Handler struct {
+	orderClient *clients.OrderClient
 }
 
-func NewOrderHandler(repo *repository.OrderRepository) *OrderHandler {
-	return &OrderHandler{repo: repo}
+func NewHandler(orderClient *clients.OrderClient) *Handler {
+	return &Handler{
+		orderClient: orderClient,
+	}
+}
+
+type CreateOrderRequest struct {
+	UserID           string   `json:"user_id" validate:"required,uuid4"`
+	Items            []string `json:"items" validate:"required,min=1"`
+	DeliveryLocation Location `json:"delivery_location" validate:"required"`
+}
+
+type Location struct {
+	Lat float64 `json:"lat" validate:"required,latitude"`
+	Lon float64 `json:"lon" validate:"required,longitude"`
+}
+
+type CreateOrderResponse struct {
+	OrderID    string `json:"order_id"`
+	Status     string `json:"status"`
+	DroneID    string `json:"drone_id,omitempty"`
+	EtaSeconds int32  `json:"eta_seconds,omitempty"`
+}
+
+type GetOrderResponse struct {
+	OrderID   string    `json:"order_id"`
+	Status    string    `json:"status"`
+	DroneID   string    `json:"drone_id,omitempty"`
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 }
 
 type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
-func (h *OrderHandler) CreateOrder(c echo.Context) error {
-	var req models.CreateOrderRequest
+func orderStatusToString(status int32) string {
+	switch status {
+	case 0:
+		return "UNKNOWN"
+	case 1:
+		return "CREATED"
+	case 2:
+		return "PENDING"
+	case 3:
+		return "ASSIGNED"
+	case 4:
+		return "COMPLETED"
+	case 5:
+		return "FAILED"
+	default:
+		return "UNKNOWN"
+	}
+}
+
+func (h *Handler) CreateOrder(c echo.Context) error {
+	var req CreateOrderRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid request format"})
 	}
@@ -33,125 +79,65 @@ func (h *OrderHandler) CreateOrder(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 	}
 
-	userID, err := uuid.Parse(req.UserID)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid user_id format"})
-	}
-
-	orderID := uuid.New()
-	now := time.Now()
-
-	order := &models.Order{
-		ID:          orderID,
-		UserID:      userID,
-		Items:       models.StringSlice(req.Items),
-		DeliveryLat: req.DeliveryLocation.Lat,
-		DeliveryLon: req.DeliveryLocation.Lon,
-		Status:      "PENDING",
-		CreatedAt:   now,
-		UpdatedAt:   now,
-	}
-
-	if time.Now().UnixNano()%10 < 7 {
-		order.Status = "ASSIGNED"
-		droneID := uuid.New()
-		order.DroneID = &droneID
-		estimatedTime := "15min"
-		order.EstimatedTime = &estimatedTime
-	}
-
-	ctx := c.Request().Context()
-	if err := h.repo.CreateOrder(ctx, order); err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Failed to create order"})
-	}
-	resp := models.CreateOrderResponse{
-		OrderID: order.ID.String(),
-		Status:  order.Status,
-	}
-	if order.EstimatedTime != nil {
-		resp.EstimatedTime = *order.EstimatedTime
-	}
-
-	return c.JSON(http.StatusCreated, resp)
-}
-
-func (h *OrderHandler) GetOrder(c echo.Context) error {
-	orderIDStr := c.Param("id")
-
-	orderID, err := uuid.Parse(orderIDStr)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid order ID format"})
-	}
-
-	ctx := c.Request().Context()
-	order, err := h.repo.GetOrderByID(ctx, orderID)
-	if err != nil {
-		if err.Error() == "order not found" {
-			return c.JSON(http.StatusNotFound, ErrorResponse{Error: "Order not found"})
-		}
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Failed to get order"})
-	}
-
-	resp := models.GetOrderResponse{
-		OrderID: order.ID.String(),
-		Status:  order.Status,
-	}
-
-	if order.DroneID != nil {
-		resp.Drone = &models.Drone{
-			ID: *order.DroneID,
-			Location: models.Location{
-				Lat: 55.7289473,
-				Lon: 37.7457302,
-			},
-			Battery: 85,
-		}
-	}
-
-	return c.JSON(http.StatusOK, resp)
-}
-
-func (h *OrderHandler) GetUserOrders(c echo.Context) error {
-	userIDStr := c.QueryParam("user_id")
-	if userIDStr == "" {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "user_id is required"})
-	}
-
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
+	if _, err := uuid.Parse(req.UserID); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid user_id format"})
 	}
 
 	ctx := c.Request().Context()
-	orders, err := h.repo.GetOrdersByUserID(ctx, userID)
+	resp, err := h.orderClient.CreateOrder(ctx, req.UserID, req.Items, req.DeliveryLocation.Lat, req.DeliveryLocation.Lon)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Failed to get user orders"})
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Failed to create order: " + err.Error()})
 	}
 
-	return c.JSON(http.StatusOK, orders)
+	apiResp := CreateOrderResponse{
+		OrderID:    resp.GetOrderId(),
+		Status:     orderStatusToString(int32(resp.GetStatus())),
+		DroneID:    resp.GetDroneId(),
+		EtaSeconds: resp.GetEtaSeconds(),
+	}
+
+	return c.JSON(http.StatusCreated, apiResp)
 }
-func HealthCheck(c echo.Context) error {
+
+func (h *Handler) GetOrder(c echo.Context) error {
+	orderID := c.Param("id")
+
+	if _, err := uuid.Parse(orderID); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid order_id format"})
+	}
+
+	ctx := c.Request().Context()
+	resp, err := h.orderClient.GetOrder(ctx, orderID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Failed to get order: " + err.Error()})
+	}
+
+	createdAt := time.Unix(resp.GetCreatedAt(), 0)
+	updatedAt := time.Unix(resp.GetUpdatedAt(), 0)
+
+	apiResp := GetOrderResponse{
+		OrderID:   resp.GetOrderId(),
+		Status:    orderStatusToString(int32(resp.GetStatus())),
+		DroneID:   resp.GetDroneId(),
+		CreatedAt: createdAt,
+		UpdatedAt: updatedAt,
+	}
+
+	return c.JSON(http.StatusOK, apiResp)
+}
+
+func (h *Handler) HealthCheck(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{
-		"status":    "ok",
-		"service":   "drone-delivery-api",
-		"timestamp": time.Now().UTC().Format(time.RFC3339),
+		"status":  "ok",
+		"service": "api-gateway",
 	})
 }
 
-func RegisterRoutes(e *echo.Echo, repo *repository.OrderRepository) {
-	handler := NewOrderHandler(repo)
-
+func RegisterRoutes(e *echo.Echo, handler *Handler) {
 	api := e.Group("/api/v1")
 
-	e.GET("/health", HealthCheck)
+	e.GET("/health", handler.HealthCheck)
 
-	ordersGroup := api.Group("/orders")
-	ordersGroup.POST("", handler.CreateOrder)
-	ordersGroup.GET("/:id", handler.GetOrder)
-	ordersGroup.GET("", handler.GetUserOrders)
-
-	ordersGroup.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"*"},
-		AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.DELETE},
-	}))
+	api.POST("/orders", handler.CreateOrder)
+	api.GET("/orders/:id", handler.GetOrder)
 }

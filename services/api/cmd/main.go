@@ -1,19 +1,19 @@
 package main
 
 import (
-	"hive/services/api/internal/config"
-	"hive/services/api/internal/db"
-	"hive/services/api/internal/handlers"
-	"hive/services/api/repository"
+	"context"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"hive/services/api/internal/clients"
+	"hive/services/api/internal/config"
+	"hive/services/api/internal/handlers"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"golang.org/x/net/context"
 	"gopkg.in/go-playground/validator.v9"
 )
 
@@ -31,19 +31,15 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	pool, err := db.Connect(&cfg.Database)
+	orderClient, err := clients.NewOrderClient(cfg.OrderService.Address, cfg.OrderService.Timeout)
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		log.Fatalf("Failed to create order client: %v", err)
 	}
-	defer db.Close()
-
-	if err := pool.Ping(ctx); err != nil {
-		log.Fatalf("Failed to ping database: %v", err)
-	}
-	log.Println("Database connection established")
+	defer func() {
+		if err := orderClient.Close(); err != nil {
+			log.Printf("Error closing order client: %v", err)
+		}
+	}()
 
 	e := echo.New()
 
@@ -54,23 +50,23 @@ func main() {
 	}))
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
-	e.Use(middleware.Gzip())
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
 		AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.DELETE, echo.OPTIONS},
-		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 	}))
 
-	repo := repository.NewOrderRepository(pool)
-	handlers.RegisterRoutes(e, repo)
+	handler := handlers.NewHandler(orderClient)
+	handlers.RegisterRoutes(e, handler)
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
 		addr := ":" + string(rune(cfg.Server.Port))
-		log.Printf("Server starting on port %d", cfg.Server.Port)
+		log.Printf("API Gateway starting on port %d", cfg.Server.Port)
+		log.Printf("Order Service address: %s", cfg.OrderService.Address)
 		if err := e.Start(addr); err != nil {
 			log.Printf("Server stopped: %v", err)
 		}
@@ -79,12 +75,12 @@ func main() {
 	<-quit
 	log.Println("Shutting down server...")
 
-	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	if err := e.Shutdown(ctx); err != nil {
 		log.Fatalf("Failed to shutdown server: %v", err)
 	}
 
-	log.Println("Server stopped gracefully")
+	log.Println("API Gateway stopped gracefully")
 }

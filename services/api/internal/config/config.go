@@ -4,24 +4,21 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 )
 
 type Config struct {
-	Server   ServerConfig
-	Database DatabaseConfig
+	Server       ServerConfig
+	OrderService OrderServiceConfig
 }
 
 type ServerConfig struct {
 	Port int
 }
 
-type DatabaseConfig struct {
-	Host     string
-	Port     int
-	User     string
-	Password string
-	Name     string
-	SSLMode  string
+type OrderServiceConfig struct {
+	Address string
+	Timeout time.Duration
 }
 
 func Load() (*Config, error) {
@@ -29,18 +26,13 @@ func Load() (*Config, error) {
 		Server: ServerConfig{
 			Port: getEnvAsInt("SERVER_PORT", 8080),
 		},
-		Database: DatabaseConfig{
-			Host:     getEnv("DATABASE_HOST", "localhost"),
-			Port:     getEnvAsInt("DB_PORT", 5432),
-			User:     getEnv("DB_USER", "drone_user"),
-			Password: getEnv("DB_PASSWORD", "drone_password"),
-			Name:     getEnv("DB_NAME", "drone_db"),
-			SSLMode:  getEnv("DB_SSLMODE", "disable"),
+		OrderService: OrderServiceConfig{
+			Address: getEnv("ORDER_SERVICE_ADDR", "order:50051"),
+			Timeout: getEnvAsDuration("ORDER_SERVICE_TIMEOUT", 30*time.Second),
 		},
 	}
 
 	return cfg, nil
-
 }
 
 func getEnv(key, defaultValue string) string {
@@ -55,9 +47,24 @@ func getEnvAsInt(key string, defaultValue int) int {
 	if strValue == "" {
 		return defaultValue
 	}
+
 	value, err := strconv.Atoi(strValue)
 	if err != nil {
 		panic(fmt.Sprintf("Invalid value for %s: %s", key, strValue))
+	}
+
+	return value
+}
+
+func getEnvAsDuration(key string, defaultValue time.Duration) time.Duration {
+	strValue := getEnv(key, "")
+	if strValue == "" {
+		return defaultValue
+	}
+
+	value, err := time.ParseDuration(strValue)
+	if err != nil {
+		panic(fmt.Sprintf("Invalid duration for %s: %s", key, strValue))
 	}
 
 	return value
