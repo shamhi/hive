@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	cfg, err := config.New()
+	cfg, err := config.NewWorkerConfig()
 	if err != nil {
 		panic(fmt.Errorf("falied to load config: %w", err))
 	}

@@ -4,7 +4,12 @@ import (
 	"fmt"
 	"hive/pkg/logger"
 	"hive/services/tracking/internal/config"
+	"hive/services/tracking/internal/repository"
+	"hive/services/tracking/internal/service"
 	"net"
+	"strconv"
+
+	trackingGen "hive/gen/tracking"
 
 	"google.golang.org/grpc"
 )
@@ -14,8 +19,8 @@ type Server struct {
 	lis net.Listener
 }
 
-func New(cfg *config.GRPCServerConfig, lg *logger.Logger) (*Server, error) {
-	addr := fmt.Sprintf(":%d", cfg.Port)
+func New(cfg *config.GRPCConfig, lg *logger.Logger) (*Server, error) {
+	addr := cfg.Host + ":" + strconv.Itoa(cfg.Port)
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to listen on %s: %w", addr, err)
@@ -27,6 +32,11 @@ func New(cfg *config.GRPCServerConfig, lg *logger.Logger) (*Server, error) {
 		srv: s,
 		lis: lis,
 	}, nil
+}
+
+func (s *Server) RegisterService(repo repository.TrackingRepository) {
+	trackingService := service.New(repo)
+	trackingGen.RegisterTrackingServiceServer(s.srv, trackingService)
 }
 
 func (s *Server) Start() error {

@@ -3,7 +3,7 @@ package kafka
 import (
 	"context"
 	"encoding/json"
-	"hive/services/tracking/internal/domain/drone"
+	"hive/services/tracking/internal/models"
 	"hive/services/tracking/internal/repository"
 )
 
@@ -16,26 +16,25 @@ func New(repo *repository.TrackingRepository) *Handler {
 }
 
 func (h *Handler) HandleMessage(ctx context.Context, data []byte) error {
-	// TODO: передавать структуру drone.TelemetryData и работать с ней
-	var msg drone.TelemetryData
-	if err := json.Unmarshal(data, &msg); err != nil {
+	var drone models.Drone
+	if err := json.Unmarshal(data, &drone); err != nil {
 		return err
 	}
 
-	if err := h.repo.UpdateGeo(
-		ctx,
-		msg.DroneID,
-		msg.DroneLocation.Lon,
-		msg.DroneLocation.Lat,
+	if err := h.repo.UpdateAllDrones(
+		ctx, drone,
 	); err != nil {
 		return err
 	}
 
-	if err := h.repo.UpdateState(
-		ctx,
-		msg.DroneID,
-		msg.Battery,
-		string(msg.Status),
+	if err := h.repo.UpdateData(
+		ctx, drone,
+	); err != nil {
+		return err
+	}
+
+	if err := h.repo.UpdateGeopostion(
+		ctx, drone,
 	); err != nil {
 		return err
 	}
