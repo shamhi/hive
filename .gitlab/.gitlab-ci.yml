@@ -2,6 +2,7 @@ stages:
   - lint
   - test
   - build
+  - test-coverage
 
 lint:
   stage: lint
@@ -21,6 +22,15 @@ test:
   artifacts:
     expire_in: 7d
   allow_failure: false
+
+test-coverage:
+  stage: test
+  image: golang:1.25
+  script:
+    - go test ./... -coverprofile=cover.profile > /dev/null
+    - COVERAGE=$(go tool cover -func=cover.profile | grep total | awk '{print $3}' | sed 's/%//')
+    - echo "Coverage is $COVERAGE%"
+    - if [ "$(echo "$COVERAGE < 30" | bc)" -eq 1 ]; then exit 1; fi
 
 #build:docker:
 #  stage: build
