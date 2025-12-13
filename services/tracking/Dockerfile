@@ -1,7 +1,6 @@
 FROM golang:1.25-alpine AS builder
 
-RUN apk add --no-cache git make
-
+RUN apk add --no-cache git
 WORKDIR /app
 
 COPY go.mod go.sum ./
@@ -11,48 +10,28 @@ COPY pkg ./pkg
 COPY gen ./gen
 COPY services/tracking ./services/tracking
 
-WORKDIR /app/services/tracking
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+    go build -ldflags="-w -s" \
+    -o /app/bin/grpc-server \
+    ./services/tracking/cmd/grpc-server
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
-    -ldflags="-s -w" \
-    -o /app/bin/server \
-    ./cmd/grpc-server/main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+    go build -ldflags="-w -s" \
+    -o /app/bin/kafka-worker \
+    ./services/tracking/cmd/kafka-worker
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
-    -ldflags="-s -w" \
-    -o /app/bin/kafka \
-    ./cmd/kafka-worker/main.go
-
-#RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
-#    -ldflags="-s -w" \
-#    -o /app/bin/migrate \
-#    ./cmd/migrate/main.go
-
-FROM alpine:latest AS runtime
-
-RUN apk add --no-cache ca-certificates tzdata
-
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+FROM alpine:latest as runtime
+RUN apk --no-cache add ca-certificates tzdata
+RUN adduser -S -D appuser
 
 WORKDIR /app
 
-COPY --from=builder /app/bin/server /app/server
-COPY --from=builder /app/bin/kafka /app/kafka
-#COPY --from=builder /app/bin/migrate /app/migrate
-COPY --from=builder /app/services/tracking/config /app/config
-#COPY --from=builder /app/services/tracking/migrations /app/migrations
-
-RUN chown -R appuser:appgroup /app
+FROM runtime AS grpc-server
 USER appuser
+COPY --from=builder /app/bin/grpc-server /app/grpc-server
+ENTRYPOINT ["/app/grpc-server"]
 
-FROM runtime AS server
-
-ENTRYPOINT ["/app/server"]
-
-FROM runtime AS kafka
-
-ENTRYPOINT ["/app/kafka"]
-
-#FROM runtime AS migrate
-#
-#ENTRYPOINT ["/app/migrate"]
+FROM runtime AS kafka-worker
+USER appuser
+COPY --from=builder /app/bin/kafka-worker /app/kafka-worker
+ENTRYPOINT ["/app/kafka-worker"]
