@@ -40,7 +40,7 @@ const (
 	arrivalThresholdMeters = 1.0
 
 	// параметры по умолчанию
-	defaultTelemetryAddress = "dns:///telemetry:50050"
+	defaultTelemetryAddress = "passthrough:///telemetry:50050"
 	defaultPeriod           = 500 * time.Millisecond
 	defaultDronesCount      = 10
 )
