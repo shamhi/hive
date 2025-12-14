@@ -39,10 +39,11 @@ message GetOrderRequest {
 
 message GetOrderResponse {
   string order_id = 1;
-  OrderStatus status = 2;
+  string user_id = 2;
   string drone_id = 3;
-  int64 created_at = 4;
-  int64 updated_at = 5;
+  repeated string items = 4;
+  OrderStatus status = 5;
+  common.Location delivery_location = 6;
 }
 
 message UpdateStatusRequest {
