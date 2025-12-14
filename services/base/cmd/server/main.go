@@ -35,7 +35,7 @@ func main() {
 
 	select {
 	case err := <-errChan:
-		fmt.Fprintf(os.Stderr, "failed to run app: %v\n", err)
+		fatal("failed to run app", err)
 	case <-quitCtx.Done():
 		stopCtx, cancel := context.WithTimeout(context.Background(), cfg.ShutdownTimeout)
 		defer cancel()
@@ -45,6 +45,5 @@ func main() {
 }
 
 func fatal(msg string, val any) {
-	fmt.Fprintf(os.Stderr, "%s: %v\n", msg, val)
-	os.Exit(1)
+	panic(fmt.Sprintf("%s: %v\n", msg, val))
 }

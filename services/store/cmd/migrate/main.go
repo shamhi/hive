@@ -133,6 +133,5 @@ func main() {
 }
 
 func fatal(msg string, val any) {
-	fmt.Fprintf(os.Stderr, "%s: %v\n", msg, val)
-	os.Exit(1)
+	panic(fmt.Sprintf("%s: %v\n", msg, val))
 }

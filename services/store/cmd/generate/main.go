@@ -44,12 +44,12 @@ func main() {
 
 	data, err := yaml.Marshal(&s)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to marshal seed file: %v\n", err)
+		panic(fmt.Sprintf("failed to marshal seed data: %v\n", err))
 	}
 
 	if err := os.WriteFile(*outPath, data, 0o644); err != nil {
-		fmt.Fprintf(os.Stderr, "failed to write seed file: %v\n", err)
+		panic(fmt.Sprintf("failed to write seed file: %v\n", err))
 	}
 
-	fmt.Println("")
+	fmt.Println("seed file generated at", *outPath)
 }

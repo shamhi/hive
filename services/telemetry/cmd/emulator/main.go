@@ -258,8 +258,7 @@ func main() {
 			defer wg.Done()
 
 			if err := runEmulator(ctx, *addr, *period); err != nil && ctx.Err() == nil {
-				fmt.Fprintf(os.Stderr, "emulator error: %v\n", err)
-				cancel()
+				panic(fmt.Sprintf("emulator error: %v\n", err))
 			}
 		}()
 	}
@@ -273,7 +272,6 @@ func main() {
 	select {
 	case <-quitCtx.Done():
 		fmt.Println("signal received, stopping...")
-		cancel()
 		<-done
 	case <-done:
 		fmt.Println("all emulators stopped")
