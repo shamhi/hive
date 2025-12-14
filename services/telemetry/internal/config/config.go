@@ -12,7 +12,7 @@ type Config struct {
 	Env      string `env:"ENV" env-default:"local"`
 	GRPCPort int    `env:"GRPC_PORT" env-required:"true"`
 
-	ShutdownTimeout time.Duration `env:"SHUTDOWN_TIMEOUT" env-default:"10s"`
+	ShutdownTimeout time.Duration `env:"SHUTDOWN_TIMEOUT" env-default:"5s"`
 
 	EventsTopic string `env:"EVENTS_TOPIC" env-default:"telemetry-events"`
 	DataTopic   string `env:"DATA_TOPIC" env-default:"telemetry-data"`

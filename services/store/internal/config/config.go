@@ -12,7 +12,7 @@ type Config struct {
 	Env      string `env:"ENV" env-default:"local"`
 	GRPCPort int    `env:"GRPC_PORT" env-required:"true"`
 
-	ShutdownTimeout time.Duration `env:"SHUTDOWN_TIMEOUT" env-default:"10s"`
+	ShutdownTimeout time.Duration `env:"SHUTDOWN_TIMEOUT" env-default:"5s"`
 
 	SearchRadius float64 `env:"SEARCH_RADIUS" env-default:"30000"`
 
