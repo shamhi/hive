@@ -33,7 +33,7 @@ func (m *MockAssignmentRepo) GetByID(_ context.Context, id string) (*assignment.
 
 	a, ok := m.store[id]
 	if !ok {
-		return nil, service.ErrNotFound
+		return nil, service.ErrAssignmentNotFound
 	}
 
 	return a, nil
@@ -58,7 +58,7 @@ func (m *MockAssignmentRepo) GetByDroneID(_ context.Context, droneID string) (*a
 	}
 
 	if best == nil {
-		return nil, service.ErrNotFound
+		return nil, service.ErrAssignmentNotFound
 	}
 
 	return best, nil
@@ -70,7 +70,7 @@ func (m *MockAssignmentRepo) UpdateStatus(_ context.Context, id string, status a
 
 	a, ok := m.store[id]
 	if !ok {
-		return service.ErrNotFound
+		return service.ErrAssignmentNotFound
 	}
 
 	a.Status = status

@@ -53,7 +53,7 @@ func (s *Server) GetStoreLocation(ctx context.Context, req *pb.GetStoreLocationR
 
 	storeInfo, err := s.svc.GetLocation(ctx, req.GetStoreId())
 	if err != nil {
-		if errors.Is(err, service.ErrNotFound) {
+		if errors.Is(err, service.ErrStoreNotFound) {
 			return nil, status.Error(codes.NotFound, "store not found")
 		}
 		return nil, status.Error(codes.Internal, err.Error())
@@ -83,7 +83,7 @@ func (s *Server) FindNearest(ctx context.Context, req *pb.FindNearestRequest) (*
 		s.config.SearchRadius,
 	)
 	if err != nil {
-		if errors.Is(err, service.ErrNotFound) {
+		if errors.Is(err, service.ErrStoreNotFound) {
 			return &pb.FindNearestResponse{Found: false}, nil
 		}
 		return nil, status.Error(codes.Internal, err.Error())

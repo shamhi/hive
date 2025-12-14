@@ -60,7 +60,7 @@ func (s *Server) GetOrder(ctx context.Context, req *pb.GetOrderRequest) (*pb.Get
 
 	o, err := s.orderService.GetOrder(ctx, req.GetOrderId())
 	if err != nil {
-		if errors.Is(err, service.ErrNotFound) {
+		if errors.Is(err, service.ErrOrderNotFound) {
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
 		return nil, status.Error(codes.Internal, err.Error())
@@ -86,7 +86,7 @@ func (s *Server) UpdateStatus(ctx context.Context, req *pb.UpdateStatusRequest) 
 	}
 
 	if err := s.orderService.UpdateStatus(ctx, req.GetOrderId(), newStatus); err != nil {
-		if errors.Is(err, service.ErrNotFound) {
+		if errors.Is(err, service.ErrOrderNotFound) {
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
 		return nil, status.Error(codes.Internal, err.Error())

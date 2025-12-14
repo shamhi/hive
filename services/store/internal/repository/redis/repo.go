@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"hive/services/store/internal/domain/shared"
 	"hive/services/store/internal/domain/store"
+	"hive/services/store/internal/service"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -95,7 +96,7 @@ func (r *RedisRepo) GetNearest(
 	}
 
 	if len(result) == 0 {
-		return nil, fmt.Errorf("no stores found within radius")
+		return nil, service.ErrStoreNotFound
 	}
 
 	nearestResult := result[0]

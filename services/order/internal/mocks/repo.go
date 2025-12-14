@@ -31,7 +31,7 @@ func (m *MockRepo) GetByID(_ context.Context, id string) (*order.Order, error) {
 	if o, exist := m.orders[id]; exist {
 		return o, nil
 	}
-	return nil, service.ErrNotFound
+	return nil, service.ErrOrderNotFound
 }
 
 func (m *MockRepo) UpdateStatus(_ context.Context, id string, status order.OrderStatus) error {
@@ -40,7 +40,7 @@ func (m *MockRepo) UpdateStatus(_ context.Context, id string, status order.Order
 
 	o, exist := m.orders[id]
 	if !exist {
-		return service.ErrNotFound
+		return service.ErrOrderNotFound
 	}
 	o.Status = status
 
@@ -53,7 +53,7 @@ func (m *MockRepo) SetDroneID(_ context.Context, id string, droneID string) erro
 
 	o, exist := m.orders[id]
 	if !exist {
-		return service.ErrNotFound
+		return service.ErrOrderNotFound
 	}
 	o.DroneID = droneID
 
@@ -66,7 +66,7 @@ func (m *MockRepo) UpdateDroneAndStatus(ctx context.Context, id string, droneID 
 
 	o, exist := m.orders[id]
 	if !exist {
-		return service.ErrNotFound
+		return service.ErrOrderNotFound
 	}
 	o.DroneID = droneID
 	o.Status = status

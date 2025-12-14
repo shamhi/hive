@@ -92,7 +92,7 @@ func (r *PostgresRepo) GetByID(ctx context.Context, id string) (*order.Order, er
 		&o.UpdatedAt,
 	); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, service.ErrNotFound
+			return nil, service.ErrOrderNotFound
 		}
 		return nil, err
 	}
@@ -116,7 +116,7 @@ func (r *PostgresRepo) UpdateStatus(ctx context.Context, id string, status order
 		return err
 	}
 	if tag.RowsAffected() == 0 {
-		return service.ErrNotFound
+		return service.ErrOrderNotFound
 	}
 
 	return nil
@@ -138,7 +138,7 @@ func (r *PostgresRepo) SetDroneID(ctx context.Context, id string, droneID string
 		return err
 	}
 	if tag.RowsAffected() == 0 {
-		return service.ErrNotFound
+		return service.ErrOrderNotFound
 	}
 
 	return nil
@@ -168,7 +168,7 @@ func (r *PostgresRepo) UpdateDroneAndStatus(ctx context.Context, id string, dron
 	}
 
 	if tag.RowsAffected() == 0 {
-		return service.ErrNotFound
+		return service.ErrOrderNotFound
 	}
 
 	return tx.Commit(ctx)

@@ -98,7 +98,7 @@ func (r *PostgresRepo) GetByID(ctx context.Context, id string) (*assignment.Assi
 		&a.UpdatedAt,
 	); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, service.ErrNotFound
+			return nil, service.ErrAssignmentNotFound
 		}
 		return nil, err
 	}
@@ -149,7 +149,7 @@ func (r *PostgresRepo) GetByDroneID(ctx context.Context, droneID string) (*assig
 		&a.UpdatedAt,
 	); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, service.ErrNotFound
+			return nil, service.ErrAssignmentNotFound
 		}
 		return nil, err
 	}
@@ -180,7 +180,7 @@ func (r *PostgresRepo) UpdateStatus(ctx context.Context, id string, status assig
 		return err
 	}
 	if tag.RowsAffected() == 0 {
-		return service.ErrNotFound
+		return service.ErrAssignmentNotFound
 	}
 
 	return nil

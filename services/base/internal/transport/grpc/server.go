@@ -53,7 +53,7 @@ func (s *Server) GetBaseLocation(ctx context.Context, req *pb.GetBaseLocationReq
 
 	baseInfo, err := s.svc.GetLocation(ctx, req.GetBaseId())
 	if err != nil {
-		if errors.Is(err, service.ErrNotFound) {
+		if errors.Is(err, service.ErrBaseNotFound) {
 			return nil, status.Error(codes.NotFound, "base not found")
 		}
 		return nil, status.Error(codes.Internal, err.Error())
@@ -83,7 +83,7 @@ func (s *Server) FindNearest(ctx context.Context, req *pb.FindNearestRequest) (*
 		s.config.SearchRadius,
 	)
 	if err != nil {
-		if errors.Is(err, service.ErrNotFound) {
+		if errors.Is(err, service.ErrBaseNotFound) {
 			return &pb.FindNearestResponse{Found: false}, nil
 		}
 		return nil, status.Error(codes.Internal, err.Error())
