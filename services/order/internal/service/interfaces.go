@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"hive/services/order/internal/domain/assignment"
 	"hive/services/order/internal/domain/order"
 	"hive/services/order/internal/domain/shared"
 )
@@ -15,5 +16,5 @@ type OrderRepository interface {
 }
 
 type DispatchClient interface {
-	AssignDrone(ctx context.Context, orderID string, deliveryLocation *shared.Location) (droneID string, err error)
+	AssignDrone(ctx context.Context, orderID string, deliveryLocation *shared.Location) (*assignment.AssignmentInfo, error)
 }

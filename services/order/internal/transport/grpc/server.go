@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"errors"
+	pbCommon "hive/gen/common"
 	pb "hive/gen/order"
 	"hive/services/order/internal/domain/mapping"
 	"hive/services/order/internal/domain/shared"
@@ -67,11 +68,15 @@ func (s *Server) GetOrder(ctx context.Context, req *pb.GetOrderRequest) (*pb.Get
 	}
 
 	return &pb.GetOrderResponse{
-		OrderId:   o.ID,
-		Status:    mapping.OrderStatusToProto(o.Status),
-		DroneId:   o.DroneID,
-		CreatedAt: o.CreatedAt.Unix(),
-		UpdatedAt: o.UpdatedAt.Unix(),
+		OrderId: o.ID,
+		UserId:  o.UserID,
+		DroneId: o.DroneID,
+		Items:   o.Items,
+		Status:  mapping.OrderStatusToProto(o.Status),
+		DeliveryLocation: &pbCommon.Location{
+			Lat: o.Location.Lat,
+			Lon: o.Location.Lon,
+		},
 	}, nil
 }
 

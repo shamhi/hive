@@ -5,6 +5,7 @@ import (
 	"fmt"
 	pbCommon "hive/gen/common"
 	pb "hive/gen/dispatch"
+	"hive/services/order/internal/domain/assignment"
 	"hive/services/order/internal/domain/shared"
 )
 
@@ -20,7 +21,7 @@ func (c *DispatchClient) AssignDrone(
 	ctx context.Context,
 	orderID string,
 	deliveryLocation *shared.Location,
-) (string, error) {
+) (*assignment.AssignmentInfo, error) {
 	req := &pb.AssignDroneRequest{
 		OrderId: orderID,
 		DeliveryLocation: &pbCommon.Location{
@@ -30,13 +31,15 @@ func (c *DispatchClient) AssignDrone(
 	}
 	resp, err := c.client.AssignDrone(ctx, req)
 	if err != nil {
-		return "", fmt.Errorf("failed to assign drone: %w", err)
+		return nil, fmt.Errorf("failed to assign drone: %w", err)
 	}
 
-	droneID := resp.GetDroneId()
-	if droneID == "" {
-		return "", fmt.Errorf("no drone assigned for %s", orderID)
+	if resp.GetDroneId() == "" {
+		return nil, fmt.Errorf("no drone assigned for %s", orderID)
 	}
 
-	return droneID, nil
+	return &assignment.AssignmentInfo{
+		DroneID:    resp.GetDroneId(),
+		EtaSeconds: resp.GetEtaSeconds(),
+	}, nil
 }
