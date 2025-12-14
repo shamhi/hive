@@ -84,8 +84,6 @@ func (h *Handler) GetOrder(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-func (h *Handler) HealthCheck(c echo.Context) error {
-	return c.JSON(http.StatusOK, map[string]string{
-		"status": "ok",
-	})
+func (h *Handler) Ping(c echo.Context) error {
+	return c.String(http.StatusOK, "pong")
 }
