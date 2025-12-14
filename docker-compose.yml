@@ -103,8 +103,8 @@ services:
     build:
       context: .
       dockerfile: services/tracking/Dockerfile
-      target: server
-    container_name: HIVE_tracking
+      target: grpc-server
+    container_name: HIVE_tracking-server
     restart: unless-stopped
     env_file:
       - services/tracking/config/.env
@@ -116,7 +116,7 @@ services:
     build:
       context: .
       dockerfile: services/tracking/Dockerfile
-      target: kafka
+      target: kafka-worker
     container_name: HIVE_tracking-kafka
     restart: unless-stopped
     env_file:
