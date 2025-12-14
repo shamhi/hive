@@ -7,8 +7,23 @@ import "common.proto";
 
 service DispatchService {
   rpc AssignDrone(AssignDroneRequest) returns (AssignDroneResponse);
+  rpc GetAssignment(GetAssignmentRequest) returns (GetAssignmentResponse);
 }
 
+enum AssignmentStatus {
+  ASSIGNMENT_STATUS_UNKNOWN = 0;
+  ASSIGNMENT_STATUS_CREATED = 1;
+  ASSIGNMENT_STATUS_ASSIGNED = 2;
+  ASSIGNMENT_STATUS_FLYING_TO_STORE = 3;
+  ASSIGNMENT_STATUS_AT_STORE = 4;
+  ASSIGNMENT_STATUS_PICKED_UP_CARGO = 5;
+  ASSIGNMENT_STATUS_FLYING_TO_CLIENT = 6;
+  ASSIGNMENT_STATUS_AT_CLIENT = 7;
+  ASSIGNMENT_STATUS_DROPPED_CARGO = 8;
+  ASSIGNMENT_STATUS_RETURNING_BASE = 9;
+  ASSIGNMENT_STATUS_COMPLETED = 10;
+  ASSIGNMENT_STATUS_FAILED = 11;
+}
 
 message AssignDroneRequest {
   string order_id = 1;
@@ -17,4 +32,15 @@ message AssignDroneRequest {
 
 message AssignDroneResponse {
   string drone_id = 1;
+  int32 eta_seconds = 2;
+}
+
+message GetAssignmentRequest {
+  string drone_id = 1;
+}
+
+message GetAssignmentResponse {
+  string assignment_id = 1;
+  AssignmentStatus status = 2;
+  common.Location target_location = 3;
 }

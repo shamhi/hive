@@ -253,14 +253,15 @@ func (x *GetOrderRequest) GetOrderId() string {
 }
 
 type GetOrderResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	Status        OrderStatus            `protobuf:"varint,2,opt,name=status,proto3,enum=order.OrderStatus" json:"status,omitempty"`
-	DroneId       string                 `protobuf:"bytes,3,opt,name=drone_id,json=droneId,proto3" json:"drone_id,omitempty"`
-	CreatedAt     int64                  `protobuf:"varint,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     int64                  `protobuf:"varint,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	OrderId          string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	UserId           string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	DroneId          string                 `protobuf:"bytes,3,opt,name=drone_id,json=droneId,proto3" json:"drone_id,omitempty"`
+	Items            []string               `protobuf:"bytes,4,rep,name=items,proto3" json:"items,omitempty"`
+	Status           OrderStatus            `protobuf:"varint,5,opt,name=status,proto3,enum=order.OrderStatus" json:"status,omitempty"`
+	DeliveryLocation *common.Location       `protobuf:"bytes,6,opt,name=delivery_location,json=deliveryLocation,proto3" json:"delivery_location,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *GetOrderResponse) Reset() {
@@ -300,11 +301,11 @@ func (x *GetOrderResponse) GetOrderId() string {
 	return ""
 }
 
-func (x *GetOrderResponse) GetStatus() OrderStatus {
+func (x *GetOrderResponse) GetUserId() string {
 	if x != nil {
-		return x.Status
+		return x.UserId
 	}
-	return OrderStatus_UNKNOWN
+	return ""
 }
 
 func (x *GetOrderResponse) GetDroneId() string {
@@ -314,18 +315,25 @@ func (x *GetOrderResponse) GetDroneId() string {
 	return ""
 }
 
-func (x *GetOrderResponse) GetCreatedAt() int64 {
+func (x *GetOrderResponse) GetItems() []string {
 	if x != nil {
-		return x.CreatedAt
+		return x.Items
 	}
-	return 0
+	return nil
 }
 
-func (x *GetOrderResponse) GetUpdatedAt() int64 {
+func (x *GetOrderResponse) GetStatus() OrderStatus {
 	if x != nil {
-		return x.UpdatedAt
+		return x.Status
 	}
-	return 0
+	return OrderStatus_UNKNOWN
+}
+
+func (x *GetOrderResponse) GetDeliveryLocation() *common.Location {
+	if x != nil {
+		return x.DeliveryLocation
+	}
+	return nil
 }
 
 type UpdateStatusRequest struct {
@@ -448,15 +456,14 @@ const file_order_proto_rawDesc = "" +
 	"\veta_seconds\x18\x04 \x01(\x05R\n" +
 	"etaSeconds\",\n" +
 	"\x0fGetOrderRequest\x12\x19\n" +
-	"\border_id\x18\x01 \x01(\tR\aorderId\"\xb2\x01\n" +
+	"\border_id\x18\x01 \x01(\tR\aorderId\"\xe2\x01\n" +
 	"\x10GetOrderResponse\x12\x19\n" +
-	"\border_id\x18\x01 \x01(\tR\aorderId\x12*\n" +
-	"\x06status\x18\x02 \x01(\x0e2\x12.order.OrderStatusR\x06status\x12\x19\n" +
-	"\bdrone_id\x18\x03 \x01(\tR\adroneId\x12\x1d\n" +
-	"\n" +
-	"created_at\x18\x04 \x01(\x03R\tcreatedAt\x12\x1d\n" +
-	"\n" +
-	"updated_at\x18\x05 \x01(\x03R\tupdatedAt\"v\n" +
+	"\border_id\x18\x01 \x01(\tR\aorderId\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x19\n" +
+	"\bdrone_id\x18\x03 \x01(\tR\adroneId\x12\x14\n" +
+	"\x05items\x18\x04 \x03(\tR\x05items\x12*\n" +
+	"\x06status\x18\x05 \x01(\x0e2\x12.order.OrderStatusR\x06status\x12=\n" +
+	"\x11delivery_location\x18\x06 \x01(\v2\x10.common.LocationR\x10deliveryLocation\"v\n" +
 	"\x13UpdateStatusRequest\x12\x19\n" +
 	"\border_id\x18\x01 \x01(\tR\aorderId\x12*\n" +
 	"\x06status\x18\x02 \x01(\x0e2\x12.order.OrderStatusR\x06status\x12\x18\n" +
@@ -504,18 +511,19 @@ var file_order_proto_depIdxs = []int32{
 	7, // 0: order.CreateOrderRequest.delivery_location:type_name -> common.Location
 	0, // 1: order.CreateOrderResponse.status:type_name -> order.OrderStatus
 	0, // 2: order.GetOrderResponse.status:type_name -> order.OrderStatus
-	0, // 3: order.UpdateStatusRequest.status:type_name -> order.OrderStatus
-	1, // 4: order.OrderService.CreateOrder:input_type -> order.CreateOrderRequest
-	3, // 5: order.OrderService.GetOrder:input_type -> order.GetOrderRequest
-	5, // 6: order.OrderService.UpdateStatus:input_type -> order.UpdateStatusRequest
-	2, // 7: order.OrderService.CreateOrder:output_type -> order.CreateOrderResponse
-	4, // 8: order.OrderService.GetOrder:output_type -> order.GetOrderResponse
-	6, // 9: order.OrderService.UpdateStatus:output_type -> order.UpdateStatusResponse
-	7, // [7:10] is the sub-list for method output_type
-	4, // [4:7] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	7, // 3: order.GetOrderResponse.delivery_location:type_name -> common.Location
+	0, // 4: order.UpdateStatusRequest.status:type_name -> order.OrderStatus
+	1, // 5: order.OrderService.CreateOrder:input_type -> order.CreateOrderRequest
+	3, // 6: order.OrderService.GetOrder:input_type -> order.GetOrderRequest
+	5, // 7: order.OrderService.UpdateStatus:input_type -> order.UpdateStatusRequest
+	2, // 8: order.OrderService.CreateOrder:output_type -> order.CreateOrderResponse
+	4, // 9: order.OrderService.GetOrder:output_type -> order.GetOrderResponse
+	6, // 10: order.OrderService.UpdateStatus:output_type -> order.UpdateStatusResponse
+	8, // [8:11] is the sub-list for method output_type
+	5, // [5:8] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_order_proto_init() }

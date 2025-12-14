@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	DispatchService_AssignDrone_FullMethodName = "/dispatch.DispatchService/AssignDrone"
+	DispatchService_AssignDrone_FullMethodName   = "/dispatch.DispatchService/AssignDrone"
+	DispatchService_GetAssignment_FullMethodName = "/dispatch.DispatchService/GetAssignment"
 )
 
 // DispatchServiceClient is the client API for DispatchService service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DispatchServiceClient interface {
 	AssignDrone(ctx context.Context, in *AssignDroneRequest, opts ...grpc.CallOption) (*AssignDroneResponse, error)
+	GetAssignment(ctx context.Context, in *GetAssignmentRequest, opts ...grpc.CallOption) (*GetAssignmentResponse, error)
 }
 
 type dispatchServiceClient struct {
@@ -47,11 +49,22 @@ func (c *dispatchServiceClient) AssignDrone(ctx context.Context, in *AssignDrone
 	return out, nil
 }
 
+func (c *dispatchServiceClient) GetAssignment(ctx context.Context, in *GetAssignmentRequest, opts ...grpc.CallOption) (*GetAssignmentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAssignmentResponse)
+	err := c.cc.Invoke(ctx, DispatchService_GetAssignment_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DispatchServiceServer is the server API for DispatchService service.
 // All implementations must embed UnimplementedDispatchServiceServer
 // for forward compatibility.
 type DispatchServiceServer interface {
 	AssignDrone(context.Context, *AssignDroneRequest) (*AssignDroneResponse, error)
+	GetAssignment(context.Context, *GetAssignmentRequest) (*GetAssignmentResponse, error)
 	mustEmbedUnimplementedDispatchServiceServer()
 }
 
@@ -64,6 +77,9 @@ type UnimplementedDispatchServiceServer struct{}
 
 func (UnimplementedDispatchServiceServer) AssignDrone(context.Context, *AssignDroneRequest) (*AssignDroneResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AssignDrone not implemented")
+}
+func (UnimplementedDispatchServiceServer) GetAssignment(context.Context, *GetAssignmentRequest) (*GetAssignmentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAssignment not implemented")
 }
 func (UnimplementedDispatchServiceServer) mustEmbedUnimplementedDispatchServiceServer() {}
 func (UnimplementedDispatchServiceServer) testEmbeddedByValue()                         {}
@@ -104,6 +120,24 @@ func _DispatchService_AssignDrone_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DispatchService_GetAssignment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAssignmentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DispatchServiceServer).GetAssignment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DispatchService_GetAssignment_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DispatchServiceServer).GetAssignment(ctx, req.(*GetAssignmentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DispatchService_ServiceDesc is the grpc.ServiceDesc for DispatchService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +148,10 @@ var DispatchService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AssignDrone",
 			Handler:    _DispatchService_AssignDrone_Handler,
+		},
+		{
+			MethodName: "GetAssignment",
+			Handler:    _DispatchService_GetAssignment_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

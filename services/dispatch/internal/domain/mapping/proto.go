@@ -2,8 +2,10 @@ package mapping
 
 import (
 	pbCommon "hive/gen/common"
+	pb "hive/gen/dispatch"
 	pbOrder "hive/gen/order"
 	pbDrone "hive/gen/telemetry"
+	"hive/services/dispatch/internal/domain/assignment"
 	"hive/services/dispatch/internal/domain/drone"
 	"hive/services/dispatch/internal/domain/order"
 	"hive/services/dispatch/internal/domain/shared"
@@ -26,6 +28,35 @@ func LocationFromProto(loc *pbCommon.Location) *shared.Location {
 	return &shared.Location{
 		Lat: loc.Lat,
 		Lon: loc.Lon,
+	}
+}
+
+func AssignmentStatusToProto(status assignment.AssignmentStatus) pb.AssignmentStatus {
+	switch status {
+	case assignment.AssignmentStatusCreated:
+		return pb.AssignmentStatus_ASSIGNMENT_STATUS_CREATED
+	case assignment.AssignmentStatusAssigned:
+		return pb.AssignmentStatus_ASSIGNMENT_STATUS_ASSIGNED
+	case assignment.AssignmentStatusFlyingToStore:
+		return pb.AssignmentStatus_ASSIGNMENT_STATUS_FLYING_TO_STORE
+	case assignment.AssignmentStatusAtStore:
+		return pb.AssignmentStatus_ASSIGNMENT_STATUS_AT_STORE
+	case assignment.AssignmentStatusPickedUpCargo:
+		return pb.AssignmentStatus_ASSIGNMENT_STATUS_PICKED_UP_CARGO
+	case assignment.AssignmentStatusFlyingToClient:
+		return pb.AssignmentStatus_ASSIGNMENT_STATUS_FLYING_TO_CLIENT
+	case assignment.AssignmentStatusAtClient:
+		return pb.AssignmentStatus_ASSIGNMENT_STATUS_AT_CLIENT
+	case assignment.AssignmentStatusDroppedCargo:
+		return pb.AssignmentStatus_ASSIGNMENT_STATUS_DROPPED_CARGO
+	case assignment.AssignmentStatusReturningBase:
+		return pb.AssignmentStatus_ASSIGNMENT_STATUS_RETURNING_BASE
+	case assignment.AssignmentStatusCompleted:
+		return pb.AssignmentStatus_ASSIGNMENT_STATUS_COMPLETED
+	case assignment.AssignmentStatusFailed:
+		return pb.AssignmentStatus_ASSIGNMENT_STATUS_FAILED
+	default:
+		return pb.AssignmentStatus_ASSIGNMENT_STATUS_UNKNOWN
 	}
 }
 

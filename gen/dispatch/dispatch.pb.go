@@ -22,6 +22,82 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type AssignmentStatus int32
+
+const (
+	AssignmentStatus_ASSIGNMENT_STATUS_UNKNOWN          AssignmentStatus = 0
+	AssignmentStatus_ASSIGNMENT_STATUS_CREATED          AssignmentStatus = 1
+	AssignmentStatus_ASSIGNMENT_STATUS_ASSIGNED         AssignmentStatus = 2
+	AssignmentStatus_ASSIGNMENT_STATUS_FLYING_TO_STORE  AssignmentStatus = 3
+	AssignmentStatus_ASSIGNMENT_STATUS_AT_STORE         AssignmentStatus = 4
+	AssignmentStatus_ASSIGNMENT_STATUS_PICKED_UP_CARGO  AssignmentStatus = 5
+	AssignmentStatus_ASSIGNMENT_STATUS_FLYING_TO_CLIENT AssignmentStatus = 6
+	AssignmentStatus_ASSIGNMENT_STATUS_AT_CLIENT        AssignmentStatus = 7
+	AssignmentStatus_ASSIGNMENT_STATUS_DROPPED_CARGO    AssignmentStatus = 8
+	AssignmentStatus_ASSIGNMENT_STATUS_RETURNING_BASE   AssignmentStatus = 9
+	AssignmentStatus_ASSIGNMENT_STATUS_COMPLETED        AssignmentStatus = 10
+	AssignmentStatus_ASSIGNMENT_STATUS_FAILED           AssignmentStatus = 11
+)
+
+// Enum value maps for AssignmentStatus.
+var (
+	AssignmentStatus_name = map[int32]string{
+		0:  "ASSIGNMENT_STATUS_UNKNOWN",
+		1:  "ASSIGNMENT_STATUS_CREATED",
+		2:  "ASSIGNMENT_STATUS_ASSIGNED",
+		3:  "ASSIGNMENT_STATUS_FLYING_TO_STORE",
+		4:  "ASSIGNMENT_STATUS_AT_STORE",
+		5:  "ASSIGNMENT_STATUS_PICKED_UP_CARGO",
+		6:  "ASSIGNMENT_STATUS_FLYING_TO_CLIENT",
+		7:  "ASSIGNMENT_STATUS_AT_CLIENT",
+		8:  "ASSIGNMENT_STATUS_DROPPED_CARGO",
+		9:  "ASSIGNMENT_STATUS_RETURNING_BASE",
+		10: "ASSIGNMENT_STATUS_COMPLETED",
+		11: "ASSIGNMENT_STATUS_FAILED",
+	}
+	AssignmentStatus_value = map[string]int32{
+		"ASSIGNMENT_STATUS_UNKNOWN":          0,
+		"ASSIGNMENT_STATUS_CREATED":          1,
+		"ASSIGNMENT_STATUS_ASSIGNED":         2,
+		"ASSIGNMENT_STATUS_FLYING_TO_STORE":  3,
+		"ASSIGNMENT_STATUS_AT_STORE":         4,
+		"ASSIGNMENT_STATUS_PICKED_UP_CARGO":  5,
+		"ASSIGNMENT_STATUS_FLYING_TO_CLIENT": 6,
+		"ASSIGNMENT_STATUS_AT_CLIENT":        7,
+		"ASSIGNMENT_STATUS_DROPPED_CARGO":    8,
+		"ASSIGNMENT_STATUS_RETURNING_BASE":   9,
+		"ASSIGNMENT_STATUS_COMPLETED":        10,
+		"ASSIGNMENT_STATUS_FAILED":           11,
+	}
+)
+
+func (x AssignmentStatus) Enum() *AssignmentStatus {
+	p := new(AssignmentStatus)
+	*p = x
+	return p
+}
+
+func (x AssignmentStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (AssignmentStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_dispatch_proto_enumTypes[0].Descriptor()
+}
+
+func (AssignmentStatus) Type() protoreflect.EnumType {
+	return &file_dispatch_proto_enumTypes[0]
+}
+
+func (x AssignmentStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use AssignmentStatus.Descriptor instead.
+func (AssignmentStatus) EnumDescriptor() ([]byte, []int) {
+	return file_dispatch_proto_rawDescGZIP(), []int{0}
+}
+
 type AssignDroneRequest struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
 	OrderId          string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
@@ -77,6 +153,7 @@ func (x *AssignDroneRequest) GetDeliveryLocation() *common.Location {
 type AssignDroneResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	DroneId       string                 `protobuf:"bytes,1,opt,name=drone_id,json=droneId,proto3" json:"drone_id,omitempty"`
+	EtaSeconds    int32                  `protobuf:"varint,2,opt,name=eta_seconds,json=etaSeconds,proto3" json:"eta_seconds,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -118,6 +195,117 @@ func (x *AssignDroneResponse) GetDroneId() string {
 	return ""
 }
 
+func (x *AssignDroneResponse) GetEtaSeconds() int32 {
+	if x != nil {
+		return x.EtaSeconds
+	}
+	return 0
+}
+
+type GetAssignmentRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DroneId       string                 `protobuf:"bytes,1,opt,name=drone_id,json=droneId,proto3" json:"drone_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAssignmentRequest) Reset() {
+	*x = GetAssignmentRequest{}
+	mi := &file_dispatch_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAssignmentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAssignmentRequest) ProtoMessage() {}
+
+func (x *GetAssignmentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_dispatch_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAssignmentRequest.ProtoReflect.Descriptor instead.
+func (*GetAssignmentRequest) Descriptor() ([]byte, []int) {
+	return file_dispatch_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *GetAssignmentRequest) GetDroneId() string {
+	if x != nil {
+		return x.DroneId
+	}
+	return ""
+}
+
+type GetAssignmentResponse struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	AssignmentId   string                 `protobuf:"bytes,1,opt,name=assignment_id,json=assignmentId,proto3" json:"assignment_id,omitempty"`
+	Status         AssignmentStatus       `protobuf:"varint,2,opt,name=status,proto3,enum=dispatch.AssignmentStatus" json:"status,omitempty"`
+	TargetLocation *common.Location       `protobuf:"bytes,3,opt,name=target_location,json=targetLocation,proto3" json:"target_location,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *GetAssignmentResponse) Reset() {
+	*x = GetAssignmentResponse{}
+	mi := &file_dispatch_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAssignmentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAssignmentResponse) ProtoMessage() {}
+
+func (x *GetAssignmentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_dispatch_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAssignmentResponse.ProtoReflect.Descriptor instead.
+func (*GetAssignmentResponse) Descriptor() ([]byte, []int) {
+	return file_dispatch_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GetAssignmentResponse) GetAssignmentId() string {
+	if x != nil {
+		return x.AssignmentId
+	}
+	return ""
+}
+
+func (x *GetAssignmentResponse) GetStatus() AssignmentStatus {
+	if x != nil {
+		return x.Status
+	}
+	return AssignmentStatus_ASSIGNMENT_STATUS_UNKNOWN
+}
+
+func (x *GetAssignmentResponse) GetTargetLocation() *common.Location {
+	if x != nil {
+		return x.TargetLocation
+	}
+	return nil
+}
+
 var File_dispatch_proto protoreflect.FileDescriptor
 
 const file_dispatch_proto_rawDesc = "" +
@@ -125,11 +313,34 @@ const file_dispatch_proto_rawDesc = "" +
 	"\x0edispatch.proto\x12\bdispatch\x1a\fcommon.proto\"n\n" +
 	"\x12AssignDroneRequest\x12\x19\n" +
 	"\border_id\x18\x01 \x01(\tR\aorderId\x12=\n" +
-	"\x11delivery_location\x18\x02 \x01(\v2\x10.common.LocationR\x10deliveryLocation\"0\n" +
+	"\x11delivery_location\x18\x02 \x01(\v2\x10.common.LocationR\x10deliveryLocation\"Q\n" +
 	"\x13AssignDroneResponse\x12\x19\n" +
-	"\bdrone_id\x18\x01 \x01(\tR\adroneId2]\n" +
+	"\bdrone_id\x18\x01 \x01(\tR\adroneId\x12\x1f\n" +
+	"\veta_seconds\x18\x02 \x01(\x05R\n" +
+	"etaSeconds\"1\n" +
+	"\x14GetAssignmentRequest\x12\x19\n" +
+	"\bdrone_id\x18\x01 \x01(\tR\adroneId\"\xab\x01\n" +
+	"\x15GetAssignmentResponse\x12#\n" +
+	"\rassignment_id\x18\x01 \x01(\tR\fassignmentId\x122\n" +
+	"\x06status\x18\x02 \x01(\x0e2\x1a.dispatch.AssignmentStatusR\x06status\x129\n" +
+	"\x0ftarget_location\x18\x03 \x01(\v2\x10.common.LocationR\x0etargetLocation*\xb1\x03\n" +
+	"\x10AssignmentStatus\x12\x1d\n" +
+	"\x19ASSIGNMENT_STATUS_UNKNOWN\x10\x00\x12\x1d\n" +
+	"\x19ASSIGNMENT_STATUS_CREATED\x10\x01\x12\x1e\n" +
+	"\x1aASSIGNMENT_STATUS_ASSIGNED\x10\x02\x12%\n" +
+	"!ASSIGNMENT_STATUS_FLYING_TO_STORE\x10\x03\x12\x1e\n" +
+	"\x1aASSIGNMENT_STATUS_AT_STORE\x10\x04\x12%\n" +
+	"!ASSIGNMENT_STATUS_PICKED_UP_CARGO\x10\x05\x12&\n" +
+	"\"ASSIGNMENT_STATUS_FLYING_TO_CLIENT\x10\x06\x12\x1f\n" +
+	"\x1bASSIGNMENT_STATUS_AT_CLIENT\x10\a\x12#\n" +
+	"\x1fASSIGNMENT_STATUS_DROPPED_CARGO\x10\b\x12$\n" +
+	" ASSIGNMENT_STATUS_RETURNING_BASE\x10\t\x12\x1f\n" +
+	"\x1bASSIGNMENT_STATUS_COMPLETED\x10\n" +
+	"\x12\x1c\n" +
+	"\x18ASSIGNMENT_STATUS_FAILED\x10\v2\xaf\x01\n" +
 	"\x0fDispatchService\x12J\n" +
-	"\vAssignDrone\x12\x1c.dispatch.AssignDroneRequest\x1a\x1d.dispatch.AssignDroneResponseB\x13Z\x11hive/gen/dispatchb\x06proto3"
+	"\vAssignDrone\x12\x1c.dispatch.AssignDroneRequest\x1a\x1d.dispatch.AssignDroneResponse\x12P\n" +
+	"\rGetAssignment\x12\x1e.dispatch.GetAssignmentRequest\x1a\x1f.dispatch.GetAssignmentResponseB\x13Z\x11hive/gen/dispatchb\x06proto3"
 
 var (
 	file_dispatch_proto_rawDescOnce sync.Once
@@ -143,21 +354,29 @@ func file_dispatch_proto_rawDescGZIP() []byte {
 	return file_dispatch_proto_rawDescData
 }
 
-var file_dispatch_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_dispatch_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_dispatch_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_dispatch_proto_goTypes = []any{
-	(*AssignDroneRequest)(nil),  // 0: dispatch.AssignDroneRequest
-	(*AssignDroneResponse)(nil), // 1: dispatch.AssignDroneResponse
-	(*common.Location)(nil),     // 2: common.Location
+	(AssignmentStatus)(0),         // 0: dispatch.AssignmentStatus
+	(*AssignDroneRequest)(nil),    // 1: dispatch.AssignDroneRequest
+	(*AssignDroneResponse)(nil),   // 2: dispatch.AssignDroneResponse
+	(*GetAssignmentRequest)(nil),  // 3: dispatch.GetAssignmentRequest
+	(*GetAssignmentResponse)(nil), // 4: dispatch.GetAssignmentResponse
+	(*common.Location)(nil),       // 5: common.Location
 }
 var file_dispatch_proto_depIdxs = []int32{
-	2, // 0: dispatch.AssignDroneRequest.delivery_location:type_name -> common.Location
-	0, // 1: dispatch.DispatchService.AssignDrone:input_type -> dispatch.AssignDroneRequest
-	1, // 2: dispatch.DispatchService.AssignDrone:output_type -> dispatch.AssignDroneResponse
-	2, // [2:3] is the sub-list for method output_type
-	1, // [1:2] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	5, // 0: dispatch.AssignDroneRequest.delivery_location:type_name -> common.Location
+	0, // 1: dispatch.GetAssignmentResponse.status:type_name -> dispatch.AssignmentStatus
+	5, // 2: dispatch.GetAssignmentResponse.target_location:type_name -> common.Location
+	1, // 3: dispatch.DispatchService.AssignDrone:input_type -> dispatch.AssignDroneRequest
+	3, // 4: dispatch.DispatchService.GetAssignment:input_type -> dispatch.GetAssignmentRequest
+	2, // 5: dispatch.DispatchService.AssignDrone:output_type -> dispatch.AssignDroneResponse
+	4, // 6: dispatch.DispatchService.GetAssignment:output_type -> dispatch.GetAssignmentResponse
+	5, // [5:7] is the sub-list for method output_type
+	3, // [3:5] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_dispatch_proto_init() }
@@ -170,13 +389,14 @@ func file_dispatch_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_dispatch_proto_rawDesc), len(file_dispatch_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   2,
+			NumEnums:      1,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_dispatch_proto_goTypes,
 		DependencyIndexes: file_dispatch_proto_depIdxs,
+		EnumInfos:         file_dispatch_proto_enumTypes,
 		MessageInfos:      file_dispatch_proto_msgTypes,
 	}.Build()
 	File_dispatch_proto = out.File

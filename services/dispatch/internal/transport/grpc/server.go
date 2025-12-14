@@ -2,7 +2,9 @@ package grpc
 
 import (
 	"context"
+	"errors"
 	pb "hive/gen/dispatch"
+	"hive/services/dispatch/internal/domain/mapping"
 	"hive/services/dispatch/internal/domain/shared"
 	"hive/services/dispatch/internal/service"
 
@@ -31,7 +33,7 @@ func (s *Server) AssignDrone(ctx context.Context, req *pb.AssignDroneRequest) (*
 		return nil, status.Error(codes.InvalidArgument, "delivery location is required")
 	}
 
-	droneInfo, err := s.dispatchService.AssignDrone(
+	assignmentInfo, err := s.dispatchService.AssignDrone(
 		ctx,
 		req.GetOrderId(),
 		&shared.Location{
@@ -45,5 +47,28 @@ func (s *Server) AssignDrone(ctx context.Context, req *pb.AssignDroneRequest) (*
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &pb.AssignDroneResponse{DroneId: droneInfo.ID}, nil
+	return &pb.AssignDroneResponse{
+		DroneId:    assignmentInfo.DroneID,
+		EtaSeconds: assignmentInfo.EtaSeconds,
+	}, nil
+}
+
+func (s *Server) GetAssignment(ctx context.Context, req *pb.GetAssignmentRequest) (*pb.GetAssignmentResponse, error) {
+	if req.GetDroneId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "drone ID is required")
+	}
+
+	a, err := s.dispatchService.GetAssignment(ctx, req.GetDroneId())
+	if err != nil {
+		if errors.Is(err, service.ErrAssignmentNotFound) {
+			return nil, status.Error(codes.NotFound, "assignment not found")
+		}
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &pb.GetAssignmentResponse{
+		AssignmentId:   a.ID,
+		Status:         mapping.AssignmentStatusToProto(a.Status),
+		TargetLocation: mapping.LocationToProto(a.Target),
+	}, nil
 }

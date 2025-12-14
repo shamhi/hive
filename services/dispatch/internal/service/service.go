@@ -45,7 +45,7 @@ func (s *DispatchService) AssignDrone(
 	deliveryLocation *shared.Location,
 	minDroneBattery float64,
 	droneSearchRadius float64,
-) (*drone.Drone, error) {
+) (*assignment.AssignmentInfo, error) {
 	if orderID == "" {
 		return nil, fmt.Errorf("order ID is required")
 	}
@@ -108,8 +108,7 @@ func (s *DispatchService) AssignDrone(
 		return nil, fmt.Errorf("failed to save assignment: %w", err)
 	}
 
-	fail := func(cause error) (*drone.Drone, error) {
-		// TODO: add logger
+	fail := func(cause error) (*assignment.AssignmentInfo, error) {
 		_ = s.repo.UpdateStatus(ctx, a.ID, assignment.AssignmentStatusFailed)
 		_ = s.tracking.SetStatus(ctx, droneID, drone.DroneStatusFree)
 		return nil, cause
@@ -136,7 +135,22 @@ func (s *DispatchService) AssignDrone(
 		return fail(fmt.Errorf("failed to update assignment status: %w", err))
 	}
 
-	return droneInfo, nil
+	return &assignment.AssignmentInfo{
+		DroneID:    droneID,
+		EtaSeconds: int32(totalDistance / droneInfo.SpeedMps),
+	}, nil
+}
+
+func (s *DispatchService) GetAssignment(
+	ctx context.Context,
+	droneID string,
+) (*assignment.Assignment, error) {
+	a, err := s.repo.GetByDroneID(ctx, droneID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get assignment by drone ID %s: %w", droneID, err)
+	}
+
+	return a, nil
 }
 
 func (s *DispatchService) HandleTelemetryEvent(ctx context.Context, event drone.TelemetryEvent) error {

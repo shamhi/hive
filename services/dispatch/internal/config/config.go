@@ -13,8 +13,8 @@ type Config struct {
 	Env      string `env:"ENV" env-default:"local"`
 	GRPCPort int    `env:"GRPC_PORT" env-required:"true"`
 
-	RequestTimeout  time.Duration `env:"REQUEST_TIMEOUT" env-default:"30s"`
-	ShutdownTimeout time.Duration `env:"SHUTDOWN_TIMEOUT" env-default:"10s"`
+	RequestTimeout  time.Duration `env:"REQUEST_TIMEOUT" env-default:"10s"`
+	ShutdownTimeout time.Duration `env:"SHUTDOWN_TIMEOUT" env-default:"5s"`
 
 	MinDroneBattery   float64 `env:"MIN_DRONE_BATTERY" env-default:"50"`
 	DroneSearchRadius float64 `env:"DRONE_SEARCH_RADIUS" env-default:"30000"`
