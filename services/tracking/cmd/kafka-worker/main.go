@@ -9,35 +9,42 @@ import (
 	"hive/services/tracking/internal/config"
 	"hive/services/tracking/internal/repository/redis"
 	tkafka "hive/services/tracking/internal/transport/kafka"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
 	cfg, err := config.NewWorkerConfig()
 	if err != nil {
-		panic(fmt.Errorf("falied to load config: %w", err))
+		fatal("failed to parse config", err)
 	}
 
 	lg, err := logger.NewLogger(cfg.Env)
 	if err != nil {
-		panic(fmt.Errorf("falied to initialize logger: %w", err))
+		fatal("failed to initialize logger", err)
 	}
 
-	ctx := context.Background()
+	quitCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
 	redisDb, err := hredis.New(cfg.RedisConfig)
 	if err != nil {
-		panic(fmt.Errorf("failed to connect to redis: %w", err))
+		fatal("failed to initialize redis client", err)
 	}
 
 	repo := redis.NewRedisRepo(redisDb)
-
 	handler := tkafka.New(repo)
 
-	kafkaConsumer := kafka.NewConsumer(cfg.KafkaConfig.Config, cfg.KafkaConfig.Topic, lg)
-	if err := kafkaConsumer.Start(ctx, handler.HandleMessage); err != nil {
-		panic(fmt.Errorf("failed to start kafka consumer: %w", err))
-	}
+	kafkaConsumer := kafka.NewConsumer(cfg.KafkaConfig, cfg.DataTopic, lg)
 
-	kafkaConsumer.Close()
-	redisDb.Close()
+	lg.Info(context.Background(), "starting kafka worker...")
+	if err := kafkaConsumer.Start(quitCtx, handler.HandleMessage); err != nil {
+		fatal("failed to start kafka consumer", err)
+	}
+	lg.Info(context.Background(), "kafka worker stopped gracefully")
+}
+
+func fatal(msg string, val any) {
+	panic(fmt.Sprintf("%s: %v\n", msg, val))
 }

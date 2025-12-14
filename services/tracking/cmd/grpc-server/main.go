@@ -7,50 +7,50 @@ import (
 	"hive/pkg/logger"
 	"hive/services/tracking/internal/config"
 	"hive/services/tracking/internal/repository/redis"
-	"hive/services/tracking/internal/transport/grpc"
+	transportGrpc "hive/services/tracking/internal/transport/grpc"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
 func main() {
-	ctx := context.Background()
-
 	cfg, err := config.NewServerConfig()
 	if err != nil {
-		panic(fmt.Errorf("falied to load config: %w", err))
+		fatal("failed to parse config", err)
 	}
 
 	lg, err := logger.NewLogger(cfg.Env)
 	if err != nil {
-		panic(fmt.Errorf("falied to initialize logger: %w", err))
+		fatal("failed to initialize logger", err)
 	}
 
 	redisDb, err := hredis.New(cfg.RedisConfig)
 	if err != nil {
-		panic(fmt.Errorf("failed to connect to redis: %w", err))
+		fatal("failed to initialize redis client", err)
 	}
 
-	server, err := grpc.New(&cfg.ServerConfig, &lg)
+	server, err := transportGrpc.New(cfg, lg, redis.NewRedisRepo(redisDb))
 	if err != nil {
-		panic(fmt.Errorf("failed to create server: %w", err))
+		fatal("failed to initialize server", err)
 	}
 
-	repo := redis.NewRedisRepo(&hredis.Database{Client: redisDb.Client})
+	quitCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
-	server.RegisterService(repo)
+	errChan := make(chan error, 1)
+	go server.Run(errChan)
 
-	lg.Info(ctx, "starting grpc server")
+	select {
+	case err := <-errChan:
+		fatal("failed to run server", err)
+	case <-quitCtx.Done():
+		stopCtx, cancel := context.WithTimeout(context.Background(), cfg.ShutdownTimeout)
+		defer cancel()
 
-	err = server.Start()
-	if err != nil {
-		panic(fmt.Errorf("failed to start server: %w", err))
+		server.Stop(stopCtx)
 	}
-	lg.Info(ctx, fmt.Sprintf("GRPC server listening on %s:%d", cfg.ServerConfig.Host, cfg.ServerConfig.Port))
+}
 
-	graceSh := make(chan os.Signal, 1)
-	signal.Notify(graceSh, os.Interrupt, syscall.SIGTERM)
-	<-graceSh
-
-	lg.Info(ctx, "Shutdown signal received, starting graceful shutdown...")
+func fatal(msg string, val any) {
+	panic(fmt.Sprintf("%s: %v\n", msg, val))
 }
