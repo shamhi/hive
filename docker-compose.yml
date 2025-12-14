@@ -1,14 +1,13 @@
 services:
-  #  TODO
-  #  api:
-  #    build:
-  #      context: .
-  #      dockerfile: services/api/Dockerfile
-  #      target: server
-  #    container_name: HIVE_api
-  #    restart: unless-stopped
-  #    env_file:
-  #      - services/api/config/.env
+  api:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+      target: server
+    container_name: HIVE_api
+    restart: unless-stopped
+    env_file:
+      - services/api/config/.env
 
   order:
     build:
