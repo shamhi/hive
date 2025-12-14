@@ -2,70 +2,28 @@ package config
 
 import (
 	"fmt"
-	"os"
-	"strconv"
 	"time"
+
+	"github.com/ilyakaznacheev/cleanenv"
 )
 
 type Config struct {
-	Server       ServerConfig
-	OrderService OrderServiceConfig
-}
+	Env string `env:"ENV" env-default:"local"`
 
-type ServerConfig struct {
-	Port int
-}
+	ServerPort int `env:"SERVER_PORT" env-default:"8080"`
 
-type OrderServiceConfig struct {
-	Address string
-	Timeout time.Duration
+	RequestTimeout  time.Duration `env:"REQUEST_TIMEOUT" env-default:"10s"`
+	ShutdownTimeout time.Duration `env:"SHUTDOWN_TIMEOUT" env-default:"5s"`
+
+	OrderAddr string `env:"ORDER_ADDR" env-required:"true"`
 }
 
 func Load() (*Config, error) {
-	cfg := &Config{
-		Server: ServerConfig{
-			Port: getEnvAsInt("SERVER_PORT", 8080),
-		},
-		OrderService: OrderServiceConfig{
-			Address: getEnv("ORDER_SERVICE_ADDR", "order:50051"),
-			Timeout: getEnvAsDuration("ORDER_SERVICE_TIMEOUT", 30*time.Second),
-		},
+	var cfg Config
+
+	if err := cleanenv.ReadEnv(&cfg); err != nil {
+		return nil, fmt.Errorf("failed to read config from env: %w", err)
 	}
 
-	return cfg, nil
-}
-
-func getEnv(key, defaultValue string) string {
-	if value, exists := os.LookupEnv(key); exists {
-		return value
-	}
-	return defaultValue
-}
-
-func getEnvAsInt(key string, defaultValue int) int {
-	strValue := getEnv(key, "")
-	if strValue == "" {
-		return defaultValue
-	}
-
-	value, err := strconv.Atoi(strValue)
-	if err != nil {
-		panic(fmt.Sprintf("Invalid value for %s: %s", key, strValue))
-	}
-
-	return value
-}
-
-func getEnvAsDuration(key string, defaultValue time.Duration) time.Duration {
-	strValue := getEnv(key, "")
-	if strValue == "" {
-		return defaultValue
-	}
-
-	value, err := time.ParseDuration(strValue)
-	if err != nil {
-		panic(fmt.Sprintf("Invalid duration for %s: %s", key, strValue))
-	}
-
-	return value
+	return &cfg, nil
 }
