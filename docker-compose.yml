@@ -114,7 +114,7 @@ services:
       context: .
       dockerfile: services/tracking/Dockerfile
       target: grpc-server
-    container_name: HIVE_tracking-server
+    container_name: HIVE_tracking
     restart: unless-stopped
     env_file:
       - services/tracking/config/.env
