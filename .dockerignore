@@ -19,5 +19,6 @@ vendor
 *.md
 *.tmp
 *.temp
+*.profile
 
 docker-compose.override.yml
