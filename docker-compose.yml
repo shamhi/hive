@@ -98,7 +98,7 @@ services:
       target: emulator
     command:
       - "-addr"
-      - "dns:///telemetry:50050"
+      - "passthrough:///telemetry:50050"
       - "-period"
       - "500ms"
       - "-n"
