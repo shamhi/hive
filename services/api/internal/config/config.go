@@ -12,7 +12,7 @@ type Config struct {
 
 	ServerPort int `env:"SERVER_PORT" env-default:"8080"`
 
-	RequestTimeout  time.Duration `env:"REQUEST_TIMEOUT" env-default:"10s"`
+	RequestTimeout  time.Duration `env:"REQUEST_TIMEOUT" env-default:"15s"`
 	ShutdownTimeout time.Duration `env:"SHUTDOWN_TIMEOUT" env-default:"5s"`
 
 	OrderAddr string `env:"ORDER_ADDR" env-required:"true"`
