@@ -10,15 +10,17 @@ COPY pkg ./pkg
 COPY gen ./gen
 COPY services/tracking ./services/tracking
 
+WORKDIR /app/services/tracking
+
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build -ldflags="-w -s" \
     -o /app/bin/grpc-server \
-    ./services/tracking/cmd/grpc-server
+    ./cmd/grpc-server/main.go
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build -ldflags="-w -s" \
     -o /app/bin/kafka-worker \
-    ./services/tracking/cmd/kafka-worker
+    ./cmd/kafka-worker/main.go
 
 FROM alpine:latest as runtime
 RUN apk --no-cache add ca-certificates tzdata

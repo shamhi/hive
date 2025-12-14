@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"hive/pkg/logger"
 	"hive/services/tracking/internal/config"
-	"hive/services/tracking/internal/repository"
 	"hive/services/tracking/internal/service"
 	"net"
 	"strconv"
@@ -34,7 +33,7 @@ func New(cfg *config.GRPCConfig, lg *logger.Logger) (*Server, error) {
 	}, nil
 }
 
-func (s *Server) RegisterService(repo repository.TrackingRepository) {
+func (s *Server) RegisterService(repo service.DroneRepository) {
 	trackingService := service.New(repo)
 	trackingGen.RegisterTrackingServiceServer(s.srv, trackingService)
 }

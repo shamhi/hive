@@ -2,96 +2,97 @@ package service
 
 import (
 	"context"
-	commonGen "hive/gen/common"
-	"hive/gen/telemetry"
-	trackingGen "hive/gen/tracking"
-	"hive/services/tracking/internal/models"
-	"hive/services/tracking/internal/repository"
+	"errors"
+	pbCommon "hive/gen/common"
+	pb "hive/gen/tracking"
+	"hive/services/tracking/internal/domain/mapping"
+	"hive/services/tracking/internal/domain/shared"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type Service struct {
-	trackingGen.TrackingServiceServer
+	pb.TrackingServiceServer
 
-	repo repository.TrackingRepository
+	repo DroneRepository
 }
 
-func New(repo repository.TrackingRepository) *Service {
+func New(repo DroneRepository) *Service {
 	return &Service{
 		repo: repo,
 	}
 }
 
-func (s *Service) FindNearest(ctx context.Context, req *trackingGen.FindNearestRequest) (*trackingGen.FindNearestResponse, error) {
-	radius := req.RadiusMeters
-	if radius <= 0 {
-		return nil, status.Errorf(codes.InvalidArgument, "radius must be greater than zero")
+func (s *Service) FindNearest(ctx context.Context, req *pb.FindNearestRequest) (*pb.FindNearestResponse, error) {
+	if req.GetStoreLocation() == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "store_location must be provided")
+	}
+	if req.GetRadiusMeters() <= 0 {
+		return nil, status.Errorf(codes.InvalidArgument, "radius_meters must be greater than zero")
+	}
+	if req.GetMinBattery() < 0 || req.GetMinBattery() > 100 {
+		return nil, status.Errorf(codes.InvalidArgument, "min_battery must be between 0 and 100")
 	}
 
-	location := models.Location{
+	loc := shared.Location{
 		Lat: req.StoreLocation.Lat,
 		Lon: req.StoreLocation.Lon,
 	}
-
-	result, err := s.repo.FindNearest(ctx, location, radius)
+	droneNearest, err := s.repo.GetNearest(ctx, loc, req.GetRadiusMeters(), req.GetMinBattery())
 	if err != nil {
+		if errors.Is(err, ErrDroneNotFound) {
+			return &pb.FindNearestResponse{
+				Found: false,
+			}, nil
+		}
 		return nil, status.Errorf(codes.Internal, "failed to find nearest drone: %v", err)
 	}
 
-	if len(result) == 0 {
-		return &trackingGen.FindNearestResponse{
-			Found: false,
-		}, nil
-	}
-
-	nearest := result[0]
-
-	return &trackingGen.FindNearestResponse{
-		DroneId:        nearest.Name,
+	return &pb.FindNearestResponse{
 		Found:          true,
-		DistanceMeters: nearest.Dist,
+		DroneId:        droneNearest.ID,
+		DistanceMeters: droneNearest.Distance,
 	}, nil
 }
 
-func (s *Service) GetDroneLocation(ctx context.Context, req *trackingGen.GetDroneLocationRequest) (*trackingGen.GetDroneLocationResponse, error) {
-	droneGeo, err := s.repo.GetGeopostion(ctx, req.DroneId)
+func (s *Service) GetDroneLocation(ctx context.Context, req *pb.GetDroneLocationRequest) (*pb.GetDroneLocationResponse, error) {
+	if req.GetDroneId() == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "drone_id must not be empty")
+	}
 
+	d, err := s.repo.GetByID(ctx, req.GetDroneId())
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "failed to get drone location: %v", err)
 	}
 
-	return &trackingGen.GetDroneLocationResponse{
-		Location: &commonGen.Location{
-			Lat: droneGeo.Lat,
-			Lon: droneGeo.Lon,
+	return &pb.GetDroneLocationResponse{
+		Location: &pbCommon.Location{
+			Lat: d.Location.Lat,
+			Lon: d.Location.Lon,
 		},
+		Battery:             d.Battery,
+		SpeedMps:            d.SpeedMps,
+		ConsumptionPerMeter: d.ConsumptionPerMeter,
 	}, nil
 }
 
-func (s *Service) SetStatus(ctx context.Context, req *trackingGen.SetStatusRequest) (*trackingGen.SetStatusResponse, error) {
-	if req.DroneId == "" {
+func (s *Service) SetStatus(ctx context.Context, req *pb.SetStatusRequest) (*pb.SetStatusResponse, error) {
+	if req.GetDroneId() == "" {
 		return nil, status.Errorf(codes.InvalidArgument, "drone_id must not be empty")
 	}
 
-	switch req.Status {
-	case telemetry.DroneStatus_STATUS_UNKNOWN:
-		return nil, status.Errorf(codes.InvalidArgument, "status must be a valid DroneStatus, not UNKNOWN")
-	case telemetry.DroneStatus_STATUS_FREE,
-		telemetry.DroneStatus_STATUS_BUSY,
-		telemetry.DroneStatus_STATUS_CHARGING:
-
-	default:
-		return nil, status.Errorf(codes.InvalidArgument, "invalid drone status: %v", req.Status)
+	st, ok := mapping.DroneStatusFromProto(req.GetStatus())
+	if !ok {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid drone status: %v", req.GetStatus())
 	}
 
-	err := s.repo.SetStatus(ctx, req.DroneId, int32(req.Status))
+	err := s.repo.SetStatus(ctx, req.DroneId, st)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to set drone status: %v", err)
 	}
 
-	return &trackingGen.SetStatusResponse{
+	return &pb.SetStatusResponse{
 		Success: true,
 	}, nil
 }

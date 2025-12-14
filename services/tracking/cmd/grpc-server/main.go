@@ -6,7 +6,7 @@ import (
 	hredis "hive/pkg/db/redis"
 	"hive/pkg/logger"
 	"hive/services/tracking/internal/config"
-	"hive/services/tracking/internal/repository"
+	"hive/services/tracking/internal/repository/redis"
 	"hive/services/tracking/internal/transport/grpc"
 	"os"
 	"os/signal"
@@ -36,9 +36,9 @@ func main() {
 		panic(fmt.Errorf("failed to create server: %w", err))
 	}
 
-	repo := repository.New(&hredis.Database{Client: redisDb.Client})
+	repo := redis.NewRedisRepo(&hredis.Database{Client: redisDb.Client})
 
-	server.RegisterService(*repo)
+	server.RegisterService(repo)
 
 	lg.Info(ctx, "starting grpc server")
 

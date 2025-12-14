@@ -7,7 +7,7 @@ import (
 	"hive/pkg/kafka"
 	"hive/pkg/logger"
 	"hive/services/tracking/internal/config"
-	"hive/services/tracking/internal/repository"
+	"hive/services/tracking/internal/repository/redis"
 	tkafka "hive/services/tracking/internal/transport/kafka"
 )
 
@@ -29,9 +29,9 @@ func main() {
 		panic(fmt.Errorf("failed to connect to redis: %w", err))
 	}
 
-	trackingRepo := repository.New(redisDb)
+	repo := redis.NewRedisRepo(redisDb)
 
-	handler := tkafka.New(trackingRepo)
+	handler := tkafka.New(repo)
 
 	kafkaConsumer := kafka.NewConsumer(cfg.KafkaConfig.Config, cfg.KafkaConfig.Topic, lg)
 	if err := kafkaConsumer.Start(ctx, handler.HandleMessage); err != nil {
