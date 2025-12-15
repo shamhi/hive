@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"strings"
+	"time"
 
 	"github.com/segmentio/kafka-go"
 )
@@ -13,8 +14,11 @@ type Producer struct {
 func NewProducer(cfg Config) *Producer {
 	return &Producer{
 		Writer: &kafka.Writer{
-			Addr:     kafka.TCP(strings.Split(cfg.Brokers, ",")...),
-			Balancer: &kafka.LeastBytes{},
+			Addr:         kafka.TCP(strings.Split(cfg.Brokers, ",")...),
+			Balancer:     &kafka.LeastBytes{},
+			RequiredAcks: kafka.RequireOne,
+			Async:        false,
+			BatchTimeout: 50 * time.Millisecond,
 		},
 	}
 }

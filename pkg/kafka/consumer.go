@@ -36,18 +36,19 @@ func (c *Consumer) Start(ctx context.Context, handler func(context.Context, []by
 	)
 
 	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-			msg, err := c.Reader.ReadMessage(ctx)
-			if err != nil {
-				return fmt.Errorf("kafka consumer stopped: %w", err)
-			}
+		msg, err := c.Reader.FetchMessage(ctx)
+		if err != nil {
+			return fmt.Errorf("kafka consumer stopped: %w", err)
+		}
 
-			if err := handler(ctx, msg.Value); err != nil {
-				lg.Error(ctx, "failed to handle message", zap.Error(err))
-			}
+		if err := handler(ctx, msg.Value); err != nil {
+			lg.Error(ctx, "failed to handle message", zap.Error(err))
+			continue
+		}
+
+		if err := c.Reader.CommitMessages(ctx, msg); err != nil {
+			lg.Error(ctx, "failed to commit message", zap.Error(err))
+			// TODO: retry logic
 		}
 	}
 }
