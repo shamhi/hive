@@ -18,7 +18,7 @@ func TimeoutUnaryClientInterceptor(lg logger.Logger, timeout time.Duration) grpc
 		invoker grpc.UnaryInvoker,
 		opts ...grpc.CallOption,
 	) error {
-		lg = lg.With(
+		lg := lg.With(
 			zap.String("component", "grpc_client_interceptor"),
 			zap.String("method", method),
 		)

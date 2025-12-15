@@ -10,6 +10,7 @@ type Target struct {
 type TargetType string
 
 const (
+	TargetTypeNone   TargetType = "none"
 	TargetTypePoint  TargetType = "point"
 	TargetTypeStore  TargetType = "store"
 	TargetTypeClient TargetType = "client"

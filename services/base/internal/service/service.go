@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"hive/services/base/internal/domain/base"
 	"hive/services/base/internal/domain/shared"
-	"time"
 
 	"github.com/google/uuid"
 )
@@ -32,12 +31,10 @@ func (s *BaseService) CreateBase(
 	}
 
 	st := &base.Base{
-		ID:        uuid.NewString(),
-		Name:      name,
-		Address:   address,
-		Location:  location,
-		CreatedAt: time.Now().UTC(),
-		UpdatedAt: time.Now().UTC(),
+		ID:       uuid.NewString(),
+		Name:     name,
+		Address:  address,
+		Location: location,
 	}
 	if err := s.repo.Save(ctx, st); err != nil {
 		return "", fmt.Errorf("failed to save base: %w", err)

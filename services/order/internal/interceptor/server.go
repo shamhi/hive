@@ -16,22 +16,22 @@ func LoggingUnaryServerInterceptor(lg logger.Logger) grpc.UnaryServerInterceptor
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (any, error) {
-		lg = lg.With(
+		lg := lg.With(
 			zap.String("component", "grpc_server_interceptor"),
 			zap.String("method", info.FullMethod),
 		)
 
-		lg.Info(context.Background(), "gRPC server request started", zap.Any("server", info.Server), zap.Any("req", req))
+		lg.Info(ctx, "gRPC server request started", zap.Any("server", info.Server), zap.Any("req", req))
 		start := time.Now()
 		resp, err := handler(ctx, req)
 		dur := time.Since(start)
 		if err != nil {
-			lg.Error(context.Background(), "gRPC server request failed",
+			lg.Error(ctx, "gRPC server request failed",
 				zap.Duration("duration", dur),
 				zap.Error(err),
 			)
 		} else {
-			lg.Info(context.Background(), "gRPC server request completed",
+			lg.Info(ctx, "gRPC server request completed",
 				zap.Duration("duration", dur),
 			)
 		}

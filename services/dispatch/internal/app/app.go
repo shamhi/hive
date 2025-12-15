@@ -37,6 +37,7 @@ type App struct {
 	lis            net.Listener
 	grpcServer     *grpc.Server
 	grpcConns      []*grpc.ClientConn
+	postgresDB     *pg.Database
 	consumer       *kafka.Consumer
 	handler        *transportKafka.Handler
 	cancelConsumer context.CancelFunc
@@ -152,6 +153,7 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 		lis:        lis,
 		grpcServer: grpcServer,
 		grpcConns:  []*grpc.ClientConn{orderConn, storeConn, baseConn, trackingConn, telemetryConn},
+		postgresDB: db,
 		consumer:   consumer,
 		handler:    kafkaHandler,
 	}, nil
@@ -163,7 +165,7 @@ func (a *App) Run(errChan chan<- error) {
 	consumerCtx, cancelConsumer := context.WithCancel(context.Background())
 	a.cancelConsumer = cancelConsumer
 
-	go a.runConsumer(consumerCtx, lg)
+	go a.runConsumer(consumerCtx)
 
 	lg.Info(context.Background(), "Running gRPC server",
 		zap.Int("port", a.cfg.GRPCPort),
@@ -176,8 +178,10 @@ func (a *App) Run(errChan chan<- error) {
 	}
 }
 
-func (a *App) runConsumer(ctx context.Context, lg logger.Logger) {
-	lg = lg.With(zap.String("component", "kafka-consumer"))
+func (a *App) runConsumer(ctx context.Context) {
+	lg := a.lg.With(
+		zap.String("component", "kafka-consumer"),
+	)
 
 	if err := a.consumer.Start(ctx, a.handler.Handle); err != nil {
 		lg.Error(ctx, "consumer exited with error", zap.Error(err))
@@ -207,6 +211,11 @@ func (a *App) Stop(ctx context.Context) {
 		}
 	}
 	lg.Info(ctx, "gRPC connections closed")
+
+	if a.postgresDB != nil {
+		a.postgresDB.Close()
+	}
+	lg.Info(ctx, "Postgres database connection closed")
 
 	done := make(chan struct{})
 	go func() {

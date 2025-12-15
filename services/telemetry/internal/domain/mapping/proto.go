@@ -78,6 +78,8 @@ func DroneTargetTypeToProto(targetType drone.TargetType) pb.TargetType {
 
 func DroneTargetTypeFromProto(targetType pb.TargetType) (drone.TargetType, bool) {
 	switch targetType {
+	case pb.TargetType_TARGET_NONE:
+		return drone.TargetTypeNone, true
 	case pb.TargetType_TARGET_POINT:
 		return drone.TargetTypePoint, true
 	case pb.TargetType_TARGET_STORE:

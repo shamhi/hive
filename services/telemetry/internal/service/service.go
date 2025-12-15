@@ -41,9 +41,12 @@ func (s *TelemetryService) RegisterConnection(droneID string) *DroneConnection {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	conn := &DroneConnection{
-		Commands: make(chan *drone.ServerCommand, 16),
+	if old, ok := s.conns[droneID]; ok {
+		close(old.Commands)
+		delete(s.conns, droneID)
 	}
+
+	conn := &DroneConnection{Commands: make(chan *drone.ServerCommand, 16)}
 	s.conns[droneID] = conn
 	return conn
 }
@@ -58,7 +61,7 @@ func (s *TelemetryService) UnregisterConnection(droneID string) {
 	}
 }
 
-func (s *TelemetryService) HandleTelemetry(ctx context.Context, tm drone.Telemetry) error {
+func (s *TelemetryService) HandleTelemetry(_ context.Context, tm drone.Telemetry) error {
 	data := drone.TelemetryData{
 		DroneID:             tm.DroneID,
 		DroneLocation:       tm.DroneLocation,
@@ -68,12 +71,12 @@ func (s *TelemetryService) HandleTelemetry(ctx context.Context, tm drone.Telemet
 		Status:              tm.Status,
 		Timestamp:           tm.Timestamp,
 	}
-	if err := s.publishData(ctx, data); err != nil {
+	if err := s.publishData(context.Background(), data); err != nil {
 		return fmt.Errorf("failed to publish telemetry data: %w", err)
 	}
 
 	if tm.Event != drone.DroneEventNone {
-		if err := s.publishEvent(ctx, drone.TelemetryEvent{
+		if err := s.publishEvent(context.Background(), drone.TelemetryEvent{
 			DroneID:       tm.DroneID,
 			DroneLocation: tm.DroneLocation,
 			Event:         tm.Event,

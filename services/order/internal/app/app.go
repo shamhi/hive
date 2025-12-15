@@ -71,6 +71,7 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 		lis:        lis,
 		grpcServer: grpcServer,
 		grpcConns:  []*grpc.ClientConn{dispatchConn},
+		postgresDB: db,
 	}, nil
 }
 
@@ -101,8 +102,8 @@ func (a *App) Stop(ctx context.Context) {
 
 	if a.postgresDB != nil {
 		a.postgresDB.Close()
-		lg.Info(ctx, "Postgres connection closed")
 	}
+	lg.Info(ctx, "Postgres database connection closed")
 
 	done := make(chan struct{})
 	go func() {

@@ -135,9 +135,14 @@ func (s *DispatchService) AssignDrone(
 		return fail(fmt.Errorf("failed to update assignment status: %w", err))
 	}
 
+	if droneInfo.SpeedMps <= 0 {
+		return fail(fmt.Errorf("invalid drone %s speed: %.2fm/s", droneID, droneInfo.SpeedMps))
+	}
+	eta := int32(totalDistance / droneInfo.SpeedMps)
+
 	return &assignment.AssignmentInfo{
 		DroneID:    droneID,
-		EtaSeconds: int32(totalDistance / droneInfo.SpeedMps),
+		EtaSeconds: eta,
 	}, nil
 }
 
@@ -154,6 +159,14 @@ func (s *DispatchService) GetAssignment(
 }
 
 func (s *DispatchService) HandleTelemetryEvent(ctx context.Context, event drone.TelemetryEvent) error {
+	if event.Event == drone.DroneEventFullyCharged {
+		if err := s.tracking.SetStatus(ctx, event.DroneID, drone.DroneStatusFree); err != nil {
+			return fmt.Errorf("failed to set drone status to FREE: %w", err)
+		}
+
+		return nil
+	}
+
 	a, err := s.repo.GetByDroneID(ctx, event.DroneID)
 	if err != nil {
 		return fmt.Errorf("failed to get assignment by drone ID %s: %w", event.DroneID, err)
@@ -239,12 +252,6 @@ func (s *DispatchService) HandleTelemetryEvent(ctx context.Context, event drone.
 
 		if err := s.tracking.SetStatus(ctx, event.DroneID, drone.DroneStatusCharging); err != nil {
 			return fmt.Errorf("failed to set drone status to CHARGING: %w", err)
-		}
-
-		return nil
-	case drone.DroneEventFullyCharged:
-		if err := s.tracking.SetStatus(ctx, event.DroneID, drone.DroneStatusFree); err != nil {
-			return fmt.Errorf("failed to set drone status to FREE: %w", err)
 		}
 
 		return nil

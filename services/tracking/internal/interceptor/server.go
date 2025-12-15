@@ -16,7 +16,7 @@ func LoggingUnaryServerInterceptor(lg logger.Logger) grpc.UnaryServerInterceptor
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (any, error) {
-		lg = lg.With(
+		lg := lg.With(
 			zap.String("component", "grpc_server_interceptor"),
 			zap.String("method", info.FullMethod),
 		)

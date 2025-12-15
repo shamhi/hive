@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	rd "hive/pkg/db/redis"
@@ -11,6 +10,12 @@ import (
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/redis/go-redis/v9"
 	"gopkg.in/yaml.v3"
+)
+
+const (
+	AllStoresKey string = "stores:all"
+	StoreDataKey string = "stores:data:"
+	StoreGeoKey  string = "stores:geo"
 )
 
 type SeedFile struct {
@@ -34,7 +39,7 @@ func main() {
 	flag.StringVar(&cfg.Host, "host", cfg.Host, "Redis host")
 	flag.IntVar(&cfg.Port, "port", cfg.Port, "Redis port")
 	flag.StringVar(&cfg.Password, "password", cfg.Password, "Redis password")
-	flag.IntVar(&cfg.DB, "db", cfg.DB, "Redis datastore number")
+	flag.IntVar(&cfg.DB, "rdb", cfg.DB, "Redis datastore number")
 
 	flag.Parse()
 
@@ -52,49 +57,38 @@ func main() {
 		fatal("failed to unmarshal seed file", err)
 	}
 
-	db, err := rd.New(cfg)
+	rdb, err := rd.New(cfg)
 	if err != nil {
 		fatal("failed to connect to redis", err)
 	}
-	defer db.Close()
+	defer rdb.Close()
 
 	ctx := context.Background()
 
 	switch *cmd {
 	case "up":
 		for _, item := range s.Items {
-			if err := db.Client.GeoAdd(
-				ctx,
-				"stores:geo",
+			pipe := rdb.Client.TxPipeline()
+
+			pipe.Del(ctx, StoreDataKey+item.ID)
+
+			pipe.SAdd(ctx, AllStoresKey, item.ID)
+
+			pipe.HSet(ctx, StoreDataKey+item.ID,
+				"name", item.Name,
+				"address", item.Address,
+			)
+
+			pipe.GeoAdd(ctx, StoreGeoKey,
 				&redis.GeoLocation{
 					Name:      item.ID,
 					Longitude: item.Lon,
 					Latitude:  item.Lat,
 				},
-			).Err(); err != nil {
-				fatal(fmt.Sprintf("failed to save item %s to redis geo", item.ID), err)
-			}
+			)
 
-			itemJSON, err := json.Marshal(item)
-			if err != nil {
-				fatal(fmt.Sprintf("failed to marshal item %s to json", item.ID), err)
-			}
-
-			if err := db.Client.Set(
-				ctx,
-				fmt.Sprintf("stores:data:%s", item.ID),
-				itemJSON,
-				0,
-			).Err(); err != nil {
-				fatal(fmt.Sprintf("failed to save item %s data to redis", item.ID), err)
-			}
-
-			if err := db.Client.SAdd(
-				ctx,
-				"stores:all",
-				item.ID,
-			).Err(); err != nil {
-				fatal(fmt.Sprintf("failed to save item %s to redis set", item.ID), err)
+			if _, err := pipe.Exec(ctx); err != nil {
+				fatal("failed to save store to redis", err)
 			}
 		}
 
@@ -102,27 +96,14 @@ func main() {
 
 	case "down":
 		for _, item := range s.Items {
-			if err := db.Client.ZRem(
-				ctx,
-				"stores:geo",
-				item.ID,
-			).Err(); err != nil {
-				fatal(fmt.Sprintf("failed to remove item %s from redis geo", item.ID), err)
-			}
+			pipe := rdb.Client.TxPipeline()
 
-			if err := db.Client.Del(
-				ctx,
-				fmt.Sprintf("stores:data:%s", item.ID),
-			).Err(); err != nil {
-				fatal(fmt.Sprintf("failed to delete item %s data from redis", item.ID), err)
-			}
+			pipe.Del(ctx, StoreDataKey+item.ID)
+			pipe.ZRem(ctx, StoreGeoKey, item.ID)
+			pipe.SRem(ctx, AllStoresKey, item.ID)
 
-			if err := db.Client.SRem(
-				ctx,
-				"stores:all",
-				item.ID,
-			).Err(); err != nil {
-				fatal(fmt.Sprintf("failed to remove item %s from redis set", item.ID), err)
+			if _, err := pipe.Exec(ctx); err != nil {
+				fatal(fmt.Sprintf("failed to remove item %s", item.ID), err)
 			}
 		}
 

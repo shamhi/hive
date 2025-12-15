@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"hive/services/store/internal/domain/shared"
 	"hive/services/store/internal/domain/store"
-	"time"
 
 	"github.com/google/uuid"
 )
@@ -32,12 +31,10 @@ func (s *StoreService) CreateStore(
 	}
 
 	st := &store.Store{
-		ID:        uuid.NewString(),
-		Name:      name,
-		Address:   address,
-		Location:  location,
-		CreatedAt: time.Now().UTC(),
-		UpdatedAt: time.Now().UTC(),
+		ID:       uuid.NewString(),
+		Name:     name,
+		Address:  address,
+		Location: location,
 	}
 	if err := s.repo.Save(ctx, st); err != nil {
 		return "", fmt.Errorf("failed to save store: %w", err)

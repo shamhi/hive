@@ -14,7 +14,7 @@ import (
 
 const (
 	AllDronesKey         string = "drones:all"
-	DroneDataKey         string = "drone:data:"
+	DroneDataKey         string = "drones:data:"
 	DroneGeoKey          string = "drones:geo"
 	GeoSearchUnit        string = "m"
 	MaxSearchDronesCount int    = 1000
@@ -76,9 +76,7 @@ func (r *RedisRepo) GetNearest(
 }
 
 func (r *RedisRepo) GetByID(ctx context.Context, droneID string) (*drone.Drone, error) {
-	key := DroneDataKey + droneID
-
-	data, err := r.rdb.Client.HGetAll(ctx, key).Result()
+	data, err := r.rdb.Client.HGetAll(ctx, DroneDataKey+droneID).Result()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get drone data: %w", err)
 	}
@@ -115,9 +113,7 @@ func (r *RedisRepo) GetByID(ctx context.Context, droneID string) (*drone.Drone, 
 }
 
 func (r *RedisRepo) SetStatus(ctx context.Context, droneID string, status drone.DroneStatus) error {
-	key := DroneDataKey + droneID
-
-	exists, err := r.rdb.Client.Exists(ctx, key).Result()
+	exists, err := r.rdb.Client.Exists(ctx, DroneDataKey+droneID).Result()
 	if err != nil {
 		return fmt.Errorf("failed to check drone existence: %w", err)
 	}
@@ -125,9 +121,7 @@ func (r *RedisRepo) SetStatus(ctx context.Context, droneID string, status drone.
 		return service.ErrDroneNotFound
 	}
 
-	if err := r.rdb.Client.HSet(
-		ctx,
-		key,
+	if err := r.rdb.Client.HSet(ctx, DroneDataKey+droneID,
 		"status",
 		string(status),
 	).Err(); err != nil {
@@ -138,13 +132,11 @@ func (r *RedisRepo) SetStatus(ctx context.Context, droneID string, status drone.
 }
 
 func (r *RedisRepo) UpdateState(ctx context.Context, tm drone.TelemetryData) error {
-	key := DroneDataKey + tm.DroneID
-
 	pipe := r.rdb.Client.TxPipeline()
 
 	pipe.SAdd(ctx, AllDronesKey, tm.DroneID)
 
-	pipe.HSet(ctx, key,
+	pipe.HSet(ctx, DroneDataKey+tm.DroneID,
 		"battery", tm.Battery,
 		"speed_mps", tm.SpeedMps,
 		"consumption_per_meter", tm.ConsumptionPerMeter,

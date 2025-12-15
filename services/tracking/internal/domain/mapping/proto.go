@@ -2,7 +2,7 @@ package mapping
 
 import (
 	pbCommon "hive/gen/common"
-	pbDrone "hive/gen/telemetry"
+	pbTelemetry "hive/gen/telemetry"
 	"hive/services/tracking/internal/domain/drone"
 	"hive/services/tracking/internal/domain/shared"
 )
@@ -27,26 +27,26 @@ func LocationFromProto(loc *pbCommon.Location) *shared.Location {
 	}
 }
 
-func DroneStatusToProto(status drone.DroneStatus) pbDrone.DroneStatus {
+func DroneStatusToProto(status drone.DroneStatus) pbTelemetry.DroneStatus {
 	switch status {
 	case drone.DroneStatusFree:
-		return pbDrone.DroneStatus_STATUS_FREE
+		return pbTelemetry.DroneStatus_STATUS_FREE
 	case drone.DroneStatusBusy:
-		return pbDrone.DroneStatus_STATUS_BUSY
+		return pbTelemetry.DroneStatus_STATUS_BUSY
 	case drone.DroneStatusCharging:
-		return pbDrone.DroneStatus_STATUS_CHARGING
+		return pbTelemetry.DroneStatus_STATUS_CHARGING
 	default:
-		return pbDrone.DroneStatus_STATUS_UNKNOWN
+		return pbTelemetry.DroneStatus_STATUS_UNKNOWN
 	}
 }
 
-func DroneStatusFromProto(status pbDrone.DroneStatus) (drone.DroneStatus, bool) {
+func DroneStatusFromProto(status pbTelemetry.DroneStatus) (drone.DroneStatus, bool) {
 	switch status {
-	case pbDrone.DroneStatus_STATUS_FREE:
+	case pbTelemetry.DroneStatus_STATUS_FREE:
 		return drone.DroneStatusFree, true
-	case pbDrone.DroneStatus_STATUS_BUSY:
+	case pbTelemetry.DroneStatus_STATUS_BUSY:
 		return drone.DroneStatusBusy, true
-	case pbDrone.DroneStatus_STATUS_CHARGING:
+	case pbTelemetry.DroneStatus_STATUS_CHARGING:
 		return drone.DroneStatusCharging, true
 	default:
 		return "", false

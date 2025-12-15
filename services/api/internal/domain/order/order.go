@@ -2,7 +2,6 @@ package order
 
 import (
 	"hive/services/api/internal/domain/shared"
-	"time"
 )
 
 type Order struct {
@@ -13,7 +12,4 @@ type Order struct {
 	Items    []string
 	Status   OrderStatus
 	Location shared.Location
-
-	CreatedAt time.Time
-	UpdatedAt time.Time
 }

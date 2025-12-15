@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	pbCommon "hive/gen/common"
 	pb "hive/gen/telemetry"
 	"hive/pkg/geo"
+	"io"
 	"math"
 	"math/rand"
 	"os"
@@ -21,19 +23,19 @@ import (
 )
 
 const (
-	// диапазон начального заряда
-	initialBatteryMin = 80.0  // проценты
-	initialBatteryMax = 100.0 // проценты
+	// диапазон начального заряда (%)
+	initialBatteryMin = 80.0
+	initialBatteryMax = 100.0
 
-	// диапазон скорости
-	speedMinMps = 5.0  // м/с
-	speedMaxMps = 15.0 // м/с
+	// диапазон скорости (м/с)
+	speedMinMps = 20.0
+	speedMaxMps = 25.0
 
-	// диапазон расхода батареи (процентов на метр)
+	// диапазон расхода батареи (%/м)
 	consumptionMinPerMeter = 0.001
 	consumptionMaxPerMeter = 0.005
 
-	// скорость зарядки (процентов в секунду)
+	// скорость зарядки (%/с)
 	chargeRatePerSecond = 0.25
 
 	// дистанция, погрешность для достижения цели
@@ -53,23 +55,25 @@ type droneState struct {
 	lat float64
 	lon float64
 
-	targetLat float64
-	targetLon float64
-	hasTarget bool
+	targetLat  float64
+	targetLon  float64
+	hasTarget  bool
+	targetType pb.TargetType
 
 	battery         float64
 	speedMps        float64
 	consumptionPerM float64
 	status          pb.DroneStatus
-	lastEvent       pb.DroneEvent
+
+	pendingEvent pb.DroneEvent
 }
 
-func newDroneState() *droneState {
+func newDroneState(r *rand.Rand) *droneState {
 	id := uuid.NewString()
 	lat, lon := geo.RandMoscowPoint()
-	battery := initialBatteryMin + rand.Float64()*(initialBatteryMax-initialBatteryMin)
-	speedMps := speedMinMps + rand.Float64()*(speedMaxMps-speedMinMps)
-	consumptionPerM := consumptionMinPerMeter + rand.Float64()*(consumptionMaxPerMeter-consumptionMinPerMeter)
+	battery := initialBatteryMin + r.Float64()*(initialBatteryMax-initialBatteryMin)
+	speedMps := speedMinMps + r.Float64()*(speedMaxMps-speedMinMps)
+	consumptionPerM := consumptionMinPerMeter + r.Float64()*(consumptionMaxPerMeter-consumptionMinPerMeter)
 
 	return &droneState{
 		id:              id,
@@ -79,31 +83,47 @@ func newDroneState() *droneState {
 		speedMps:        speedMps,
 		consumptionPerM: consumptionPerM,
 		status:          pb.DroneStatus_STATUS_FREE,
-		lastEvent:       pb.DroneEvent_EVENT_NONE,
+		pendingEvent:    pb.DroneEvent_EVENT_NONE,
+		targetType:      pb.TargetType_TARGET_NONE,
 	}
 }
 
 func (d *droneState) applyCommand(cmd *pb.ServerCommand) {
+	if cmd == nil {
+		return
+	}
+
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
 	switch cmd.GetAction() {
 	case pb.DroneAction_ACTION_WAIT:
 		d.status = pb.DroneStatus_STATUS_FREE
+		d.hasTarget = false
+		d.targetType = pb.TargetType_TARGET_NONE
+
 	case pb.DroneAction_ACTION_FLY_TO:
 		if cmd.GetTarget() != nil {
 			d.targetLat = cmd.GetTarget().GetLat()
 			d.targetLon = cmd.GetTarget().GetLon()
 			d.hasTarget = true
+			d.targetType = cmd.GetType()
 			d.status = pb.DroneStatus_STATUS_BUSY
 		}
+
 	case pb.DroneAction_ACTION_PICKUP_CARGO:
-		d.lastEvent = pb.DroneEvent_EVENT_PICKED_UP_CARGO
+		d.pendingEvent = pb.DroneEvent_EVENT_PICKED_UP_CARGO
+
 	case pb.DroneAction_ACTION_DROP_CARGO:
-		d.lastEvent = pb.DroneEvent_EVENT_DROPPED_CARGO
+		d.pendingEvent = pb.DroneEvent_EVENT_DROPPED_CARGO
+
 	case pb.DroneAction_ACTION_CHARGE:
 		d.status = pb.DroneStatus_STATUS_CHARGING
+		d.hasTarget = false
+		d.targetType = pb.TargetType_TARGET_NONE
+
 	default:
+		// ignore
 	}
 }
 
@@ -115,32 +135,51 @@ func (d *droneState) step(dt time.Duration) *pb.DroneTelemetry {
 
 	if d.hasTarget && d.status == pb.DroneStatus_STATUS_BUSY {
 		dist := geo.HaversineDistance(d.lat, d.lon, d.targetLat, d.targetLon)
-		if dist < arrivalThresholdMeters {
+
+		if dist <= arrivalThresholdMeters {
 			d.hasTarget = false
-			d.lastEvent = guessArrivalEvent(d.lastEvent)
+			switch d.targetType {
+			case pb.TargetType_TARGET_STORE:
+				d.pendingEvent = pb.DroneEvent_EVENT_ARRIVED_AT_STORE
+			case pb.TargetType_TARGET_CLIENT:
+				d.pendingEvent = pb.DroneEvent_EVENT_ARRIVED_AT_CLIENT
+			case pb.TargetType_TARGET_BASE:
+				d.pendingEvent = pb.DroneEvent_EVENT_ARRIVED_AT_BASE
+			default:
+				// point/none
+			}
+			d.targetType = pb.TargetType_TARGET_NONE
 		} else {
 			move := math.Min(dist, d.speedMps*seconds)
 			if dist > 0 {
 				k := move / dist
-				d.lat += (d.targetLat - d.lat) * k
-				d.lon += (d.targetLon - d.lon) * k
+				d.lat = d.lat + (d.targetLat-d.lat)*k
+				d.lon = d.lon + (d.targetLon-d.lon)*k
 			}
+
 			d.battery -= move * d.consumptionPerM
 			if d.battery < 0 {
 				d.battery = 0
+				d.hasTarget = false
+				d.targetType = pb.TargetType_TARGET_NONE
+				d.status = pb.DroneStatus_STATUS_FREE
 			}
-		}
-	} else if d.status == pb.DroneStatus_STATUS_CHARGING {
-		d.battery += chargeRatePerSecond * seconds
-		if d.battery >= 100 {
-			d.battery = 100
-			d.status = pb.DroneStatus_STATUS_FREE
-			d.lastEvent = pb.DroneEvent_EVENT_FULLY_CHARGED
 		}
 	}
 
-	ev := d.lastEvent
-	d.lastEvent = pb.DroneEvent_EVENT_NONE
+	if d.status == pb.DroneStatus_STATUS_CHARGING {
+		if d.battery < 100.0 {
+			d.battery += chargeRatePerSecond * seconds
+			if d.battery >= 100.0 {
+				d.battery = 100.0
+				d.pendingEvent = pb.DroneEvent_EVENT_FULLY_CHARGED
+				d.status = pb.DroneStatus_STATUS_FREE
+			}
+		}
+	}
+
+	evt := d.pendingEvent
+	d.pendingEvent = pb.DroneEvent_EVENT_NONE
 
 	return &pb.DroneTelemetry{
 		DroneId: d.id,
@@ -153,127 +192,123 @@ func (d *droneState) step(dt time.Duration) *pb.DroneTelemetry {
 		ConsumptionPerMeter: d.consumptionPerM,
 		Status:              d.status,
 		Timestamp:           time.Now().UnixMilli(),
-		Event:               ev,
+		Event:               evt,
 	}
 }
 
-func guessArrivalEvent(prev pb.DroneEvent) pb.DroneEvent {
-	switch prev {
-	case pb.DroneEvent_EVENT_NONE:
-		return pb.DroneEvent_EVENT_ARRIVED_AT_STORE
-	case pb.DroneEvent_EVENT_PICKED_UP_CARGO:
-		return pb.DroneEvent_EVENT_ARRIVED_AT_CLIENT
-	case pb.DroneEvent_EVENT_DROPPED_CARGO:
-		return pb.DroneEvent_EVENT_ARRIVED_AT_BASE
-	default:
-		return pb.DroneEvent_EVENT_NONE
+func runDrone(ctx context.Context, client pb.TelemetryServiceClient, st *droneState, period time.Duration) error {
+	stream, err := client.Link(ctx)
+	if err != nil {
+		return fmt.Errorf("link(): %w", err)
+	}
+
+	recvErr := make(chan error, 1)
+	go func() {
+		for {
+			cmd, err := stream.Recv()
+			if err != nil {
+				recvErr <- err
+				return
+			}
+			st.applyCommand(cmd)
+		}
+	}()
+
+	ticker := time.NewTicker(period)
+	defer ticker.Stop()
+
+	if err := stream.Send(st.step(period)); err != nil {
+		return fmt.Errorf("send initial telemetry: %w", err)
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			_ = stream.CloseSend()
+			return ctx.Err()
+
+		case err := <-recvErr:
+			if err == nil || err == io.EOF {
+				return nil
+			}
+			return fmt.Errorf("recv command: %w", err)
+
+		case <-ticker.C:
+			t := st.step(period)
+			if err := stream.Send(t); err != nil {
+				return fmt.Errorf("send telemetry: %w", err)
+			}
+		}
 	}
 }
 
-func runEmulator(ctx context.Context, addr string, period time.Duration) error {
+func main() {
+	var (
+		addr   string
+		period time.Duration
+		count  int
+		seed   int64
+	)
+
+	flag.StringVar(&addr, "addr", defaultTelemetryAddress, "telemetry gRPC address")
+	flag.DurationVar(&period, "period", defaultPeriod, "telemetry send period")
+	flag.IntVar(&count, "count", defaultDronesCount, "number of drones")
+	flag.Int64Var(&seed, "seed", time.Now().UnixNano(), "random seed")
+	flag.Parse()
+
+	if count <= 0 {
+		fmt.Println("count must be > 0")
+		os.Exit(2)
+	}
+	if period <= 0 {
+		fmt.Println("period must be > 0")
+		os.Exit(2)
+	}
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
 	conn, err := grpc.NewClient(
 		addr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		return fmt.Errorf("failed to connect to gRPC server: %w", err)
+		fmt.Printf("failed to connect telemetry: %v\n", err)
+		os.Exit(1)
 	}
 	defer conn.Close()
 
 	client := pb.NewTelemetryServiceClient(conn)
 
-	stream, err := client.Link(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to open gRPC stream: %w", err)
-	}
-
-	state := newDroneState()
-	fmt.Printf("drone %s started at (%.6f, %.6f) with battery %.2f%%\n", state.id, state.lat, state.lon, state.battery)
-
-	errCh := make(chan error, 2)
-
-	go func() {
-		for {
-			cmd, err := stream.Recv()
-			if err != nil {
-				errCh <- fmt.Errorf("drone %s receive error: %w", state.id, err)
-				return
-			}
-			fmt.Printf("drone %s command: action=%s type=%s target=(%.6f, %.6f)\n",
-				state.id,
-				cmd.GetAction().String(),
-				cmd.GetType().String(),
-				cmd.GetTarget().GetLat(),
-				cmd.GetTarget().GetLon(),
-			)
-			state.applyCommand(cmd)
-		}
-	}()
-
-	go func() {
-		ticker := time.NewTicker(period)
-		defer ticker.Stop()
-
-		last := time.Now()
-		for {
-			select {
-			case <-ctx.Done():
-				errCh <- nil
-				return
-			case now := <-ticker.C:
-				dt := now.Sub(last)
-				last = now
-				tm := state.step(dt)
-				if err := stream.Send(tm); err != nil {
-					errCh <- fmt.Errorf("drone %s send error: %w", state.id, err)
-					return
-				}
-			}
-		}
-	}()
-
-	if err := <-errCh; err != nil {
-		return err
-	}
-	return nil
-}
-
-func main() {
-	addr := flag.String("addr", defaultTelemetryAddress, "telemetry gRPC server address")
-	period := flag.Duration("period", defaultPeriod, "telemetry send period")
-	n := flag.Int("n", defaultDronesCount, "number of drones to emulate")
-	flag.Parse()
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	quitCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer stop()
+	rootRand := rand.New(rand.NewSource(seed))
 
 	var wg sync.WaitGroup
-	wg.Add(*n)
+	wg.Add(count)
 
-	for range *n {
-		go func() {
+	errCh := make(chan error, count)
+
+	fmt.Printf("telemetry emulator started: addr=%s period=%s drones=%d seed=%d\n", addr, period, count, seed)
+
+	for i := 0; i < count; i++ {
+		dr := rand.New(rand.NewSource(rootRand.Int63()))
+		st := newDroneState(dr)
+
+		go func(s *droneState) {
 			defer wg.Done()
-
-			if err := runEmulator(ctx, *addr, *period); err != nil && ctx.Err() == nil {
-				panic(fmt.Sprintf("emulator error: %v\n", err))
+			if err := runDrone(ctx, client, s, period); err != nil && !errors.Is(err, context.Canceled) {
+				errCh <- fmt.Errorf("drone %s: %w", s.id, err)
 			}
-		}()
+		}(st)
 	}
-
-	done := make(chan struct{})
-	go func() {
-		wg.Wait()
-		close(done)
-	}()
 
 	select {
-	case <-quitCtx.Done():
-		fmt.Println("signal received, stopping...")
-		<-done
-	case <-done:
-		fmt.Println("all emulators stopped")
+	case err := <-errCh:
+		fmt.Printf("emulator error: %v\n", err)
+		stop()
+	case <-ctx.Done():
+		// graceful stop
 	}
+
+	wg.Wait()
+	fmt.Println("telemetry emulator stopped")
 }

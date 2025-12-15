@@ -4,7 +4,7 @@ import (
 	pbCommon "hive/gen/common"
 	pb "hive/gen/dispatch"
 	pbOrder "hive/gen/order"
-	pbDrone "hive/gen/telemetry"
+	pbTelemetry "hive/gen/telemetry"
 	"hive/services/dispatch/internal/domain/assignment"
 	"hive/services/dispatch/internal/domain/drone"
 	"hive/services/dispatch/internal/domain/order"
@@ -94,109 +94,111 @@ func OrderStatusFromProto(status pbOrder.OrderStatus) (order.OrderStatus, bool) 
 	}
 }
 
-func DroneActionToProto(action drone.DroneAction) pbDrone.DroneAction {
+func DroneActionToProto(action drone.DroneAction) pbTelemetry.DroneAction {
 	switch action {
 	case drone.DroneActionWait:
-		return pbDrone.DroneAction_ACTION_WAIT
+		return pbTelemetry.DroneAction_ACTION_WAIT
 	case drone.DroneActionFlyTo:
-		return pbDrone.DroneAction_ACTION_FLY_TO
+		return pbTelemetry.DroneAction_ACTION_FLY_TO
 	case drone.DroneActionPickupCargo:
-		return pbDrone.DroneAction_ACTION_PICKUP_CARGO
+		return pbTelemetry.DroneAction_ACTION_PICKUP_CARGO
 	case drone.DroneActionDropCargo:
-		return pbDrone.DroneAction_ACTION_DROP_CARGO
+		return pbTelemetry.DroneAction_ACTION_DROP_CARGO
 	case drone.DroneActionCharge:
-		return pbDrone.DroneAction_ACTION_CHARGE
+		return pbTelemetry.DroneAction_ACTION_CHARGE
 	default:
-		return pbDrone.DroneAction_ACTION_NONE
+		return pbTelemetry.DroneAction_ACTION_NONE
 	}
 }
 
-func DroneActionFromProto(action pbDrone.DroneAction) (drone.DroneAction, bool) {
+func DroneActionFromProto(action pbTelemetry.DroneAction) (drone.DroneAction, bool) {
 	switch action {
-	case pbDrone.DroneAction_ACTION_WAIT:
+	case pbTelemetry.DroneAction_ACTION_WAIT:
 		return drone.DroneActionWait, true
-	case pbDrone.DroneAction_ACTION_FLY_TO:
+	case pbTelemetry.DroneAction_ACTION_FLY_TO:
 		return drone.DroneActionFlyTo, true
-	case pbDrone.DroneAction_ACTION_PICKUP_CARGO:
+	case pbTelemetry.DroneAction_ACTION_PICKUP_CARGO:
 		return drone.DroneActionPickupCargo, true
-	case pbDrone.DroneAction_ACTION_DROP_CARGO:
+	case pbTelemetry.DroneAction_ACTION_DROP_CARGO:
 		return drone.DroneActionDropCargo, true
-	case pbDrone.DroneAction_ACTION_CHARGE:
+	case pbTelemetry.DroneAction_ACTION_CHARGE:
 		return drone.DroneActionCharge, true
 	default:
 		return "", false
 	}
 }
 
-func DroneTargetTypeToProto(targetType drone.TargetType) pbDrone.TargetType {
+func DroneTargetTypeToProto(targetType drone.TargetType) pbTelemetry.TargetType {
 	switch targetType {
 	case drone.TargetTypePoint:
-		return pbDrone.TargetType_TARGET_POINT
+		return pbTelemetry.TargetType_TARGET_POINT
 	case drone.TargetTypeStore:
-		return pbDrone.TargetType_TARGET_STORE
+		return pbTelemetry.TargetType_TARGET_STORE
 	case drone.TargetTypeClient:
-		return pbDrone.TargetType_TARGET_CLIENT
+		return pbTelemetry.TargetType_TARGET_CLIENT
 	case drone.TargetTypeBase:
-		return pbDrone.TargetType_TARGET_BASE
+		return pbTelemetry.TargetType_TARGET_BASE
 	default:
-		return pbDrone.TargetType_TARGET_NONE
+		return pbTelemetry.TargetType_TARGET_NONE
 	}
 }
 
-func DroneTargetTypeFromProto(targetType pbDrone.TargetType) (drone.TargetType, bool) {
+func DroneTargetTypeFromProto(targetType pbTelemetry.TargetType) (drone.TargetType, bool) {
 	switch targetType {
-	case pbDrone.TargetType_TARGET_POINT:
+	case pbTelemetry.TargetType_TARGET_NONE:
+		return drone.TargetTypeNone, true
+	case pbTelemetry.TargetType_TARGET_POINT:
 		return drone.TargetTypePoint, true
-	case pbDrone.TargetType_TARGET_STORE:
+	case pbTelemetry.TargetType_TARGET_STORE:
 		return drone.TargetTypeStore, true
-	case pbDrone.TargetType_TARGET_CLIENT:
+	case pbTelemetry.TargetType_TARGET_CLIENT:
 		return drone.TargetTypeClient, true
-	case pbDrone.TargetType_TARGET_BASE:
+	case pbTelemetry.TargetType_TARGET_BASE:
 		return drone.TargetTypeBase, true
 	default:
 		return "", false
 	}
 }
 
-func DroneStatusToProto(status drone.DroneStatus) pbDrone.DroneStatus {
+func DroneStatusToProto(status drone.DroneStatus) pbTelemetry.DroneStatus {
 	switch status {
 	case drone.DroneStatusFree:
-		return pbDrone.DroneStatus_STATUS_FREE
+		return pbTelemetry.DroneStatus_STATUS_FREE
 	case drone.DroneStatusBusy:
-		return pbDrone.DroneStatus_STATUS_BUSY
+		return pbTelemetry.DroneStatus_STATUS_BUSY
 	case drone.DroneStatusCharging:
-		return pbDrone.DroneStatus_STATUS_CHARGING
+		return pbTelemetry.DroneStatus_STATUS_CHARGING
 	default:
-		return pbDrone.DroneStatus_STATUS_UNKNOWN
+		return pbTelemetry.DroneStatus_STATUS_UNKNOWN
 	}
 }
 
-func DroneStatusFromProto(status pbDrone.DroneStatus) (drone.DroneStatus, bool) {
+func DroneStatusFromProto(status pbTelemetry.DroneStatus) (drone.DroneStatus, bool) {
 	switch status {
-	case pbDrone.DroneStatus_STATUS_FREE:
+	case pbTelemetry.DroneStatus_STATUS_FREE:
 		return drone.DroneStatusFree, true
-	case pbDrone.DroneStatus_STATUS_BUSY:
+	case pbTelemetry.DroneStatus_STATUS_BUSY:
 		return drone.DroneStatusBusy, true
-	case pbDrone.DroneStatus_STATUS_CHARGING:
+	case pbTelemetry.DroneStatus_STATUS_CHARGING:
 		return drone.DroneStatusCharging, true
 	default:
 		return "", false
 	}
 }
 
-func DroneEventFromProto(event pbDrone.DroneEvent) (drone.DroneEvent, bool) {
+func DroneEventFromProto(event pbTelemetry.DroneEvent) (drone.DroneEvent, bool) {
 	switch event {
-	case pbDrone.DroneEvent_EVENT_ARRIVED_AT_STORE:
+	case pbTelemetry.DroneEvent_EVENT_ARRIVED_AT_STORE:
 		return drone.DroneEventArrivedAtStore, true
-	case pbDrone.DroneEvent_EVENT_PICKED_UP_CARGO:
+	case pbTelemetry.DroneEvent_EVENT_PICKED_UP_CARGO:
 		return drone.DroneEventPickedUpCargo, true
-	case pbDrone.DroneEvent_EVENT_ARRIVED_AT_CLIENT:
+	case pbTelemetry.DroneEvent_EVENT_ARRIVED_AT_CLIENT:
 		return drone.DroneEventArrivedAtClient, true
-	case pbDrone.DroneEvent_EVENT_DROPPED_CARGO:
+	case pbTelemetry.DroneEvent_EVENT_DROPPED_CARGO:
 		return drone.DroneEventDroppedCargo, true
-	case pbDrone.DroneEvent_EVENT_ARRIVED_AT_BASE:
+	case pbTelemetry.DroneEvent_EVENT_ARRIVED_AT_BASE:
 		return drone.DroneEventArrivedAtBase, true
-	case pbDrone.DroneEvent_EVENT_FULLY_CHARGED:
+	case pbTelemetry.DroneEvent_EVENT_FULLY_CHARGED:
 		return drone.DroneEventFullyCharged, true
 	default:
 		return "", false

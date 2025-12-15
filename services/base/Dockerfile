@@ -23,6 +23,11 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -o /app/bin/migrate \
     ./cmd/migrate/main.go
 
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+    -ldflags="-s -w" \
+    -o /app/bin/generate \
+    ./cmd/generate/main.go
+
 FROM alpine:latest AS runtime
 
 RUN apk add --no-cache ca-certificates tzdata
@@ -33,6 +38,7 @@ WORKDIR /app
 
 COPY --from=builder /app/bin/server /app/server
 COPY --from=builder /app/bin/migrate /app/migrate
+COPY --from=builder /app/bin/generate /app/generate
 COPY --from=builder /app/services/base/config /app/config
 COPY --from=builder /app/services/base/migrations /app/migrations
 
@@ -46,3 +52,7 @@ ENTRYPOINT ["/app/server"]
 FROM runtime AS migrate
 
 ENTRYPOINT ["/app/migrate"]
+
+FROM runtime AS generate
+
+ENTRYPOINT ["/app/generate"]

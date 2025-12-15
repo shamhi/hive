@@ -2,13 +2,19 @@ package redis
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"hive/services/store/internal/domain/shared"
 	"hive/services/store/internal/domain/store"
 	"hive/services/store/internal/service"
 
 	"github.com/redis/go-redis/v9"
+)
+
+const (
+	AllStoresKey  string = "stores:all"
+	StoreDataKey  string = "stores:data:"
+	StoreGeoKey   string = "stores:geo"
+	GeoSearchUnit string = "m"
 )
 
 type RedisRepo struct {
@@ -20,55 +26,63 @@ func NewRedisRepo(client *redis.Client) *RedisRepo {
 }
 
 func (r *RedisRepo) Save(ctx context.Context, s *store.Store) error {
-	if err := r.client.GeoAdd(
-		ctx,
-		"stores:geo",
+	pipe := r.client.TxPipeline()
+
+	pipe.SAdd(ctx, AllStoresKey, s.ID)
+
+	pipe.HSet(ctx, StoreDataKey+s.ID,
+		"name", s.Name,
+		"address", s.Address,
+	)
+
+	pipe.GeoAdd(ctx, StoreGeoKey,
 		&redis.GeoLocation{
 			Name:      s.ID,
 			Longitude: s.Location.Lon,
 			Latitude:  s.Location.Lat,
 		},
-	).Err(); err != nil {
-		return err
-	}
+	)
 
-	storeJSON, err := json.Marshal(s)
-	if err != nil {
-		return err
-	}
-
-	if err := r.client.Set(
-		ctx,
-		fmt.Sprintf("stores:data:%s", s.ID),
-		storeJSON,
-		0,
-	).Err(); err != nil {
-		return err
-	}
-
-	if err := r.client.SAdd(
-		ctx,
-		"stores:all",
-		s.ID,
-	).Err(); err != nil {
-		return err
+	if _, err := pipe.Exec(ctx); err != nil {
+		return fmt.Errorf("failed to save store to redis: %w", err)
 	}
 
 	return nil
 }
 
-func (r *RedisRepo) GetByID(ctx context.Context, id string) (*store.Store, error) {
-	storeJSON, err := r.client.Get(ctx, fmt.Sprintf("stores:data:%s", id)).Result()
+func (r *RedisRepo) GetByID(ctx context.Context, storeID string) (*store.Store, error) {
+	data, err := r.client.HGetAll(ctx, StoreDataKey+storeID).Result()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get store data: %w", err)
 	}
 
-	var s store.Store
-	if err := json.Unmarshal([]byte(storeJSON), &s); err != nil {
-		return nil, err
+	if len(data) == 0 {
+		return nil, service.ErrStoreNotFound
 	}
 
-	return &s, nil
+	name := data["name"]
+	address := data["address"]
+
+	positions, err := r.client.GeoPos(ctx, StoreGeoKey, storeID).Result()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get store geoposition: %w", err)
+	}
+
+	if len(positions) == 0 || positions[0] == nil {
+		return nil, service.ErrStoreNotFound
+	}
+
+	pos := positions[0]
+
+	return &store.Store{
+		ID:      storeID,
+		Name:    name,
+		Address: address,
+		Location: shared.Location{
+			Lat: pos.Latitude,
+			Lon: pos.Longitude,
+		},
+	}, nil
 }
 
 func (r *RedisRepo) GetNearest(
@@ -78,13 +92,13 @@ func (r *RedisRepo) GetNearest(
 ) (*store.StoreNearest, error) {
 	result, err := r.client.GeoSearchLocation(
 		ctx,
-		"stores:geo",
+		StoreGeoKey,
 		&redis.GeoSearchLocationQuery{
 			GeoSearchQuery: redis.GeoSearchQuery{
 				Longitude:  location.Lon,
 				Latitude:   location.Lat,
 				Radius:     radiusMeters,
-				RadiusUnit: "m",
+				RadiusUnit: GeoSearchUnit,
 				Sort:       "ASC",
 				Count:      1,
 			},

@@ -2,7 +2,6 @@ package base
 
 import (
 	"hive/services/base/internal/domain/shared"
-	"time"
 )
 
 type Base struct {
@@ -11,9 +10,6 @@ type Base struct {
 	Name     string
 	Address  string
 	Location shared.Location
-
-	CreatedAt time.Time
-	UpdatedAt time.Time
 }
 
 type BaseNearest struct {

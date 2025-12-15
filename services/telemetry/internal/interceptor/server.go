@@ -15,7 +15,7 @@ func LoggingStreamServerInterceptor(lg logger.Logger) grpc.StreamServerIntercept
 		info *grpc.StreamServerInfo,
 		handler grpc.StreamHandler,
 	) error {
-		lg = lg.With(
+		lg := lg.With(
 			zap.String("component", "grpc_server_interceptor"),
 			zap.String("method", info.FullMethod),
 		)
