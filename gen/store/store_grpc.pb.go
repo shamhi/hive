@@ -22,6 +22,7 @@ const (
 	StoreService_CreateStore_FullMethodName      = "/store.StoreService/CreateStore"
 	StoreService_GetStoreLocation_FullMethodName = "/store.StoreService/GetStoreLocation"
 	StoreService_FindNearest_FullMethodName      = "/store.StoreService/FindNearest"
+	StoreService_ListStores_FullMethodName       = "/store.StoreService/ListStores"
 )
 
 // StoreServiceClient is the client API for StoreService service.
@@ -31,6 +32,7 @@ type StoreServiceClient interface {
 	CreateStore(ctx context.Context, in *CreateStoreRequest, opts ...grpc.CallOption) (*CreateStoreResponse, error)
 	GetStoreLocation(ctx context.Context, in *GetStoreLocationRequest, opts ...grpc.CallOption) (*GetStoreLocationResponse, error)
 	FindNearest(ctx context.Context, in *FindNearestRequest, opts ...grpc.CallOption) (*FindNearestResponse, error)
+	ListStores(ctx context.Context, in *ListStoresRequest, opts ...grpc.CallOption) (*ListStoresResponse, error)
 }
 
 type storeServiceClient struct {
@@ -71,6 +73,16 @@ func (c *storeServiceClient) FindNearest(ctx context.Context, in *FindNearestReq
 	return out, nil
 }
 
+func (c *storeServiceClient) ListStores(ctx context.Context, in *ListStoresRequest, opts ...grpc.CallOption) (*ListStoresResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListStoresResponse)
+	err := c.cc.Invoke(ctx, StoreService_ListStores_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StoreServiceServer is the server API for StoreService service.
 // All implementations must embed UnimplementedStoreServiceServer
 // for forward compatibility.
@@ -78,6 +90,7 @@ type StoreServiceServer interface {
 	CreateStore(context.Context, *CreateStoreRequest) (*CreateStoreResponse, error)
 	GetStoreLocation(context.Context, *GetStoreLocationRequest) (*GetStoreLocationResponse, error)
 	FindNearest(context.Context, *FindNearestRequest) (*FindNearestResponse, error)
+	ListStores(context.Context, *ListStoresRequest) (*ListStoresResponse, error)
 	mustEmbedUnimplementedStoreServiceServer()
 }
 
@@ -96,6 +109,9 @@ func (UnimplementedStoreServiceServer) GetStoreLocation(context.Context, *GetSto
 }
 func (UnimplementedStoreServiceServer) FindNearest(context.Context, *FindNearestRequest) (*FindNearestResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FindNearest not implemented")
+}
+func (UnimplementedStoreServiceServer) ListStores(context.Context, *ListStoresRequest) (*ListStoresResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListStores not implemented")
 }
 func (UnimplementedStoreServiceServer) mustEmbedUnimplementedStoreServiceServer() {}
 func (UnimplementedStoreServiceServer) testEmbeddedByValue()                      {}
@@ -172,6 +188,24 @@ func _StoreService_FindNearest_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _StoreService_ListStores_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListStoresRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StoreServiceServer).ListStores(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StoreService_ListStores_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StoreServiceServer).ListStores(ctx, req.(*ListStoresRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // StoreService_ServiceDesc is the grpc.ServiceDesc for StoreService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,6 +224,10 @@ var StoreService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "FindNearest",
 			Handler:    _StoreService_FindNearest_Handler,
+		},
+		{
+			MethodName: "ListStores",
+			Handler:    _StoreService_ListStores_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -8,7 +8,14 @@ import "common.proto";
 service BaseService {
   rpc CreateBase(CreateBaseRequest) returns (CreateBaseResponse);
   rpc GetBaseLocation(GetBaseLocationRequest) returns (GetBaseLocationResponse);
-  rpc FindNearest(FindNearestRequest) returns (FindNearestResponse);
+  rpc ListBases(ListBasesRequest) returns (ListBasesResponse);
+}
+
+message Base {
+  string base_id = 1;
+  string name = 2;
+  string address = 3;
+  common.Location location = 4;
 }
 
 message CreateBaseRequest {
@@ -39,4 +46,13 @@ message FindNearestResponse {
   string base_id = 1;
   bool found = 2;
   double distance_meters = 5;
+}
+
+message ListBasesRequest {
+  int32 offset = 1;
+  int32 limit = 2;
+}
+
+message ListBasesResponse {
+  repeated Base bases = 1;
 }

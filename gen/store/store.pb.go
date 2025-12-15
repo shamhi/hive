@@ -22,6 +22,74 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type Store struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	StoreId       string                 `protobuf:"bytes,1,opt,name=store_id,json=storeId,proto3" json:"store_id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Address       string                 `protobuf:"bytes,3,opt,name=address,proto3" json:"address,omitempty"`
+	Location      *common.Location       `protobuf:"bytes,4,opt,name=location,proto3" json:"location,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Store) Reset() {
+	*x = Store{}
+	mi := &file_store_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Store) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Store) ProtoMessage() {}
+
+func (x *Store) ProtoReflect() protoreflect.Message {
+	mi := &file_store_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Store.ProtoReflect.Descriptor instead.
+func (*Store) Descriptor() ([]byte, []int) {
+	return file_store_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *Store) GetStoreId() string {
+	if x != nil {
+		return x.StoreId
+	}
+	return ""
+}
+
+func (x *Store) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Store) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
+}
+
+func (x *Store) GetLocation() *common.Location {
+	if x != nil {
+		return x.Location
+	}
+	return nil
+}
+
 type CreateStoreRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -33,7 +101,7 @@ type CreateStoreRequest struct {
 
 func (x *CreateStoreRequest) Reset() {
 	*x = CreateStoreRequest{}
-	mi := &file_store_proto_msgTypes[0]
+	mi := &file_store_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -45,7 +113,7 @@ func (x *CreateStoreRequest) String() string {
 func (*CreateStoreRequest) ProtoMessage() {}
 
 func (x *CreateStoreRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_store_proto_msgTypes[0]
+	mi := &file_store_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -58,7 +126,7 @@ func (x *CreateStoreRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateStoreRequest.ProtoReflect.Descriptor instead.
 func (*CreateStoreRequest) Descriptor() ([]byte, []int) {
-	return file_store_proto_rawDescGZIP(), []int{0}
+	return file_store_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *CreateStoreRequest) GetName() string {
@@ -91,7 +159,7 @@ type CreateStoreResponse struct {
 
 func (x *CreateStoreResponse) Reset() {
 	*x = CreateStoreResponse{}
-	mi := &file_store_proto_msgTypes[1]
+	mi := &file_store_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -103,7 +171,7 @@ func (x *CreateStoreResponse) String() string {
 func (*CreateStoreResponse) ProtoMessage() {}
 
 func (x *CreateStoreResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_store_proto_msgTypes[1]
+	mi := &file_store_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -116,7 +184,7 @@ func (x *CreateStoreResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateStoreResponse.ProtoReflect.Descriptor instead.
 func (*CreateStoreResponse) Descriptor() ([]byte, []int) {
-	return file_store_proto_rawDescGZIP(), []int{1}
+	return file_store_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *CreateStoreResponse) GetStoreId() string {
@@ -135,7 +203,7 @@ type GetStoreLocationRequest struct {
 
 func (x *GetStoreLocationRequest) Reset() {
 	*x = GetStoreLocationRequest{}
-	mi := &file_store_proto_msgTypes[2]
+	mi := &file_store_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -147,7 +215,7 @@ func (x *GetStoreLocationRequest) String() string {
 func (*GetStoreLocationRequest) ProtoMessage() {}
 
 func (x *GetStoreLocationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_store_proto_msgTypes[2]
+	mi := &file_store_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -160,7 +228,7 @@ func (x *GetStoreLocationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetStoreLocationRequest.ProtoReflect.Descriptor instead.
 func (*GetStoreLocationRequest) Descriptor() ([]byte, []int) {
-	return file_store_proto_rawDescGZIP(), []int{2}
+	return file_store_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *GetStoreLocationRequest) GetStoreId() string {
@@ -181,7 +249,7 @@ type GetStoreLocationResponse struct {
 
 func (x *GetStoreLocationResponse) Reset() {
 	*x = GetStoreLocationResponse{}
-	mi := &file_store_proto_msgTypes[3]
+	mi := &file_store_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -193,7 +261,7 @@ func (x *GetStoreLocationResponse) String() string {
 func (*GetStoreLocationResponse) ProtoMessage() {}
 
 func (x *GetStoreLocationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_store_proto_msgTypes[3]
+	mi := &file_store_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -206,7 +274,7 @@ func (x *GetStoreLocationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetStoreLocationResponse.ProtoReflect.Descriptor instead.
 func (*GetStoreLocationResponse) Descriptor() ([]byte, []int) {
-	return file_store_proto_rawDescGZIP(), []int{3}
+	return file_store_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GetStoreLocationResponse) GetName() string {
@@ -239,7 +307,7 @@ type FindNearestRequest struct {
 
 func (x *FindNearestRequest) Reset() {
 	*x = FindNearestRequest{}
-	mi := &file_store_proto_msgTypes[4]
+	mi := &file_store_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -251,7 +319,7 @@ func (x *FindNearestRequest) String() string {
 func (*FindNearestRequest) ProtoMessage() {}
 
 func (x *FindNearestRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_store_proto_msgTypes[4]
+	mi := &file_store_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -264,7 +332,7 @@ func (x *FindNearestRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FindNearestRequest.ProtoReflect.Descriptor instead.
 func (*FindNearestRequest) Descriptor() ([]byte, []int) {
-	return file_store_proto_rawDescGZIP(), []int{4}
+	return file_store_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *FindNearestRequest) GetDeliveryLocation() *common.Location {
@@ -285,7 +353,7 @@ type FindNearestResponse struct {
 
 func (x *FindNearestResponse) Reset() {
 	*x = FindNearestResponse{}
-	mi := &file_store_proto_msgTypes[5]
+	mi := &file_store_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -297,7 +365,7 @@ func (x *FindNearestResponse) String() string {
 func (*FindNearestResponse) ProtoMessage() {}
 
 func (x *FindNearestResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_store_proto_msgTypes[5]
+	mi := &file_store_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -310,7 +378,7 @@ func (x *FindNearestResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FindNearestResponse.ProtoReflect.Descriptor instead.
 func (*FindNearestResponse) Descriptor() ([]byte, []int) {
-	return file_store_proto_rawDescGZIP(), []int{5}
+	return file_store_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *FindNearestResponse) GetStoreId() string {
@@ -334,11 +402,112 @@ func (x *FindNearestResponse) GetDistanceMeters() float64 {
 	return 0
 }
 
+type ListStoresRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Offset        int32                  `protobuf:"varint,1,opt,name=offset,proto3" json:"offset,omitempty"`
+	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListStoresRequest) Reset() {
+	*x = ListStoresRequest{}
+	mi := &file_store_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListStoresRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListStoresRequest) ProtoMessage() {}
+
+func (x *ListStoresRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_store_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListStoresRequest.ProtoReflect.Descriptor instead.
+func (*ListStoresRequest) Descriptor() ([]byte, []int) {
+	return file_store_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *ListStoresRequest) GetOffset() int32 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
+func (x *ListStoresRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type ListStoresResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Stores        []*Store               `protobuf:"bytes,1,rep,name=stores,proto3" json:"stores,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListStoresResponse) Reset() {
+	*x = ListStoresResponse{}
+	mi := &file_store_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListStoresResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListStoresResponse) ProtoMessage() {}
+
+func (x *ListStoresResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_store_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListStoresResponse.ProtoReflect.Descriptor instead.
+func (*ListStoresResponse) Descriptor() ([]byte, []int) {
+	return file_store_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ListStoresResponse) GetStores() []*Store {
+	if x != nil {
+		return x.Stores
+	}
+	return nil
+}
+
 var File_store_proto protoreflect.FileDescriptor
 
 const file_store_proto_rawDesc = "" +
 	"\n" +
-	"\vstore.proto\x12\x05store\x1a\fcommon.proto\"p\n" +
+	"\vstore.proto\x12\x05store\x1a\fcommon.proto\"~\n" +
+	"\x05Store\x12\x19\n" +
+	"\bstore_id\x18\x01 \x01(\tR\astoreId\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x18\n" +
+	"\aaddress\x18\x03 \x01(\tR\aaddress\x12,\n" +
+	"\blocation\x18\x04 \x01(\v2\x10.common.LocationR\blocation\"p\n" +
 	"\x12CreateStoreRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
 	"\aaddress\x18\x02 \x01(\tR\aaddress\x12,\n" +
@@ -356,11 +525,18 @@ const file_store_proto_rawDesc = "" +
 	"\x13FindNearestResponse\x12\x19\n" +
 	"\bstore_id\x18\x01 \x01(\tR\astoreId\x12\x14\n" +
 	"\x05found\x18\x02 \x01(\bR\x05found\x12'\n" +
-	"\x0fdistance_meters\x18\x05 \x01(\x01R\x0edistanceMeters2\xef\x01\n" +
+	"\x0fdistance_meters\x18\x05 \x01(\x01R\x0edistanceMeters\"A\n" +
+	"\x11ListStoresRequest\x12\x16\n" +
+	"\x06offset\x18\x01 \x01(\x05R\x06offset\x12\x14\n" +
+	"\x05limit\x18\x02 \x01(\x05R\x05limit\":\n" +
+	"\x12ListStoresResponse\x12$\n" +
+	"\x06stores\x18\x01 \x03(\v2\f.store.StoreR\x06stores2\xb2\x02\n" +
 	"\fStoreService\x12D\n" +
 	"\vCreateStore\x12\x19.store.CreateStoreRequest\x1a\x1a.store.CreateStoreResponse\x12S\n" +
 	"\x10GetStoreLocation\x12\x1e.store.GetStoreLocationRequest\x1a\x1f.store.GetStoreLocationResponse\x12D\n" +
-	"\vFindNearest\x12\x19.store.FindNearestRequest\x1a\x1a.store.FindNearestResponseB\x10Z\x0ehive/gen/storeb\x06proto3"
+	"\vFindNearest\x12\x19.store.FindNearestRequest\x1a\x1a.store.FindNearestResponse\x12A\n" +
+	"\n" +
+	"ListStores\x12\x18.store.ListStoresRequest\x1a\x19.store.ListStoresResponseB\x10Z\x0ehive/gen/storeb\x06proto3"
 
 var (
 	file_store_proto_rawDescOnce sync.Once
@@ -374,31 +550,38 @@ func file_store_proto_rawDescGZIP() []byte {
 	return file_store_proto_rawDescData
 }
 
-var file_store_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_store_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_store_proto_goTypes = []any{
-	(*CreateStoreRequest)(nil),       // 0: store.CreateStoreRequest
-	(*CreateStoreResponse)(nil),      // 1: store.CreateStoreResponse
-	(*GetStoreLocationRequest)(nil),  // 2: store.GetStoreLocationRequest
-	(*GetStoreLocationResponse)(nil), // 3: store.GetStoreLocationResponse
-	(*FindNearestRequest)(nil),       // 4: store.FindNearestRequest
-	(*FindNearestResponse)(nil),      // 5: store.FindNearestResponse
-	(*common.Location)(nil),          // 6: common.Location
+	(*Store)(nil),                    // 0: store.Store
+	(*CreateStoreRequest)(nil),       // 1: store.CreateStoreRequest
+	(*CreateStoreResponse)(nil),      // 2: store.CreateStoreResponse
+	(*GetStoreLocationRequest)(nil),  // 3: store.GetStoreLocationRequest
+	(*GetStoreLocationResponse)(nil), // 4: store.GetStoreLocationResponse
+	(*FindNearestRequest)(nil),       // 5: store.FindNearestRequest
+	(*FindNearestResponse)(nil),      // 6: store.FindNearestResponse
+	(*ListStoresRequest)(nil),        // 7: store.ListStoresRequest
+	(*ListStoresResponse)(nil),       // 8: store.ListStoresResponse
+	(*common.Location)(nil),          // 9: common.Location
 }
 var file_store_proto_depIdxs = []int32{
-	6, // 0: store.CreateStoreRequest.location:type_name -> common.Location
-	6, // 1: store.GetStoreLocationResponse.location:type_name -> common.Location
-	6, // 2: store.FindNearestRequest.delivery_location:type_name -> common.Location
-	0, // 3: store.StoreService.CreateStore:input_type -> store.CreateStoreRequest
-	2, // 4: store.StoreService.GetStoreLocation:input_type -> store.GetStoreLocationRequest
-	4, // 5: store.StoreService.FindNearest:input_type -> store.FindNearestRequest
-	1, // 6: store.StoreService.CreateStore:output_type -> store.CreateStoreResponse
-	3, // 7: store.StoreService.GetStoreLocation:output_type -> store.GetStoreLocationResponse
-	5, // 8: store.StoreService.FindNearest:output_type -> store.FindNearestResponse
-	6, // [6:9] is the sub-list for method output_type
-	3, // [3:6] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	9, // 0: store.Store.location:type_name -> common.Location
+	9, // 1: store.CreateStoreRequest.location:type_name -> common.Location
+	9, // 2: store.GetStoreLocationResponse.location:type_name -> common.Location
+	9, // 3: store.FindNearestRequest.delivery_location:type_name -> common.Location
+	0, // 4: store.ListStoresResponse.stores:type_name -> store.Store
+	1, // 5: store.StoreService.CreateStore:input_type -> store.CreateStoreRequest
+	3, // 6: store.StoreService.GetStoreLocation:input_type -> store.GetStoreLocationRequest
+	5, // 7: store.StoreService.FindNearest:input_type -> store.FindNearestRequest
+	7, // 8: store.StoreService.ListStores:input_type -> store.ListStoresRequest
+	2, // 9: store.StoreService.CreateStore:output_type -> store.CreateStoreResponse
+	4, // 10: store.StoreService.GetStoreLocation:output_type -> store.GetStoreLocationResponse
+	6, // 11: store.StoreService.FindNearest:output_type -> store.FindNearestResponse
+	8, // 12: store.StoreService.ListStores:output_type -> store.ListStoresResponse
+	9, // [9:13] is the sub-list for method output_type
+	5, // [5:9] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_store_proto_init() }
@@ -412,7 +595,7 @@ func file_store_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_store_proto_rawDesc), len(file_store_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

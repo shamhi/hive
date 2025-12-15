@@ -22,6 +22,74 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type Base struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BaseId        string                 `protobuf:"bytes,1,opt,name=base_id,json=baseId,proto3" json:"base_id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Address       string                 `protobuf:"bytes,3,opt,name=address,proto3" json:"address,omitempty"`
+	Location      *common.Location       `protobuf:"bytes,4,opt,name=location,proto3" json:"location,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Base) Reset() {
+	*x = Base{}
+	mi := &file_base_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Base) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Base) ProtoMessage() {}
+
+func (x *Base) ProtoReflect() protoreflect.Message {
+	mi := &file_base_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Base.ProtoReflect.Descriptor instead.
+func (*Base) Descriptor() ([]byte, []int) {
+	return file_base_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *Base) GetBaseId() string {
+	if x != nil {
+		return x.BaseId
+	}
+	return ""
+}
+
+func (x *Base) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Base) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
+}
+
+func (x *Base) GetLocation() *common.Location {
+	if x != nil {
+		return x.Location
+	}
+	return nil
+}
+
 type CreateBaseRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -33,7 +101,7 @@ type CreateBaseRequest struct {
 
 func (x *CreateBaseRequest) Reset() {
 	*x = CreateBaseRequest{}
-	mi := &file_base_proto_msgTypes[0]
+	mi := &file_base_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -45,7 +113,7 @@ func (x *CreateBaseRequest) String() string {
 func (*CreateBaseRequest) ProtoMessage() {}
 
 func (x *CreateBaseRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_base_proto_msgTypes[0]
+	mi := &file_base_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -58,7 +126,7 @@ func (x *CreateBaseRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateBaseRequest.ProtoReflect.Descriptor instead.
 func (*CreateBaseRequest) Descriptor() ([]byte, []int) {
-	return file_base_proto_rawDescGZIP(), []int{0}
+	return file_base_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *CreateBaseRequest) GetName() string {
@@ -91,7 +159,7 @@ type CreateBaseResponse struct {
 
 func (x *CreateBaseResponse) Reset() {
 	*x = CreateBaseResponse{}
-	mi := &file_base_proto_msgTypes[1]
+	mi := &file_base_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -103,7 +171,7 @@ func (x *CreateBaseResponse) String() string {
 func (*CreateBaseResponse) ProtoMessage() {}
 
 func (x *CreateBaseResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_base_proto_msgTypes[1]
+	mi := &file_base_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -116,7 +184,7 @@ func (x *CreateBaseResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateBaseResponse.ProtoReflect.Descriptor instead.
 func (*CreateBaseResponse) Descriptor() ([]byte, []int) {
-	return file_base_proto_rawDescGZIP(), []int{1}
+	return file_base_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *CreateBaseResponse) GetBaseId() string {
@@ -135,7 +203,7 @@ type GetBaseLocationRequest struct {
 
 func (x *GetBaseLocationRequest) Reset() {
 	*x = GetBaseLocationRequest{}
-	mi := &file_base_proto_msgTypes[2]
+	mi := &file_base_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -147,7 +215,7 @@ func (x *GetBaseLocationRequest) String() string {
 func (*GetBaseLocationRequest) ProtoMessage() {}
 
 func (x *GetBaseLocationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_base_proto_msgTypes[2]
+	mi := &file_base_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -160,7 +228,7 @@ func (x *GetBaseLocationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBaseLocationRequest.ProtoReflect.Descriptor instead.
 func (*GetBaseLocationRequest) Descriptor() ([]byte, []int) {
-	return file_base_proto_rawDescGZIP(), []int{2}
+	return file_base_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *GetBaseLocationRequest) GetBaseId() string {
@@ -181,7 +249,7 @@ type GetBaseLocationResponse struct {
 
 func (x *GetBaseLocationResponse) Reset() {
 	*x = GetBaseLocationResponse{}
-	mi := &file_base_proto_msgTypes[3]
+	mi := &file_base_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -193,7 +261,7 @@ func (x *GetBaseLocationResponse) String() string {
 func (*GetBaseLocationResponse) ProtoMessage() {}
 
 func (x *GetBaseLocationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_base_proto_msgTypes[3]
+	mi := &file_base_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -206,7 +274,7 @@ func (x *GetBaseLocationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBaseLocationResponse.ProtoReflect.Descriptor instead.
 func (*GetBaseLocationResponse) Descriptor() ([]byte, []int) {
-	return file_base_proto_rawDescGZIP(), []int{3}
+	return file_base_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GetBaseLocationResponse) GetName() string {
@@ -239,7 +307,7 @@ type FindNearestRequest struct {
 
 func (x *FindNearestRequest) Reset() {
 	*x = FindNearestRequest{}
-	mi := &file_base_proto_msgTypes[4]
+	mi := &file_base_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -251,7 +319,7 @@ func (x *FindNearestRequest) String() string {
 func (*FindNearestRequest) ProtoMessage() {}
 
 func (x *FindNearestRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_base_proto_msgTypes[4]
+	mi := &file_base_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -264,7 +332,7 @@ func (x *FindNearestRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FindNearestRequest.ProtoReflect.Descriptor instead.
 func (*FindNearestRequest) Descriptor() ([]byte, []int) {
-	return file_base_proto_rawDescGZIP(), []int{4}
+	return file_base_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *FindNearestRequest) GetDroneLocation() *common.Location {
@@ -285,7 +353,7 @@ type FindNearestResponse struct {
 
 func (x *FindNearestResponse) Reset() {
 	*x = FindNearestResponse{}
-	mi := &file_base_proto_msgTypes[5]
+	mi := &file_base_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -297,7 +365,7 @@ func (x *FindNearestResponse) String() string {
 func (*FindNearestResponse) ProtoMessage() {}
 
 func (x *FindNearestResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_base_proto_msgTypes[5]
+	mi := &file_base_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -310,7 +378,7 @@ func (x *FindNearestResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FindNearestResponse.ProtoReflect.Descriptor instead.
 func (*FindNearestResponse) Descriptor() ([]byte, []int) {
-	return file_base_proto_rawDescGZIP(), []int{5}
+	return file_base_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *FindNearestResponse) GetBaseId() string {
@@ -334,12 +402,113 @@ func (x *FindNearestResponse) GetDistanceMeters() float64 {
 	return 0
 }
 
+type ListBasesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Offset        int32                  `protobuf:"varint,1,opt,name=offset,proto3" json:"offset,omitempty"`
+	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListBasesRequest) Reset() {
+	*x = ListBasesRequest{}
+	mi := &file_base_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListBasesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListBasesRequest) ProtoMessage() {}
+
+func (x *ListBasesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_base_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListBasesRequest.ProtoReflect.Descriptor instead.
+func (*ListBasesRequest) Descriptor() ([]byte, []int) {
+	return file_base_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *ListBasesRequest) GetOffset() int32 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
+func (x *ListBasesRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type ListBasesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Bases         []*Base                `protobuf:"bytes,1,rep,name=bases,proto3" json:"bases,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListBasesResponse) Reset() {
+	*x = ListBasesResponse{}
+	mi := &file_base_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListBasesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListBasesResponse) ProtoMessage() {}
+
+func (x *ListBasesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_base_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListBasesResponse.ProtoReflect.Descriptor instead.
+func (*ListBasesResponse) Descriptor() ([]byte, []int) {
+	return file_base_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ListBasesResponse) GetBases() []*Base {
+	if x != nil {
+		return x.Bases
+	}
+	return nil
+}
+
 var File_base_proto protoreflect.FileDescriptor
 
 const file_base_proto_rawDesc = "" +
 	"\n" +
 	"\n" +
-	"base.proto\x12\x04base\x1a\fcommon.proto\"o\n" +
+	"base.proto\x12\x04base\x1a\fcommon.proto\"{\n" +
+	"\x04Base\x12\x17\n" +
+	"\abase_id\x18\x01 \x01(\tR\x06baseId\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x18\n" +
+	"\aaddress\x18\x03 \x01(\tR\aaddress\x12,\n" +
+	"\blocation\x18\x04 \x01(\v2\x10.common.LocationR\blocation\"o\n" +
 	"\x11CreateBaseRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
 	"\aaddress\x18\x02 \x01(\tR\aaddress\x12,\n" +
@@ -357,12 +526,18 @@ const file_base_proto_rawDesc = "" +
 	"\x13FindNearestResponse\x12\x17\n" +
 	"\abase_id\x18\x01 \x01(\tR\x06baseId\x12\x14\n" +
 	"\x05found\x18\x02 \x01(\bR\x05found\x12'\n" +
-	"\x0fdistance_meters\x18\x05 \x01(\x01R\x0edistanceMeters2\xe2\x01\n" +
+	"\x0fdistance_meters\x18\x05 \x01(\x01R\x0edistanceMeters\"@\n" +
+	"\x10ListBasesRequest\x12\x16\n" +
+	"\x06offset\x18\x01 \x01(\x05R\x06offset\x12\x14\n" +
+	"\x05limit\x18\x02 \x01(\x05R\x05limit\"5\n" +
+	"\x11ListBasesResponse\x12 \n" +
+	"\x05bases\x18\x01 \x03(\v2\n" +
+	".base.BaseR\x05bases2\xdc\x01\n" +
 	"\vBaseService\x12?\n" +
 	"\n" +
 	"CreateBase\x12\x17.base.CreateBaseRequest\x1a\x18.base.CreateBaseResponse\x12N\n" +
-	"\x0fGetBaseLocation\x12\x1c.base.GetBaseLocationRequest\x1a\x1d.base.GetBaseLocationResponse\x12B\n" +
-	"\vFindNearest\x12\x18.base.FindNearestRequest\x1a\x19.base.FindNearestResponseB\x0fZ\rhive/gen/baseb\x06proto3"
+	"\x0fGetBaseLocation\x12\x1c.base.GetBaseLocationRequest\x1a\x1d.base.GetBaseLocationResponse\x12<\n" +
+	"\tListBases\x12\x16.base.ListBasesRequest\x1a\x17.base.ListBasesResponseB\x0fZ\rhive/gen/baseb\x06proto3"
 
 var (
 	file_base_proto_rawDescOnce sync.Once
@@ -376,31 +551,36 @@ func file_base_proto_rawDescGZIP() []byte {
 	return file_base_proto_rawDescData
 }
 
-var file_base_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_base_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_base_proto_goTypes = []any{
-	(*CreateBaseRequest)(nil),       // 0: base.CreateBaseRequest
-	(*CreateBaseResponse)(nil),      // 1: base.CreateBaseResponse
-	(*GetBaseLocationRequest)(nil),  // 2: base.GetBaseLocationRequest
-	(*GetBaseLocationResponse)(nil), // 3: base.GetBaseLocationResponse
-	(*FindNearestRequest)(nil),      // 4: base.FindNearestRequest
-	(*FindNearestResponse)(nil),     // 5: base.FindNearestResponse
-	(*common.Location)(nil),         // 6: common.Location
+	(*Base)(nil),                    // 0: base.Base
+	(*CreateBaseRequest)(nil),       // 1: base.CreateBaseRequest
+	(*CreateBaseResponse)(nil),      // 2: base.CreateBaseResponse
+	(*GetBaseLocationRequest)(nil),  // 3: base.GetBaseLocationRequest
+	(*GetBaseLocationResponse)(nil), // 4: base.GetBaseLocationResponse
+	(*FindNearestRequest)(nil),      // 5: base.FindNearestRequest
+	(*FindNearestResponse)(nil),     // 6: base.FindNearestResponse
+	(*ListBasesRequest)(nil),        // 7: base.ListBasesRequest
+	(*ListBasesResponse)(nil),       // 8: base.ListBasesResponse
+	(*common.Location)(nil),         // 9: common.Location
 }
 var file_base_proto_depIdxs = []int32{
-	6, // 0: base.CreateBaseRequest.location:type_name -> common.Location
-	6, // 1: base.GetBaseLocationResponse.location:type_name -> common.Location
-	6, // 2: base.FindNearestRequest.drone_location:type_name -> common.Location
-	0, // 3: base.BaseService.CreateBase:input_type -> base.CreateBaseRequest
-	2, // 4: base.BaseService.GetBaseLocation:input_type -> base.GetBaseLocationRequest
-	4, // 5: base.BaseService.FindNearest:input_type -> base.FindNearestRequest
-	1, // 6: base.BaseService.CreateBase:output_type -> base.CreateBaseResponse
-	3, // 7: base.BaseService.GetBaseLocation:output_type -> base.GetBaseLocationResponse
-	5, // 8: base.BaseService.FindNearest:output_type -> base.FindNearestResponse
-	6, // [6:9] is the sub-list for method output_type
-	3, // [3:6] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	9, // 0: base.Base.location:type_name -> common.Location
+	9, // 1: base.CreateBaseRequest.location:type_name -> common.Location
+	9, // 2: base.GetBaseLocationResponse.location:type_name -> common.Location
+	9, // 3: base.FindNearestRequest.drone_location:type_name -> common.Location
+	0, // 4: base.ListBasesResponse.bases:type_name -> base.Base
+	1, // 5: base.BaseService.CreateBase:input_type -> base.CreateBaseRequest
+	3, // 6: base.BaseService.GetBaseLocation:input_type -> base.GetBaseLocationRequest
+	7, // 7: base.BaseService.ListBases:input_type -> base.ListBasesRequest
+	2, // 8: base.BaseService.CreateBase:output_type -> base.CreateBaseResponse
+	4, // 9: base.BaseService.GetBaseLocation:output_type -> base.GetBaseLocationResponse
+	8, // 10: base.BaseService.ListBases:output_type -> base.ListBasesResponse
+	8, // [8:11] is the sub-list for method output_type
+	5, // [5:8] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_base_proto_init() }
@@ -414,7 +594,7 @@ func file_base_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_base_proto_rawDesc), len(file_base_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

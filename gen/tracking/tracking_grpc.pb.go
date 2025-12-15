@@ -22,6 +22,7 @@ const (
 	TrackingService_FindNearest_FullMethodName      = "/tracking.TrackingService/FindNearest"
 	TrackingService_GetDroneLocation_FullMethodName = "/tracking.TrackingService/GetDroneLocation"
 	TrackingService_SetStatus_FullMethodName        = "/tracking.TrackingService/SetStatus"
+	TrackingService_ListDrones_FullMethodName       = "/tracking.TrackingService/ListDrones"
 )
 
 // TrackingServiceClient is the client API for TrackingService service.
@@ -31,6 +32,7 @@ type TrackingServiceClient interface {
 	FindNearest(ctx context.Context, in *FindNearestRequest, opts ...grpc.CallOption) (*FindNearestResponse, error)
 	GetDroneLocation(ctx context.Context, in *GetDroneLocationRequest, opts ...grpc.CallOption) (*GetDroneLocationResponse, error)
 	SetStatus(ctx context.Context, in *SetStatusRequest, opts ...grpc.CallOption) (*SetStatusResponse, error)
+	ListDrones(ctx context.Context, in *ListBasesRequest, opts ...grpc.CallOption) (*ListBasesResponse, error)
 }
 
 type trackingServiceClient struct {
@@ -71,6 +73,16 @@ func (c *trackingServiceClient) SetStatus(ctx context.Context, in *SetStatusRequ
 	return out, nil
 }
 
+func (c *trackingServiceClient) ListDrones(ctx context.Context, in *ListBasesRequest, opts ...grpc.CallOption) (*ListBasesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListBasesResponse)
+	err := c.cc.Invoke(ctx, TrackingService_ListDrones_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TrackingServiceServer is the server API for TrackingService service.
 // All implementations must embed UnimplementedTrackingServiceServer
 // for forward compatibility.
@@ -78,6 +90,7 @@ type TrackingServiceServer interface {
 	FindNearest(context.Context, *FindNearestRequest) (*FindNearestResponse, error)
 	GetDroneLocation(context.Context, *GetDroneLocationRequest) (*GetDroneLocationResponse, error)
 	SetStatus(context.Context, *SetStatusRequest) (*SetStatusResponse, error)
+	ListDrones(context.Context, *ListBasesRequest) (*ListBasesResponse, error)
 	mustEmbedUnimplementedTrackingServiceServer()
 }
 
@@ -96,6 +109,9 @@ func (UnimplementedTrackingServiceServer) GetDroneLocation(context.Context, *Get
 }
 func (UnimplementedTrackingServiceServer) SetStatus(context.Context, *SetStatusRequest) (*SetStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetStatus not implemented")
+}
+func (UnimplementedTrackingServiceServer) ListDrones(context.Context, *ListBasesRequest) (*ListBasesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListDrones not implemented")
 }
 func (UnimplementedTrackingServiceServer) mustEmbedUnimplementedTrackingServiceServer() {}
 func (UnimplementedTrackingServiceServer) testEmbeddedByValue()                         {}
@@ -172,6 +188,24 @@ func _TrackingService_SetStatus_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TrackingService_ListDrones_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListBasesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrackingServiceServer).ListDrones(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TrackingService_ListDrones_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrackingServiceServer).ListDrones(ctx, req.(*ListBasesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TrackingService_ServiceDesc is the grpc.ServiceDesc for TrackingService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,6 +224,10 @@ var TrackingService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetStatus",
 			Handler:    _TrackingService_SetStatus_Handler,
+		},
+		{
+			MethodName: "ListDrones",
+			Handler:    _TrackingService_ListDrones_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
