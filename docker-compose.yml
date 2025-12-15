@@ -62,6 +62,8 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
       dispatch-migrate:
         condition: service_completed_successfully
 
@@ -90,6 +92,8 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
 
   telemetry-emulator:
     build:
@@ -101,7 +105,7 @@ services:
       - "passthrough:///telemetry:50050"
       - "-period"
       - "500ms"
-      - "-n"
+      - "-count"
       - "10"
     container_name: HIVE_telemetry-emulator
     restart: unless-stopped
@@ -134,6 +138,10 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      kafka:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
 
   base:
     build:
@@ -162,7 +170,21 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      base-generate:
+        condition: service_completed_successfully
 
+  base-generate:
+    build:
+      context: .
+      dockerfile: services/base/Dockerfile
+      target: generate
+    command:
+      - "-n"
+      - "10"
+    container_name: HIVE_base-generate
+    restart: no
+    env_file:
+      - services/base/config/.env
 
   store:
     build:
@@ -191,6 +213,21 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      store-generate:
+        condition: service_completed_successfully
+
+  store-generate:
+    build:
+      context: .
+      dockerfile: services/store/Dockerfile
+      target: generate
+    command:
+      - "-n"
+      - "10"
+    container_name: HIVE_store-generate
+    restart: no
+    env_file:
+      - services/store/config/.env
 
   postgres:
     image: postgres:15
@@ -236,12 +273,15 @@ services:
 
   kafka:
     image: confluentinc/cp-kafka:7.3.0
+    restart: always
+    container_name: HIVE_kafka
     ports:
       - "9092:9092"
     environment:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     depends_on:
       - zookeeper
     healthcheck:
@@ -249,6 +289,23 @@ services:
       interval: 15s
       timeout: 10s
       retries: 5
+
+  kafka-init:
+    image: confluentinc/cp-kafka:7.3.0
+    container_name: HIVE_kafka-init
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      "
+      echo 'Creating Kafka topics...'
+      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic telemetry-data --partitions 3 --replication-factor 1
+      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic telemetry-events --partitions 3 --replication-factor 1
+      echo 'Topics created successfully'
+      kafka-topics --bootstrap-server kafka:9092 --list
+      "
+    restart: "no"
+    depends_on:
+      kafka:
+        condition: service_healthy
 
 volumes:
   postgres_data:
