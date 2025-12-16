@@ -51,7 +51,6 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to order service: %w", err)
 	}
-	orderConn.Connect()
 	orderClient := grpcOrderClient.NewOrderClient(pbOrder.NewOrderServiceClient(orderConn))
 
 	handler := apiV1.NewHandler(orderClient)
@@ -74,7 +73,7 @@ func (a *App) Run(errChan chan<- error) {
 		zap.String("env", a.cfg.Env),
 	)
 
-	if err := a.e.Start(addr); err != nil && errors.Is(err, http.ErrServerClosed) {
+	if err := a.e.Start(addr); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		errChan <- fmt.Errorf("failed to serve HTTP server: %w", err)
 	}
 }
