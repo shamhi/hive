@@ -5,9 +5,9 @@ import (
 	"fmt"
 	pbCommon "hive/gen/common"
 	pbOrder "hive/gen/order"
-	"hive/services/api/internal/domain/mapping"
-	"hive/services/api/internal/domain/order"
-	"hive/services/api/internal/domain/shared"
+	"hive/services/api-gateway/internal/domain/mapping"
+	"hive/services/api-gateway/internal/domain/order"
+	"hive/services/api-gateway/internal/domain/shared"
 )
 
 type OrderClient struct {

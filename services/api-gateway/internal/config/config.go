@@ -15,7 +15,10 @@ type Config struct {
 	RequestTimeout  time.Duration `env:"REQUEST_TIMEOUT" env-default:"15s"`
 	ShutdownTimeout time.Duration `env:"SHUTDOWN_TIMEOUT" env-default:"5s"`
 
-	OrderAddr string `env:"ORDER_ADDR" env-required:"true"`
+	OrderAddr    string `env:"ORDER_ADDR" env-required:"true"`
+	BaseAddr     string `env:"BASE_ADDR" env-required:"true"`
+	StoreAddr    string `env:"STORE_ADDR" env-required:"true"`
+	TrackingAddr string `env:"TRACKING_ADDR" env-required:"true"`
 }
 
 func Load() (*Config, error) {

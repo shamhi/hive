@@ -9,9 +9,9 @@ RUN go mod download
 
 COPY pkg ./pkg
 COPY gen ./gen
-COPY services/api ./services/api
+COPY services/api-gateway ./services/api-gateway
 
-WORKDIR /app/services/api
+WORKDIR /app/services/api-gateway
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -ldflags="-s -w" \
@@ -27,7 +27,7 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 WORKDIR /app
 
 COPY --from=builder /app/bin/server /app/server
-COPY --from=builder /app/services/api/config /app/config
+COPY --from=builder /app/services/api-gateway/config /app/config
 
 RUN chown -R appuser:appgroup /app
 USER appuser

@@ -2,7 +2,7 @@ package mapping
 
 import (
 	pbOrder "hive/gen/order"
-	"hive/services/api/internal/domain/order"
+	"hive/services/api-gateway/internal/domain/order"
 )
 
 func OrderStatusToProto(status order.OrderStatus) pbOrder.OrderStatus {

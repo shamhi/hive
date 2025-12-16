@@ -1,7 +1,7 @@
 package order
 
 import (
-	"hive/services/api/internal/domain/shared"
+	"hive/services/api-gateway/internal/domain/shared"
 )
 
 type Order struct {

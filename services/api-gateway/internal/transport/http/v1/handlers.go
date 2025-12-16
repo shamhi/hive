@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"hive/services/api/internal/domain/shared"
+	"hive/services/api-gateway/internal/domain/shared"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -9,13 +9,28 @@ import (
 )
 
 type Handler struct {
-	orderClient OrderClient
+	order    OrderClient
+	base     BaseClient
+	store    StoreClient
+	tracking TrackingClient
 }
 
-func NewHandler(orderClient OrderClient) *Handler {
+func NewHandler(
+	order OrderClient,
+	base BaseClient,
+	store StoreClient,
+	tracking TrackingClient,
+) *Handler {
 	return &Handler{
-		orderClient: orderClient,
+		order:    order,
+		base:     base,
+		store:    store,
+		tracking: tracking,
 	}
+}
+
+func (h *Handler) Ping(c echo.Context) error {
+	return c.String(http.StatusOK, "pong")
 }
 
 func (h *Handler) CreateOrder(c echo.Context) error {
@@ -33,7 +48,7 @@ func (h *Handler) CreateOrder(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	orderInfo, err := h.orderClient.CreateOrder(
+	orderInfo, err := h.order.CreateOrder(
 		ctx,
 		req.UserID,
 		req.Items,
@@ -64,7 +79,7 @@ func (h *Handler) GetOrder(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	o, err := h.orderClient.GetOrder(ctx, orderID)
+	o, err := h.order.GetOrder(ctx, orderID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Failed to get order: " + err.Error()})
 	}
@@ -84,6 +99,17 @@ func (h *Handler) GetOrder(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-func (h *Handler) Ping(c echo.Context) error {
-	return c.String(http.StatusOK, "pong")
+func (h *Handler) ListBases(c echo.Context) error {
+	// Implementation goes here
+	return nil
+}
+
+func (h *Handler) ListStores(c echo.Context) error {
+	// Implementation goes here
+	return nil
+}
+
+func (h *Handler) ListDrones(c echo.Context) error {
+	// Implementation goes here
+	return nil
 }

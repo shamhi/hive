@@ -4,12 +4,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	pbBase "hive/gen/base"
 	pbOrder "hive/gen/order"
+	pbStore "hive/gen/store"
+	pbTracking "hive/gen/tracking"
+	"hive/pkg/grpcx"
 	"hive/pkg/logger"
-	"hive/services/api/internal/config"
-	grpcOrderClient "hive/services/api/internal/infrastructure/client/order"
-	"hive/services/api/internal/interceptor"
-	apiV1 "hive/services/api/internal/transport/http/v1"
+	"hive/services/api-gateway/internal/config"
+	grpcBaseClient "hive/services/api-gateway/internal/infrastructure/grpc/base"
+	grpcOrderClient "hive/services/api-gateway/internal/infrastructure/grpc/order"
+	grpcStoreClient "hive/services/api-gateway/internal/infrastructure/grpc/store"
+	grpcTrackingClient "hive/services/api-gateway/internal/infrastructure/grpc/tracking"
+	apiV1 "hive/services/api-gateway/internal/transport/http/v1"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -46,21 +52,74 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	orderConn, err := grpc.NewClient(
 		cfg.OrderAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithUnaryInterceptor(interceptor.TimeoutUnaryClientInterceptor(lg, cfg.RequestTimeout)),
+		grpc.WithUnaryInterceptor(grpcx.UnaryClientResilienceInterceptor(lg, grpcx.ClientResilienceConfig{
+			Name:    "api->order",
+			Timeout: cfg.RequestTimeout,
+		})),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to order service: %w", err)
 	}
 	orderClient := grpcOrderClient.NewOrderClient(pbOrder.NewOrderServiceClient(orderConn))
 
-	handler := apiV1.NewHandler(orderClient)
+	baseConn, err := grpc.NewClient(
+		cfg.BaseAddr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(grpcx.UnaryClientResilienceInterceptor(lg, grpcx.ClientResilienceConfig{
+			Name:    "api->base",
+			Timeout: cfg.RequestTimeout,
+		})),
+	)
+	if err != nil {
+		orderConn.Close()
+		return nil, fmt.Errorf("failed to connect to base service: %w", err)
+	}
+	baseClient := grpcBaseClient.NewBaseClient(pbBase.NewBaseServiceClient(baseConn))
+
+	storeConn, err := grpc.NewClient(
+		cfg.StoreAddr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(grpcx.UnaryClientResilienceInterceptor(lg, grpcx.ClientResilienceConfig{
+			Name:    "api->store",
+			Timeout: cfg.RequestTimeout,
+		})),
+	)
+	if err != nil {
+		orderConn.Close()
+		baseConn.Close()
+		return nil, fmt.Errorf("failed to connect to store service: %w", err)
+	}
+	storeClient := grpcStoreClient.NewStoreClient(pbStore.NewStoreServiceClient(storeConn))
+
+	trackingConn, err := grpc.NewClient(
+		cfg.TrackingAddr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(grpcx.UnaryClientResilienceInterceptor(lg, grpcx.ClientResilienceConfig{
+			Name:    "api->tracking",
+			Timeout: cfg.RequestTimeout,
+		})),
+	)
+	if err != nil {
+		orderConn.Close()
+		baseConn.Close()
+		storeConn.Close()
+		return nil, fmt.Errorf("failed to connect to tracking service: %w", err)
+	}
+	trackingClient := grpcTrackingClient.NewTrackingClient(pbTracking.NewTrackingServiceClient(trackingConn))
+
+	handler := apiV1.NewHandler(
+		orderClient,
+		baseClient,
+		storeClient,
+		trackingClient,
+	)
 	apiV1.RegisterRoutes(e, handler)
 
 	return &App{
 		cfg:       cfg,
 		lg:        lg,
 		e:         e,
-		grpcConns: []*grpc.ClientConn{orderConn},
+		grpcConns: []*grpc.ClientConn{orderConn, baseConn, storeConn, trackingConn},
 	}, nil
 }
 
