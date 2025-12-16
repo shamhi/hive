@@ -1,8 +1,8 @@
 stages:
   - lint
   - test
-  - build
   - test-coverage
+  - build
 
 lint:
   stage: lint
@@ -24,35 +24,115 @@ test:
   allow_failure: false
 
 test-coverage:
-  stage: test
-  image: golang:1.25
+  stage: test-coverage
+  image: golang:1.25-alpine
+  before_script:
+    - apk add --no-cache git bash
+    - go mod download
   script:
-    - go test ./... -coverprofile=cover.profile > /dev/null
-    - COVERAGE=$(go tool cover -func=cover.profile | grep total | awk '{print $3}' | sed 's/%//')
-    - echo "Coverage is $COVERAGE%"
-    - if [ "$(echo "$COVERAGE < 30" | bc)" -eq 1 ]; then exit 1; fi
+    - |
+      set -euo pipefail
 
-#build:docker:
-#  stage: build
-#  image:
-#    name: gcr.io/kaniko-project/executor:v1.23.2-debug
-#    entrypoint: [ "" ]
-#  before_script:
-#    - mkdir -p /kaniko/.docker
-#    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-#  script:
-#    - /kaniko/executor
-#      --context "${CI_PROJECT_DIR}"
-#      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
-#      --target server
-#      --destination "${CI_REGISTRY_IMAGE}/app:${CI_COMMIT_SHORT_SHA}"
-#      --destination "${CI_REGISTRY_IMAGE}/app:latest"
-#
-#    - /kaniko/executor
-#      --context "${CI_PROJECT_DIR}"
-#      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
-#      --target migrate
-#      --destination "${CI_REGISTRY_IMAGE}/migrate:${CI_COMMIT_SHORT_SHA}"
-#      --destination "${CI_REGISTRY_IMAGE}/migrate:latest"
-#  only:
-#    - main
+      THRESHOLD=30
+      # api-gateway исключаем
+      SERVICES=(order dispatch telemetry tracking base store)
+
+      mkdir -p coverage
+
+      for s in "${SERVICES[@]}"; do
+        echo "==> Coverage for service: $s"
+
+        PKGS=$(go list "./services/${s}/..." | tr '\n' ',' | sed 's/,$//')
+        if [ -z "${PKGS}" ]; then
+          echo "No packages found for services/${s}"
+          exit 1
+        fi
+
+        go test "./services/${s}/..." \
+          -covermode=atomic \
+          -coverpkg="${PKGS}" \
+          -coverprofile="coverage/${s}.out"
+
+        COV=$(go tool cover -func="coverage/${s}.out" | awk '/^total:/{gsub(/%/,"",$3); print $3}')
+        echo "Coverage (${s}) = ${COV}%"
+
+        awk -v c="${COV}" -v t="${THRESHOLD}" 'BEGIN{exit (c < t)}' \
+          || (echo "Coverage for ${s} is below ${THRESHOLD}%"; exit 1)
+      done
+
+      echo "All services coverage OK (>= ${THRESHOLD}%)."
+  artifacts:
+    paths:
+      - coverage/
+    expire_in: 7d
+  allow_failure: false
+
+build:docker:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:v1.23.2-debug
+    entrypoint: [ "" ]
+  variables:
+    KANIKO_CACHE_REPO: "${CI_REGISTRY_IMAGE}/kaniko-cache"
+  before_script:
+    - mkdir -p /kaniko/.docker
+    - |
+      AUTH="$(printf '%s:%s' "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')"
+      printf '{"auths":{"%s":{"auth":"%s"}}}\n' "${CI_REGISTRY}" "${AUTH}" > /kaniko/.docker/config.json
+  parallel:
+    matrix:
+      - SERVICE: "api"
+        TARGET: "server"
+      - SERVICE: "order"
+        TARGET: "server"
+      - SERVICE: "order"
+        TARGET: "migrate"
+      - SERVICE: "dispatch"
+        TARGET: "server"
+      - SERVICE: "dispatch"
+        TARGET: "migrate"
+      - SERVICE: "base"
+        TARGET: "server"
+      - SERVICE: "base"
+        TARGET: "migrate"
+      - SERVICE: "base"
+        TARGET: "generate"
+      - SERVICE: "store"
+        TARGET: "server"
+      - SERVICE: "store"
+        TARGET: "migrate"
+      - SERVICE: "store"
+        TARGET: "generate"
+      - SERVICE: "telemetry"
+        TARGET: "server"
+      - SERVICE: "telemetry"
+        TARGET: "emulator"
+      - SERVICE: "tracking"
+        TARGET: "grpc-server"
+      - SERVICE: "tracking"
+        TARGET: "kafka-worker"
+
+  script:
+    - |
+      set -euo pipefail
+
+      DOCKERFILE="${CI_PROJECT_DIR}/services/${SERVICE}/Dockerfile"
+      IMAGE_NAME="${CI_REGISTRY_IMAGE}/${SERVICE}-${TARGET}"
+      TAG="${CI_COMMIT_SHORT_SHA}"
+
+      DEST_ARGS="--destination ${IMAGE_NAME}:${TAG}"
+
+      if [ "${CI_COMMIT_BRANCH:-}" = "main" ]; then
+        DEST_ARGS="${DEST_ARGS} --destination ${IMAGE_NAME}:latest"
+      fi
+
+      /kaniko/executor \
+        --context "${CI_PROJECT_DIR}" \
+        --dockerfile "${DOCKERFILE}" \
+        --target "${TARGET}" \
+        --cache=true \
+        --cache-repo "${KANIKO_CACHE_REPO}" \
+        ${DEST_ARGS}
+  rules:
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_TAG
