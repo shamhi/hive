@@ -30,3 +30,33 @@ type GetOrderResponse struct {
 type ErrorResponse struct {
 	Error string `json:"error"`
 }
+
+type BaseDTO struct {
+	BaseID   string   `json:"base_id"`
+	Name     string   `json:"name"`
+	Address  string   `json:"address"`
+	Location Location `json:"location"`
+}
+type StoreDTO struct {
+	StoreID  string   `json:"store_id"`
+	Name     string   `json:"name"`
+	Address  string   `json:"address"`
+	Location Location `json:"location"`
+}
+type DroneDTO struct {
+	DroneID             string   `json:"drone_id"`
+	Location            Location `json:"location"`
+	Battery             float64  `json:"battery"`
+	SpeedMps            float64  `json:"speed_mps"`
+	ConsumptionPerMeter float64  `json:"consumption_per_meter"`
+}
+type ListBasesResponse struct {
+	Bases []BaseDTO `json:"bases"`
+}
+type ListStoresResponse struct {
+	Stores []StoreDTO `json:"stores"`
+}
+
+type ListDroneResponse struct {
+	Drones []DroneDTO `json:"drones"`
+}

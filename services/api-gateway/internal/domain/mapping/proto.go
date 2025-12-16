@@ -1,8 +1,16 @@
 package mapping
 
 import (
+	pbBase "hive/gen/base"
+	pbCommon "hive/gen/common"
 	pbOrder "hive/gen/order"
+	pbStore "hive/gen/store"
+	pbTelemetry "hive/gen/telemetry"
+	"hive/services/api-gateway/internal/domain/base"
+	"hive/services/api-gateway/internal/domain/drone"
 	"hive/services/api-gateway/internal/domain/order"
+	"hive/services/api-gateway/internal/domain/shared"
+	"hive/services/api-gateway/internal/domain/store"
 )
 
 func OrderStatusToProto(status order.OrderStatus) pbOrder.OrderStatus {
@@ -37,4 +45,50 @@ func OrderStatusFromProto(status pbOrder.OrderStatus) (order.OrderStatus, bool) 
 	default:
 		return "", false
 	}
+}
+
+func BaseFromProto(b *pbBase.Base) (*base.Base, bool) {
+	if b == nil {
+		return nil, false
+	}
+	return &base.Base{
+		ID:       b.BaseId,
+		Name:     b.Name,
+		Address:  b.Address,
+		Location: *LocationFromProto(b.Location),
+	}, true
+}
+func LocationFromProto(loc *pbCommon.Location) *shared.Location {
+	if loc == nil {
+		return nil
+	}
+	return &shared.Location{
+		Lat: loc.Lat,
+		Lon: loc.Lon,
+	}
+}
+
+func StoreFromProto(s *pbStore.Store) (*store.Store, bool) {
+	if s == nil {
+		return nil, false
+	}
+	return &store.Store{
+		ID:       s.StoreId,
+		Name:     s.Name,
+		Address:  s.Address,
+		Location: *LocationFromProto(s.Location),
+	}, true
+}
+
+func DroneFromProto(d *pbTelemetry.Drone) (*drone.Drone, bool) {
+	if d == nil {
+		return nil, false
+	}
+	return &drone.Drone{
+		ID:                  d.DroneId,
+		Location:            *LocationFromProto(d.DroneLocation),
+		Battery:             d.Battery,
+		SpeedMps:            d.SpeedMps,
+		ConsumptionPerMeter: d.ConsumptionPerMeter,
+	}, true
 }
