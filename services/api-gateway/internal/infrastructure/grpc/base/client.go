@@ -2,8 +2,10 @@ package base
 
 import (
 	"context"
+	"fmt"
 	pbBase "hive/gen/base"
 	"hive/services/api-gateway/internal/domain/base"
+	"hive/services/api-gateway/internal/domain/mapping"
 )
 
 type BaseClient struct {
@@ -20,5 +22,22 @@ func (c *BaseClient) ListBases(
 	ctx context.Context,
 	offset, limit int64,
 ) ([]*base.Base, error) {
-	return []*base.Base{}, nil
+	req := &pbBase.ListBasesRequest{
+		Offset: offset,
+		Limit:  limit,
+	}
+	resp, err := c.client.ListBases(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("ListBases: %w", err)
+	}
+	pbBases := resp.GetBases()
+	bases := make([]*base.Base, 0, len(pbBases))
+	for _, pbB := range pbBases {
+		b, ok := mapping.BaseFromProto(pbB)
+		if !ok {
+			continue
+		}
+		bases = append(bases, b)
+	}
+	return bases, nil
 }

@@ -9,4 +9,7 @@ func RegisterRoutes(e *echo.Echo, handler *Handler) {
 
 	api.POST("/orders", handler.CreateOrder)
 	api.GET("/orders/:id", handler.GetOrder)
+	api.GET("/bases", handler.ListBases)
+	api.GET("/stores", handler.ListStores)
+	api.GET("/drones", handler.ListDrones)
 }
