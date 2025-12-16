@@ -427,7 +427,7 @@ func (x *SetStatusResponse) GetSuccess() bool {
 	return false
 }
 
-type ListBasesRequest struct {
+type ListDronesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Offset        int32                  `protobuf:"varint,1,opt,name=offset,proto3" json:"offset,omitempty"`
 	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
@@ -435,20 +435,20 @@ type ListBasesRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ListBasesRequest) Reset() {
-	*x = ListBasesRequest{}
+func (x *ListDronesRequest) Reset() {
+	*x = ListDronesRequest{}
 	mi := &file_tracking_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ListBasesRequest) String() string {
+func (x *ListDronesRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ListBasesRequest) ProtoMessage() {}
+func (*ListDronesRequest) ProtoMessage() {}
 
-func (x *ListBasesRequest) ProtoReflect() protoreflect.Message {
+func (x *ListDronesRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_tracking_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -460,46 +460,46 @@ func (x *ListBasesRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ListBasesRequest.ProtoReflect.Descriptor instead.
-func (*ListBasesRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListDronesRequest.ProtoReflect.Descriptor instead.
+func (*ListDronesRequest) Descriptor() ([]byte, []int) {
 	return file_tracking_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *ListBasesRequest) GetOffset() int32 {
+func (x *ListDronesRequest) GetOffset() int32 {
 	if x != nil {
 		return x.Offset
 	}
 	return 0
 }
 
-func (x *ListBasesRequest) GetLimit() int32 {
+func (x *ListDronesRequest) GetLimit() int32 {
 	if x != nil {
 		return x.Limit
 	}
 	return 0
 }
 
-type ListBasesResponse struct {
+type ListDronesResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Drones        []*Drone               `protobuf:"bytes,1,rep,name=drones,proto3" json:"drones,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ListBasesResponse) Reset() {
-	*x = ListBasesResponse{}
+func (x *ListDronesResponse) Reset() {
+	*x = ListDronesResponse{}
 	mi := &file_tracking_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ListBasesResponse) String() string {
+func (x *ListDronesResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ListBasesResponse) ProtoMessage() {}
+func (*ListDronesResponse) ProtoMessage() {}
 
-func (x *ListBasesResponse) ProtoReflect() protoreflect.Message {
+func (x *ListDronesResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_tracking_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -511,12 +511,12 @@ func (x *ListBasesResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ListBasesResponse.ProtoReflect.Descriptor instead.
-func (*ListBasesResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListDronesResponse.ProtoReflect.Descriptor instead.
+func (*ListDronesResponse) Descriptor() ([]byte, []int) {
 	return file_tracking_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *ListBasesResponse) GetDrones() []*Drone {
+func (x *ListDronesResponse) GetDrones() []*Drone {
 	if x != nil {
 		return x.Drones
 	}
@@ -554,18 +554,18 @@ const file_tracking_proto_rawDesc = "" +
 	"\bdrone_id\x18\x01 \x01(\tR\adroneId\x12.\n" +
 	"\x06status\x18\x02 \x01(\x0e2\x16.telemetry.DroneStatusR\x06status\"-\n" +
 	"\x11SetStatusResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\"@\n" +
-	"\x10ListBasesRequest\x12\x16\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"A\n" +
+	"\x11ListDronesRequest\x12\x16\n" +
 	"\x06offset\x18\x01 \x01(\x05R\x06offset\x12\x14\n" +
-	"\x05limit\x18\x02 \x01(\x05R\x05limit\"<\n" +
-	"\x11ListBasesResponse\x12'\n" +
-	"\x06drones\x18\x01 \x03(\v2\x0f.tracking.DroneR\x06drones2\xc5\x02\n" +
+	"\x05limit\x18\x02 \x01(\x05R\x05limit\"=\n" +
+	"\x12ListDronesResponse\x12'\n" +
+	"\x06drones\x18\x01 \x03(\v2\x0f.tracking.DroneR\x06drones2\xc7\x02\n" +
 	"\x0fTrackingService\x12J\n" +
 	"\vFindNearest\x12\x1c.tracking.FindNearestRequest\x1a\x1d.tracking.FindNearestResponse\x12Y\n" +
 	"\x10GetDroneLocation\x12!.tracking.GetDroneLocationRequest\x1a\".tracking.GetDroneLocationResponse\x12D\n" +
-	"\tSetStatus\x12\x1a.tracking.SetStatusRequest\x1a\x1b.tracking.SetStatusResponse\x12E\n" +
+	"\tSetStatus\x12\x1a.tracking.SetStatusRequest\x1a\x1b.tracking.SetStatusResponse\x12G\n" +
 	"\n" +
-	"ListDrones\x12\x1a.tracking.ListBasesRequest\x1a\x1b.tracking.ListBasesResponseB\x13Z\x11hive/gen/trackingb\x06proto3"
+	"ListDrones\x12\x1b.tracking.ListDronesRequest\x1a\x1c.tracking.ListDronesResponseB\x13Z\x11hive/gen/trackingb\x06proto3"
 
 var (
 	file_tracking_proto_rawDescOnce sync.Once
@@ -588,8 +588,8 @@ var file_tracking_proto_goTypes = []any{
 	(*GetDroneLocationResponse)(nil), // 4: tracking.GetDroneLocationResponse
 	(*SetStatusRequest)(nil),         // 5: tracking.SetStatusRequest
 	(*SetStatusResponse)(nil),        // 6: tracking.SetStatusResponse
-	(*ListBasesRequest)(nil),         // 7: tracking.ListBasesRequest
-	(*ListBasesResponse)(nil),        // 8: tracking.ListBasesResponse
+	(*ListDronesRequest)(nil),        // 7: tracking.ListDronesRequest
+	(*ListDronesResponse)(nil),       // 8: tracking.ListDronesResponse
 	(*common.Location)(nil),          // 9: common.Location
 	(telemetry.DroneStatus)(0),       // 10: telemetry.DroneStatus
 }
@@ -598,15 +598,15 @@ var file_tracking_proto_depIdxs = []int32{
 	9,  // 1: tracking.FindNearestRequest.store_location:type_name -> common.Location
 	9,  // 2: tracking.GetDroneLocationResponse.location:type_name -> common.Location
 	10, // 3: tracking.SetStatusRequest.status:type_name -> telemetry.DroneStatus
-	0,  // 4: tracking.ListBasesResponse.drones:type_name -> tracking.Drone
+	0,  // 4: tracking.ListDronesResponse.drones:type_name -> tracking.Drone
 	1,  // 5: tracking.TrackingService.FindNearest:input_type -> tracking.FindNearestRequest
 	3,  // 6: tracking.TrackingService.GetDroneLocation:input_type -> tracking.GetDroneLocationRequest
 	5,  // 7: tracking.TrackingService.SetStatus:input_type -> tracking.SetStatusRequest
-	7,  // 8: tracking.TrackingService.ListDrones:input_type -> tracking.ListBasesRequest
+	7,  // 8: tracking.TrackingService.ListDrones:input_type -> tracking.ListDronesRequest
 	2,  // 9: tracking.TrackingService.FindNearest:output_type -> tracking.FindNearestResponse
 	4,  // 10: tracking.TrackingService.GetDroneLocation:output_type -> tracking.GetDroneLocationResponse
 	6,  // 11: tracking.TrackingService.SetStatus:output_type -> tracking.SetStatusResponse
-	8,  // 12: tracking.TrackingService.ListDrones:output_type -> tracking.ListBasesResponse
+	8,  // 12: tracking.TrackingService.ListDrones:output_type -> tracking.ListDronesResponse
 	9,  // [9:13] is the sub-list for method output_type
 	5,  // [5:9] is the sub-list for method input_type
 	5,  // [5:5] is the sub-list for extension type_name

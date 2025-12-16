@@ -10,7 +10,7 @@ service TrackingService {
   rpc FindNearest(FindNearestRequest) returns (FindNearestResponse);
   rpc GetDroneLocation(GetDroneLocationRequest) returns (GetDroneLocationResponse);
   rpc SetStatus(SetStatusRequest) returns (SetStatusResponse);
-  rpc ListDrones(ListBasesRequest) returns (ListBasesResponse);
+  rpc ListDrones(ListDronesRequest) returns (ListDronesResponse);
 }
 
 message Drone {
@@ -53,11 +53,11 @@ message SetStatusResponse {
   bool success = 1;
 }
 
-message ListBasesRequest {
+message ListDronesRequest {
   int32 offset = 1;
   int32 limit = 2;
 }
 
-message ListBasesResponse {
+message ListDronesResponse {
   repeated Drone drones = 1;
 }

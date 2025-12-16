@@ -32,7 +32,7 @@ type TrackingServiceClient interface {
 	FindNearest(ctx context.Context, in *FindNearestRequest, opts ...grpc.CallOption) (*FindNearestResponse, error)
 	GetDroneLocation(ctx context.Context, in *GetDroneLocationRequest, opts ...grpc.CallOption) (*GetDroneLocationResponse, error)
 	SetStatus(ctx context.Context, in *SetStatusRequest, opts ...grpc.CallOption) (*SetStatusResponse, error)
-	ListDrones(ctx context.Context, in *ListBasesRequest, opts ...grpc.CallOption) (*ListBasesResponse, error)
+	ListDrones(ctx context.Context, in *ListDronesRequest, opts ...grpc.CallOption) (*ListDronesResponse, error)
 }
 
 type trackingServiceClient struct {
@@ -73,9 +73,9 @@ func (c *trackingServiceClient) SetStatus(ctx context.Context, in *SetStatusRequ
 	return out, nil
 }
 
-func (c *trackingServiceClient) ListDrones(ctx context.Context, in *ListBasesRequest, opts ...grpc.CallOption) (*ListBasesResponse, error) {
+func (c *trackingServiceClient) ListDrones(ctx context.Context, in *ListDronesRequest, opts ...grpc.CallOption) (*ListDronesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListBasesResponse)
+	out := new(ListDronesResponse)
 	err := c.cc.Invoke(ctx, TrackingService_ListDrones_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -90,7 +90,7 @@ type TrackingServiceServer interface {
 	FindNearest(context.Context, *FindNearestRequest) (*FindNearestResponse, error)
 	GetDroneLocation(context.Context, *GetDroneLocationRequest) (*GetDroneLocationResponse, error)
 	SetStatus(context.Context, *SetStatusRequest) (*SetStatusResponse, error)
-	ListDrones(context.Context, *ListBasesRequest) (*ListBasesResponse, error)
+	ListDrones(context.Context, *ListDronesRequest) (*ListDronesResponse, error)
 	mustEmbedUnimplementedTrackingServiceServer()
 }
 
@@ -110,7 +110,7 @@ func (UnimplementedTrackingServiceServer) GetDroneLocation(context.Context, *Get
 func (UnimplementedTrackingServiceServer) SetStatus(context.Context, *SetStatusRequest) (*SetStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetStatus not implemented")
 }
-func (UnimplementedTrackingServiceServer) ListDrones(context.Context, *ListBasesRequest) (*ListBasesResponse, error) {
+func (UnimplementedTrackingServiceServer) ListDrones(context.Context, *ListDronesRequest) (*ListDronesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListDrones not implemented")
 }
 func (UnimplementedTrackingServiceServer) mustEmbedUnimplementedTrackingServiceServer() {}
@@ -189,7 +189,7 @@ func _TrackingService_SetStatus_Handler(srv interface{}, ctx context.Context, de
 }
 
 func _TrackingService_ListDrones_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListBasesRequest)
+	in := new(ListDronesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -201,7 +201,7 @@ func _TrackingService_ListDrones_Handler(srv interface{}, ctx context.Context, d
 		FullMethod: TrackingService_ListDrones_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TrackingServiceServer).ListDrones(ctx, req.(*ListBasesRequest))
+		return srv.(TrackingServiceServer).ListDrones(ctx, req.(*ListDronesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
