@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func init() { rand.NewSource(time.Now().UnixNano()) }
+func init() { rand.Seed(time.Now().UnixNano()) }
 
 type RetryConfig struct {
 	MaxAttempts int           // включая первую попытку

@@ -220,12 +220,10 @@ func capDeadline(ctx context.Context, maxTimeout time.Duration) (context.Context
 	if maxTimeout <= 0 {
 		return ctx, func() {}
 	}
-	dl, ok := ctx.Deadline()
-	if !ok {
-		return ctx, func() {}
-	}
-	if time.Until(dl) <= maxTimeout {
-		return ctx, func() {}
+	if dl, ok := ctx.Deadline(); ok {
+		if time.Until(dl) <= maxTimeout {
+			return ctx, func() {}
+		}
 	}
 	return context.WithTimeout(ctx, maxTimeout)
 }
