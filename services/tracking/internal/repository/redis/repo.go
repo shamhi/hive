@@ -7,6 +7,7 @@ import (
 	"hive/services/tracking/internal/domain/drone"
 	"hive/services/tracking/internal/domain/shared"
 	"hive/services/tracking/internal/service"
+	"sort"
 	"strconv"
 
 	"github.com/redis/go-redis/v9"
@@ -113,23 +114,39 @@ func (r *RedisRepo) GetByID(ctx context.Context, droneID string) (*drone.Drone, 
 }
 
 func (r *RedisRepo) List(ctx context.Context, offset, limit int64) ([]*drone.Drone, error) {
-	start := offset
-	stop := offset + limit - 1
+	if limit <= 0 {
+		return []*drone.Drone{}, nil
+	}
+	if offset < 0 {
+		offset = 0
+	}
 
-	ids, err := r.rdb.Client.ZRange(ctx, AllDronesKey, start, stop).Result()
+	ids, err := r.rdb.Client.SMembers(ctx, AllDronesKey).Result()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get drone ids: %w", err)
 	}
-
 	if len(ids) == 0 {
 		return []*drone.Drone{}, nil
 	}
 
-	pipe := r.rdb.Client.Pipeline()
-	hCmd := make([]*redis.MapStringStringCmd, 0, len(ids))
-	gCmd := make([]*redis.GeoPosCmd, 0, len(ids))
+	sort.Strings(ids)
 
-	for _, id := range ids {
+	if offset >= int64(len(ids)) {
+		return []*drone.Drone{}, nil
+	}
+
+	end := offset + limit
+	if end > int64(len(ids)) {
+		end = int64(len(ids))
+	}
+
+	pageIDs := ids[offset:end]
+
+	pipe := r.rdb.Client.Pipeline()
+	hCmd := make([]*redis.MapStringStringCmd, 0, len(pageIDs))
+	gCmd := make([]*redis.GeoPosCmd, 0, len(pageIDs))
+
+	for _, id := range pageIDs {
 		hCmd = append(hCmd, pipe.HGetAll(ctx, DroneDataKey+id))
 		gCmd = append(gCmd, pipe.GeoPos(ctx, DroneGeoKey, id))
 	}
@@ -138,13 +155,12 @@ func (r *RedisRepo) List(ctx context.Context, offset, limit int64) ([]*drone.Dro
 		return nil, fmt.Errorf("failed to fetch drones data: %w", err)
 	}
 
-	drones := make([]*drone.Drone, 0, len(ids))
-	for i, id := range ids {
+	drones := make([]*drone.Drone, 0, len(pageIDs))
+	for i, id := range pageIDs {
 		data, err := hCmd[i].Result()
 		if err != nil {
 			return nil, fmt.Errorf("failed to get drone data: %w", err)
 		}
-
 		if len(data) == 0 {
 			continue
 		}

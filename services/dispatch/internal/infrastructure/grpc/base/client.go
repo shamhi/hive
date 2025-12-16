@@ -32,11 +32,10 @@ func (c *BaseClient) FindNearest(ctx context.Context, deliveryLocation *shared.L
 	if !resp.GetFound() {
 		return nil, fmt.Errorf("no base found")
 	}
-
 	if resp.GetBaseId() == "" {
 		return nil, fmt.Errorf("no base found")
 	}
-	if resp.GetDistanceMeters() <= 0 {
+	if resp.GetDistanceMeters() < 0 {
 		return nil, fmt.Errorf("invalid distance returned for nearest base")
 	}
 

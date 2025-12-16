@@ -100,7 +100,9 @@ func (s *Service) SetStatus(ctx context.Context, req *pb.SetStatusRequest) (*pb.
 
 func (s *Service) ListDrones(ctx context.Context, req *pb.ListDronesRequest) (*pb.ListDronesResponse, error) {
 	if req.GetLimit() <= 0 {
-		return nil, status.Errorf(codes.InvalidArgument, "limit must be greater than zero")
+		return &pb.ListDronesResponse{
+			Drones: []*pbTelemetry.Drone{},
+		}, nil
 	}
 
 	drones, err := s.repo.List(ctx, req.GetOffset(), req.GetLimit())

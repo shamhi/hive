@@ -60,7 +60,7 @@ func (s *BaseService) ListBases(
 	offset, limit int64,
 ) ([]*base.Base, error) {
 	if limit <= 0 {
-		return nil, fmt.Errorf("limit must be greater than zero")
+		return []*base.Base{}, nil
 	}
 
 	bases, err := s.repo.List(ctx, offset, limit)

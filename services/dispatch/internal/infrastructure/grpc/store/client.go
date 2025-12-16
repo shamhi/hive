@@ -32,11 +32,10 @@ func (c *StoreClient) FindNearest(ctx context.Context, deliveryLocation *shared.
 	if !resp.GetFound() {
 		return nil, fmt.Errorf("no store found")
 	}
-
 	if resp.GetStoreId() == "" {
 		return nil, fmt.Errorf("no store found")
 	}
-	if resp.GetDistanceMeters() <= 0 {
+	if resp.GetDistanceMeters() < 0 {
 		return nil, fmt.Errorf("invalid distance returned for nearest store")
 	}
 

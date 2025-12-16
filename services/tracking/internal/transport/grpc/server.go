@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 	trackingGen "hive/gen/tracking"
+	"hive/pkg/grpcx"
 	"hive/pkg/logger"
 	"hive/services/tracking/internal/config"
-	"hive/services/tracking/internal/interceptor"
 	"hive/services/tracking/internal/service"
 	"net"
+	"time"
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -28,10 +29,7 @@ func New(cfg *config.ServerConfig, lg logger.Logger, repo service.DroneRepositor
 	}
 
 	grpcServer := grpc.NewServer(
-		grpc.ChainUnaryInterceptor(
-			interceptor.LoggingUnaryServerInterceptor(lg),
-		),
-	)
+		grpc.UnaryInterceptor(grpcx.UnaryServerLoggingTimeoutInterceptor(lg, 10*time.Second)))
 
 	trackingService := service.New(repo)
 	trackingGen.RegisterTrackingServiceServer(grpcServer, trackingService)

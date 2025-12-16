@@ -72,7 +72,9 @@ func (s *Server) GetBaseLocation(ctx context.Context, req *pb.GetBaseLocationReq
 
 func (s *Server) ListBases(ctx context.Context, req *pb.ListBasesRequest) (*pb.ListBasesResponse, error) {
 	if req.GetLimit() <= 0 {
-		return nil, status.Error(codes.InvalidArgument, "limit must be greater than zero")
+		return &pb.ListBasesResponse{
+			Bases: []*pb.Base{},
+		}, nil
 	}
 
 	bases, err := s.svc.ListBases(ctx, req.GetOffset(), req.GetLimit())

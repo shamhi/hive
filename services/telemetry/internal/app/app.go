@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 	pb "hive/gen/telemetry"
+	"hive/pkg/grpcx"
 	"hive/pkg/kafka"
 	"hive/pkg/logger"
 	"hive/services/telemetry/internal/config"
-	"hive/services/telemetry/internal/interceptor"
 	"hive/services/telemetry/internal/service"
 	transportGrpc "hive/services/telemetry/internal/transport/grpc"
 	"net"
+	"time"
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -44,9 +45,8 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	}
 
 	grpcServer := grpc.NewServer(
-		grpc.ChainStreamInterceptor(
-			interceptor.LoggingStreamServerInterceptor(lg),
-		),
+		grpc.ChainUnaryInterceptor(grpcx.UnaryServerLoggingTimeoutInterceptor(lg, 10*time.Second)),
+		grpc.ChainStreamInterceptor(grpcx.LoggingTimeoutStreamServerInterceptor(lg, 10*time.Minute)),
 	)
 	telemetryServer := transportGrpc.NewServer(telemetryService)
 	pb.RegisterTelemetryServiceServer(grpcServer, telemetryServer)

@@ -5,13 +5,14 @@ import (
 	"fmt"
 	pb "hive/gen/base"
 	"hive/pkg/db/redis"
+	"hive/pkg/grpcx"
 	"hive/pkg/logger"
 	"hive/services/base/internal/config"
-	"hive/services/base/internal/interceptor"
 	repoRedis "hive/services/base/internal/repository/redis"
 	"hive/services/base/internal/service"
 	transportGrpc "hive/services/base/internal/transport/grpc"
 	"net"
+	"time"
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -43,9 +44,7 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	}
 
 	grpcServer := grpc.NewServer(
-		grpc.ChainUnaryInterceptor(
-			interceptor.LoggingUnaryServerInterceptor(lg),
-		),
+		grpc.UnaryInterceptor(grpcx.UnaryServerLoggingTimeoutInterceptor(lg, 10*time.Second)),
 	)
 	baseServer := transportGrpc.NewServer(
 		baseService,

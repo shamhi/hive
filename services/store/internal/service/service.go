@@ -60,7 +60,7 @@ func (s *StoreService) ListStores(
 	offset, limit int64,
 ) ([]*store.Store, error) {
 	if limit <= 0 {
-		return nil, fmt.Errorf("limit must be greater than zero")
+		return []*store.Store{}, nil
 	}
 
 	stores, err := s.repo.List(ctx, offset, limit)

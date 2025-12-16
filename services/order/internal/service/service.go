@@ -52,21 +52,25 @@ func (s *OrderService) CreateOrder(
 		return nil, fmt.Errorf("failed to save order: %w", err)
 	}
 
-	assignmentInfo, err := s.dispatch.AssignDrone(ctx, o.ID, &o.Location)
+	assign, err := s.dispatch.AssignDrone(ctx, o.ID, &o.Location)
 	if err != nil {
-		_ = s.repo.UpdateStatus(ctx, o.ID, order.OrderStatusFailed)
-		return nil, fmt.Errorf("assign drone failed: %w", err)
+		return &order.OrderInfo{
+			ID:         o.ID,
+			Status:     order.OrderStatusPending,
+			DroneID:    "",
+			EtaSeconds: 0,
+		}, nil
 	}
 
-	if err := s.repo.UpdateDroneAndStatus(ctx, o.ID, assignmentInfo.DroneID, order.OrderStatusAssigned); err != nil {
+	if err := s.repo.UpdateDroneAndStatus(ctx, o.ID, assign.DroneID, order.OrderStatusAssigned); err != nil {
 		return nil, fmt.Errorf("failed to update order with drone ID: %w", err)
 	}
 
 	return &order.OrderInfo{
 		ID:         o.ID,
 		Status:     order.OrderStatusAssigned,
-		DroneID:    assignmentInfo.DroneID,
-		EtaSeconds: assignmentInfo.EtaSeconds,
+		DroneID:    assign.DroneID,
+		EtaSeconds: assign.EtaSeconds,
 	}, nil
 }
 

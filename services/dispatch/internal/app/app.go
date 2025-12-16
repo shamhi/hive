@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 	pbBase "hive/gen/base"
+	"hive/pkg/grpcx"
 	grpcStoreClient "hive/services/dispatch/internal/infrastructure/grpc/store"
-	"hive/services/dispatch/internal/interceptor"
+	"time"
 
 	pb "hive/gen/dispatch"
 	pbOrder "hive/gen/order"
@@ -54,7 +55,10 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	orderConn, err := grpc.NewClient(
 		cfg.OrderAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithUnaryInterceptor(interceptor.TimeoutUnaryClientInterceptor(lg, cfg.RequestTimeout)),
+		grpc.WithUnaryInterceptor(grpcx.UnaryClientResilienceInterceptor(lg, grpcx.ClientResilienceConfig{
+			Name:    "dispatch->order",
+			Timeout: cfg.RequestTimeout,
+		})),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to order service: %w", err)
@@ -64,7 +68,10 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	storeConn, err := grpc.NewClient(
 		cfg.StoreAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithUnaryInterceptor(interceptor.TimeoutUnaryClientInterceptor(lg, cfg.RequestTimeout)),
+		grpc.WithUnaryInterceptor(grpcx.UnaryClientResilienceInterceptor(lg, grpcx.ClientResilienceConfig{
+			Name:    "dispatch->store",
+			Timeout: cfg.RequestTimeout,
+		})),
 	)
 	if err != nil {
 		orderConn.Close()
@@ -75,7 +82,10 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	baseConn, err := grpc.NewClient(
 		cfg.BaseAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithUnaryInterceptor(interceptor.TimeoutUnaryClientInterceptor(lg, cfg.RequestTimeout)),
+		grpc.WithUnaryInterceptor(grpcx.UnaryClientResilienceInterceptor(lg, grpcx.ClientResilienceConfig{
+			Name:    "dispatch->base",
+			Timeout: cfg.RequestTimeout,
+		})),
 	)
 	if err != nil {
 		orderConn.Close()
@@ -87,7 +97,10 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	trackingConn, err := grpc.NewClient(
 		cfg.TrackingAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithUnaryInterceptor(interceptor.TimeoutUnaryClientInterceptor(lg, cfg.RequestTimeout)),
+		grpc.WithUnaryInterceptor(grpcx.UnaryClientResilienceInterceptor(lg, grpcx.ClientResilienceConfig{
+			Name:    "dispatch->tracking",
+			Timeout: cfg.RequestTimeout,
+		})),
 	)
 	if err != nil {
 		orderConn.Close()
@@ -100,7 +113,10 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	telemetryConn, err := grpc.NewClient(
 		cfg.TelemetryAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithUnaryInterceptor(interceptor.TimeoutUnaryClientInterceptor(lg, cfg.RequestTimeout)),
+		grpc.WithUnaryInterceptor(grpcx.UnaryClientResilienceInterceptor(lg, grpcx.ClientResilienceConfig{
+			Name:    "dispatch->telemetry",
+			Timeout: cfg.RequestTimeout,
+		})),
 	)
 	if err != nil {
 		orderConn.Close()
@@ -134,9 +150,7 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	}
 
 	grpcServer := grpc.NewServer(
-		grpc.ChainUnaryInterceptor(
-			interceptor.LoggingUnaryServerInterceptor(lg),
-		),
+		grpc.UnaryInterceptor(grpcx.UnaryServerLoggingTimeoutInterceptor(lg, 10*time.Second)),
 	)
 	dispatchServer := transportGrpc.NewServer(
 		dispatchService,

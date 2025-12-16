@@ -40,11 +40,10 @@ func (c *TrackingClient) FindNearest(
 	if !resp.GetFound() {
 		return nil, fmt.Errorf("no available drone found")
 	}
-
 	if resp.GetDroneId() == "" {
 		return nil, fmt.Errorf("no available drone found")
 	}
-	if resp.GetDistanceMeters() <= 0 {
+	if resp.GetDistanceMeters() < 0 {
 		return nil, fmt.Errorf("invalid distance returned for nearest drone")
 	}
 

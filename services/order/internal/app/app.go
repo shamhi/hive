@@ -6,14 +6,15 @@ import (
 	pbDispatch "hive/gen/dispatch"
 	pbOrder "hive/gen/order"
 	pg "hive/pkg/db/postgres"
+	"hive/pkg/grpcx"
 	"hive/pkg/logger"
 	"hive/services/order/internal/config"
-	grpcDispatchClient "hive/services/order/internal/infrastructure/client/dispatch"
-	"hive/services/order/internal/interceptor"
+	grpcDispatchClient "hive/services/order/internal/infrastructure/grpc/dispatch"
 	repoPostgres "hive/services/order/internal/repository/postgres"
 	"hive/services/order/internal/service"
 	transportGrpc "hive/services/order/internal/transport/grpc"
 	"net"
+	"time"
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -40,7 +41,10 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	dispatchConn, err := grpc.NewClient(
 		cfg.DispatchAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithUnaryInterceptor(interceptor.TimeoutUnaryClientInterceptor(lg, cfg.RequestTimeout)),
+		grpc.WithUnaryInterceptor(grpcx.UnaryClientResilienceInterceptor(lg, grpcx.ClientResilienceConfig{
+			Name:    "order->dispatch",
+			Timeout: cfg.RequestTimeout,
+		})),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to dispatch service: %w", err)
@@ -58,9 +62,7 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	}
 
 	grpcServer := grpc.NewServer(
-		grpc.ChainUnaryInterceptor(
-			interceptor.LoggingUnaryServerInterceptor(lg),
-		),
+		grpc.UnaryInterceptor(grpcx.UnaryServerLoggingTimeoutInterceptor(lg, 10*time.Second)),
 	)
 	orderServer := transportGrpc.NewServer(orderService)
 	pbOrder.RegisterOrderServiceServer(grpcServer, orderServer)

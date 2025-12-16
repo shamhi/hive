@@ -2,15 +2,42 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"hive/pkg/resilience"
 	"hive/services/dispatch/internal/domain/assignment"
 	"hive/services/dispatch/internal/domain/drone"
 	"hive/services/dispatch/internal/domain/order"
 	"hive/services/dispatch/internal/domain/shared"
+	"net"
 	"time"
 
 	"github.com/google/uuid"
 )
+
+var retryCfg = resilience.RetryConfig{
+	MaxAttempts: 4,
+	BaseDelay:   80 * time.Millisecond,
+	MaxDelay:    800 * time.Millisecond,
+	Jitter:      0.2,
+}
+
+func shouldRetryDefault(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+		return false
+	}
+
+	var ne net.Error
+	if errors.As(err, &ne) {
+		return true
+	}
+
+	return true
+}
 
 type DispatchService struct {
 	repo      AssignmentRepository
@@ -114,10 +141,6 @@ func (s *DispatchService) AssignDrone(
 		return nil, cause
 	}
 
-	if err := s.order.UpdateStatus(ctx, orderID, order.OrderStatusAssigned); err != nil {
-		return fail(fmt.Errorf("failed to update order status: %w", err))
-	}
-
 	if err := s.tracking.SetStatus(ctx, droneID, drone.DroneStatusBusy); err != nil {
 		return fail(fmt.Errorf("failed to set drone status: %w", err))
 	}
@@ -160,30 +183,56 @@ func (s *DispatchService) GetAssignment(
 
 func (s *DispatchService) HandleTelemetryEvent(ctx context.Context, event drone.TelemetryEvent) error {
 	if event.Event == drone.DroneEventFullyCharged {
-		if err := s.tracking.SetStatus(ctx, event.DroneID, drone.DroneStatusFree); err != nil {
-			return fmt.Errorf("failed to set drone status to FREE: %w", err)
+		if err := resilience.Retry(ctx, retryCfg, shouldRetryDefault, func(ctx context.Context) error {
+			return s.tracking.SetStatus(ctx, event.DroneID, drone.DroneStatusFree)
+		}); err != nil {
+			return fmt.Errorf("failed to set drone status to FREE after retries: %w", err)
 		}
-
 		return nil
 	}
 
 	a, err := s.repo.GetByDroneID(ctx, event.DroneID)
 	if err != nil {
+		if errors.Is(err, ErrAssignmentNotFound) {
+			return nil
+		}
 		return fmt.Errorf("failed to get assignment by drone ID %s: %w", event.DroneID, err)
 	}
 
 	switch event.Event {
 	case drone.DroneEventArrivedAtStore:
+		if a.Status == assignment.AssignmentStatusAtStore ||
+			a.Status == assignment.AssignmentStatusPickedUpCargo ||
+			a.Status == assignment.AssignmentStatusFlyingToClient ||
+			a.Status == assignment.AssignmentStatusAtClient ||
+			a.Status == assignment.AssignmentStatusDroppedCargo ||
+			a.Status == assignment.AssignmentStatusReturningBase ||
+			a.Status == assignment.AssignmentStatusCompleted {
+			return nil
+		}
+
 		if err := s.repo.UpdateStatus(ctx, a.ID, assignment.AssignmentStatusAtStore); err != nil {
 			return fmt.Errorf("failed to update assignment status: %w", err)
 		}
 
-		if err := s.telemetry.SendCommand(ctx, event.DroneID, drone.DroneActionPickupCargo, nil); err != nil {
-			return fmt.Errorf("failed to send pickup cargo command: %w", err)
+		if err := resilience.Retry(ctx, retryCfg, shouldRetryDefault, func(ctx context.Context) error {
+			return s.telemetry.SendCommand(ctx, event.DroneID, drone.DroneActionPickupCargo, nil)
+		}); err != nil {
+			return fmt.Errorf("failed to send pickup cargo command after retries: %w", err)
 		}
 
 		return nil
+
 	case drone.DroneEventPickedUpCargo:
+		if a.Status == assignment.AssignmentStatusPickedUpCargo ||
+			a.Status == assignment.AssignmentStatusFlyingToClient ||
+			a.Status == assignment.AssignmentStatusAtClient ||
+			a.Status == assignment.AssignmentStatusDroppedCargo ||
+			a.Status == assignment.AssignmentStatusReturningBase ||
+			a.Status == assignment.AssignmentStatusCompleted {
+			return nil
+		}
+
 		if err := s.repo.UpdateStatus(ctx, a.ID, assignment.AssignmentStatusPickedUpCargo); err != nil {
 			return fmt.Errorf("failed to update assignment status: %w", err)
 		}
@@ -193,8 +242,10 @@ func (s *DispatchService) HandleTelemetryEvent(ctx context.Context, event drone.
 		}
 
 		target := &drone.Target{Location: a.Target, Type: drone.TargetTypeClient}
-		if err := s.telemetry.SendCommand(ctx, event.DroneID, drone.DroneActionFlyTo, target); err != nil {
-			return fmt.Errorf("failed to send fly to client command: %w", err)
+		if err := resilience.Retry(ctx, retryCfg, shouldRetryDefault, func(ctx context.Context) error {
+			return s.telemetry.SendCommand(ctx, event.DroneID, drone.DroneActionFlyTo, target)
+		}); err != nil {
+			return fmt.Errorf("failed to send fly to client command after retries: %w", err)
 		}
 
 		if err := s.repo.UpdateStatus(ctx, a.ID, assignment.AssignmentStatusFlyingToClient); err != nil {
@@ -202,59 +253,102 @@ func (s *DispatchService) HandleTelemetryEvent(ctx context.Context, event drone.
 		}
 
 		return nil
+
 	case drone.DroneEventArrivedAtClient:
+		if a.Status == assignment.AssignmentStatusAtClient ||
+			a.Status == assignment.AssignmentStatusDroppedCargo ||
+			a.Status == assignment.AssignmentStatusReturningBase ||
+			a.Status == assignment.AssignmentStatusCompleted {
+			return nil
+		}
+
 		if err := s.repo.UpdateStatus(ctx, a.ID, assignment.AssignmentStatusAtClient); err != nil {
 			return fmt.Errorf("failed to update assignment status: %w", err)
 		}
 
-		if err := s.telemetry.SendCommand(ctx, event.DroneID, drone.DroneActionDropCargo, nil); err != nil {
-			return fmt.Errorf("failed to send drop cargo command: %w", err)
+		if err := resilience.Retry(ctx, retryCfg, shouldRetryDefault, func(ctx context.Context) error {
+			return s.telemetry.SendCommand(ctx, event.DroneID, drone.DroneActionDropCargo, nil)
+		}); err != nil {
+			return fmt.Errorf("failed to send drop cargo command after retries: %w", err)
 		}
 
 		return nil
+
 	case drone.DroneEventDroppedCargo:
+		if a.Status == assignment.AssignmentStatusDroppedCargo ||
+			a.Status == assignment.AssignmentStatusReturningBase ||
+			a.Status == assignment.AssignmentStatusCompleted {
+			return nil
+		}
+
 		if err := s.repo.UpdateStatus(ctx, a.ID, assignment.AssignmentStatusDroppedCargo); err != nil {
 			return fmt.Errorf("failed to update assignment %s status to DROPPED_CARGO: %w", a.ID, err)
 		}
 
-		if err := s.order.UpdateStatus(ctx, a.OrderID, order.OrderStatusCompleted); err != nil {
-			return fmt.Errorf("failed to update order %s status to COMPLETED: %w", a.OrderID, err)
+		_ = resilience.Retry(ctx, retryCfg, shouldRetryDefault, func(ctx context.Context) error {
+			return s.order.UpdateStatus(ctx, a.OrderID, order.OrderStatusCompleted)
+		})
+
+		var baseID string
+		if err := resilience.Retry(ctx, retryCfg, shouldRetryDefault, func(ctx context.Context) error {
+			nb, err := s.base.FindNearest(ctx, &event.DroneLocation)
+			if err != nil {
+				return err
+			}
+			baseID = nb.ID
+			return nil
+		}); err != nil {
+			return fmt.Errorf("failed to find nearest base after retries: %w", err)
 		}
 
-		nearestBase, err := s.base.FindNearest(ctx, &event.DroneLocation)
-		if err != nil {
-			return fmt.Errorf("failed to find nearest base: %w", err)
+		var baseLoc shared.Location
+		if err := resilience.Retry(ctx, retryCfg, shouldRetryDefault, func(ctx context.Context) error {
+			b, err := s.base.GetBaseLocation(ctx, baseID)
+			if err != nil {
+				return err
+			}
+			baseLoc = b.Location
+			return nil
+		}); err != nil {
+			return fmt.Errorf("failed to get base location after retries: %w", err)
 		}
 
-		baseInfo, err := s.base.GetBaseLocation(ctx, nearestBase.ID)
-		if err != nil {
-			return fmt.Errorf("failed to get base location: %w", err)
-		}
-
-		target := &drone.Target{Location: &baseInfo.Location, Type: drone.TargetTypeBase}
-		if err := s.telemetry.SendCommand(ctx, event.DroneID, drone.DroneActionFlyTo, target); err != nil {
-			return fmt.Errorf("failed to send fly to base command: %w", err)
+		target := &drone.Target{Location: &baseLoc, Type: drone.TargetTypeBase}
+		if err := resilience.Retry(ctx, retryCfg, shouldRetryDefault, func(ctx context.Context) error {
+			return s.telemetry.SendCommand(ctx, event.DroneID, drone.DroneActionFlyTo, target)
+		}); err != nil {
+			return fmt.Errorf("failed to send fly to base command after retries: %w", err)
 		}
 
 		if err := s.repo.UpdateStatus(ctx, a.ID, assignment.AssignmentStatusReturningBase); err != nil {
-			return fmt.Errorf("failed to update assignment status: %w", err)
+			return fmt.Errorf("failed to update assignment status to RETURNING_BASE: %w", err)
 		}
 
 		return nil
+
 	case drone.DroneEventArrivedAtBase:
+		if a.Status == assignment.AssignmentStatusCompleted {
+			return nil
+		}
+
+		if err := resilience.Retry(ctx, retryCfg, shouldRetryDefault, func(ctx context.Context) error {
+			return s.telemetry.SendCommand(ctx, event.DroneID, drone.DroneActionCharge, nil)
+		}); err != nil {
+			return fmt.Errorf("failed to send charge command after retries: %w", err)
+		}
+
+		if err := resilience.Retry(ctx, retryCfg, shouldRetryDefault, func(ctx context.Context) error {
+			return s.tracking.SetStatus(ctx, event.DroneID, drone.DroneStatusCharging)
+		}); err != nil {
+			return fmt.Errorf("failed to set drone status to CHARGING after retries: %w", err)
+		}
+
 		if err := s.repo.UpdateStatus(ctx, a.ID, assignment.AssignmentStatusCompleted); err != nil {
-			return fmt.Errorf("failed to update assignment status: %w", err)
-		}
-
-		if err := s.telemetry.SendCommand(ctx, event.DroneID, drone.DroneActionCharge, nil); err != nil {
-			return fmt.Errorf("failed to send charge command: %w", err)
-		}
-
-		if err := s.tracking.SetStatus(ctx, event.DroneID, drone.DroneStatusCharging); err != nil {
-			return fmt.Errorf("failed to set drone status to CHARGING: %w", err)
+			return fmt.Errorf("failed to update assignment status to COMPLETED: %w", err)
 		}
 
 		return nil
+
 	default:
 		return fmt.Errorf("unknown telemetry event: %s", event.Event)
 	}

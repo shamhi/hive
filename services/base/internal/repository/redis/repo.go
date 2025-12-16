@@ -6,6 +6,7 @@ import (
 	"hive/services/base/internal/domain/base"
 	"hive/services/base/internal/domain/shared"
 	"hive/services/base/internal/service"
+	"sort"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -86,23 +87,39 @@ func (r *RedisRepo) GetByID(ctx context.Context, baseID string) (*base.Base, err
 }
 
 func (r *RedisRepo) List(ctx context.Context, offset, limit int64) ([]*base.Base, error) {
-	start := offset
-	stop := offset + limit - 1
+	if limit <= 0 {
+		return []*base.Base{}, nil
+	}
+	if offset < 0 {
+		offset = 0
+	}
 
-	ids, err := r.client.ZRange(ctx, AllBasesKey, start, stop).Result()
+	ids, err := r.client.SMembers(ctx, AllBasesKey).Result()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get base ids: %w", err)
 	}
-
 	if len(ids) == 0 {
 		return []*base.Base{}, nil
 	}
 
-	pipe := r.client.Pipeline()
-	hCmd := make([]*redis.MapStringStringCmd, 0, len(ids))
-	gCmd := make([]*redis.GeoPosCmd, 0, len(ids))
+	sort.Strings(ids)
 
-	for _, id := range ids {
+	if offset >= int64(len(ids)) {
+		return []*base.Base{}, nil
+	}
+
+	end := offset + limit
+	if end > int64(len(ids)) {
+		end = int64(len(ids))
+	}
+
+	pageIDs := ids[offset:end]
+
+	pipe := r.client.Pipeline()
+	hCmd := make([]*redis.MapStringStringCmd, 0, len(pageIDs))
+	gCmd := make([]*redis.GeoPosCmd, 0, len(pageIDs))
+
+	for _, id := range pageIDs {
 		hCmd = append(hCmd, pipe.HGetAll(ctx, BaseDataKey+id))
 		gCmd = append(gCmd, pipe.GeoPos(ctx, BaseGeoKey, id))
 	}
@@ -111,13 +128,12 @@ func (r *RedisRepo) List(ctx context.Context, offset, limit int64) ([]*base.Base
 		return nil, fmt.Errorf("failed to fetch bases data: %w", err)
 	}
 
-	bases := make([]*base.Base, 0, len(ids))
-	for i, id := range ids {
+	bases := make([]*base.Base, 0, len(pageIDs))
+	for i, id := range pageIDs {
 		data, err := hCmd[i].Result()
 		if err != nil {
 			return nil, fmt.Errorf("failed to get base data: %w", err)
 		}
-
 		if len(data) == 0 {
 			continue
 		}

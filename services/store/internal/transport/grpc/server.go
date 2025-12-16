@@ -72,7 +72,9 @@ func (s *Server) GetStoreLocation(ctx context.Context, req *pb.GetStoreLocationR
 
 func (s *Server) ListStores(ctx context.Context, req *pb.ListStoresRequest) (*pb.ListStoresResponse, error) {
 	if req.GetLimit() <= 0 {
-		return nil, status.Error(codes.InvalidArgument, "limit must be greater than zero")
+		return &pb.ListStoresResponse{
+			Stores: []*pb.Store{},
+		}, nil
 	}
 
 	stores, err := s.svc.ListStores(ctx, req.GetOffset(), req.GetLimit())
