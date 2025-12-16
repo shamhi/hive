@@ -404,8 +404,8 @@ func (x *FindNearestResponse) GetDistanceMeters() float64 {
 
 type ListStoresRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Offset        int32                  `protobuf:"varint,1,opt,name=offset,proto3" json:"offset,omitempty"`
-	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset        int64                  `protobuf:"varint,1,opt,name=offset,proto3" json:"offset,omitempty"`
+	Limit         int64                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -440,14 +440,14 @@ func (*ListStoresRequest) Descriptor() ([]byte, []int) {
 	return file_store_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *ListStoresRequest) GetOffset() int32 {
+func (x *ListStoresRequest) GetOffset() int64 {
 	if x != nil {
 		return x.Offset
 	}
 	return 0
 }
 
-func (x *ListStoresRequest) GetLimit() int32 {
+func (x *ListStoresRequest) GetLimit() int64 {
 	if x != nil {
 		return x.Limit
 	}
@@ -527,16 +527,16 @@ const file_store_proto_rawDesc = "" +
 	"\x05found\x18\x02 \x01(\bR\x05found\x12'\n" +
 	"\x0fdistance_meters\x18\x05 \x01(\x01R\x0edistanceMeters\"A\n" +
 	"\x11ListStoresRequest\x12\x16\n" +
-	"\x06offset\x18\x01 \x01(\x05R\x06offset\x12\x14\n" +
-	"\x05limit\x18\x02 \x01(\x05R\x05limit\":\n" +
+	"\x06offset\x18\x01 \x01(\x03R\x06offset\x12\x14\n" +
+	"\x05limit\x18\x02 \x01(\x03R\x05limit\":\n" +
 	"\x12ListStoresResponse\x12$\n" +
 	"\x06stores\x18\x01 \x03(\v2\f.store.StoreR\x06stores2\xb2\x02\n" +
 	"\fStoreService\x12D\n" +
 	"\vCreateStore\x12\x19.store.CreateStoreRequest\x1a\x1a.store.CreateStoreResponse\x12S\n" +
-	"\x10GetStoreLocation\x12\x1e.store.GetStoreLocationRequest\x1a\x1f.store.GetStoreLocationResponse\x12D\n" +
-	"\vFindNearest\x12\x19.store.FindNearestRequest\x1a\x1a.store.FindNearestResponse\x12A\n" +
+	"\x10GetStoreLocation\x12\x1e.store.GetStoreLocationRequest\x1a\x1f.store.GetStoreLocationResponse\x12A\n" +
 	"\n" +
-	"ListStores\x12\x18.store.ListStoresRequest\x1a\x19.store.ListStoresResponseB\x10Z\x0ehive/gen/storeb\x06proto3"
+	"ListStores\x12\x18.store.ListStoresRequest\x1a\x19.store.ListStoresResponse\x12D\n" +
+	"\vFindNearest\x12\x19.store.FindNearestRequest\x1a\x1a.store.FindNearestResponseB\x10Z\x0ehive/gen/storeb\x06proto3"
 
 var (
 	file_store_proto_rawDescOnce sync.Once
@@ -571,12 +571,12 @@ var file_store_proto_depIdxs = []int32{
 	0, // 4: store.ListStoresResponse.stores:type_name -> store.Store
 	1, // 5: store.StoreService.CreateStore:input_type -> store.CreateStoreRequest
 	3, // 6: store.StoreService.GetStoreLocation:input_type -> store.GetStoreLocationRequest
-	5, // 7: store.StoreService.FindNearest:input_type -> store.FindNearestRequest
-	7, // 8: store.StoreService.ListStores:input_type -> store.ListStoresRequest
+	7, // 7: store.StoreService.ListStores:input_type -> store.ListStoresRequest
+	5, // 8: store.StoreService.FindNearest:input_type -> store.FindNearestRequest
 	2, // 9: store.StoreService.CreateStore:output_type -> store.CreateStoreResponse
 	4, // 10: store.StoreService.GetStoreLocation:output_type -> store.GetStoreLocationResponse
-	6, // 11: store.StoreService.FindNearest:output_type -> store.FindNearestResponse
-	8, // 12: store.StoreService.ListStores:output_type -> store.ListStoresResponse
+	8, // 11: store.StoreService.ListStores:output_type -> store.ListStoresResponse
+	6, // 12: store.StoreService.FindNearest:output_type -> store.FindNearestResponse
 	9, // [9:13] is the sub-list for method output_type
 	5, // [5:9] is the sub-list for method input_type
 	5, // [5:5] is the sub-list for extension type_name

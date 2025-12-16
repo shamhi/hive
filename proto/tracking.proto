@@ -13,14 +13,6 @@ service TrackingService {
   rpc ListDrones(ListDronesRequest) returns (ListDronesResponse);
 }
 
-message Drone {
-  string drone_id = 1;
-  common.Location drone_location = 2;
-  double battery = 3;
-  double speed_mps = 4;
-  double consumption_per_meter = 5;
-}
-
 message FindNearestRequest {
   common.Location store_location = 1;
   double min_battery = 2;
@@ -54,10 +46,10 @@ message SetStatusResponse {
 }
 
 message ListDronesRequest {
-  int32 offset = 1;
-  int32 limit = 2;
+  int64 offset = 1;
+  int64 limit = 2;
 }
 
 message ListDronesResponse {
-  repeated Drone drones = 1;
+  repeated telemetry.Drone drones = 1;
 }

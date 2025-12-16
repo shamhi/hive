@@ -21,8 +21,8 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	StoreService_CreateStore_FullMethodName      = "/store.StoreService/CreateStore"
 	StoreService_GetStoreLocation_FullMethodName = "/store.StoreService/GetStoreLocation"
-	StoreService_FindNearest_FullMethodName      = "/store.StoreService/FindNearest"
 	StoreService_ListStores_FullMethodName       = "/store.StoreService/ListStores"
+	StoreService_FindNearest_FullMethodName      = "/store.StoreService/FindNearest"
 )
 
 // StoreServiceClient is the client API for StoreService service.
@@ -31,8 +31,8 @@ const (
 type StoreServiceClient interface {
 	CreateStore(ctx context.Context, in *CreateStoreRequest, opts ...grpc.CallOption) (*CreateStoreResponse, error)
 	GetStoreLocation(ctx context.Context, in *GetStoreLocationRequest, opts ...grpc.CallOption) (*GetStoreLocationResponse, error)
-	FindNearest(ctx context.Context, in *FindNearestRequest, opts ...grpc.CallOption) (*FindNearestResponse, error)
 	ListStores(ctx context.Context, in *ListStoresRequest, opts ...grpc.CallOption) (*ListStoresResponse, error)
+	FindNearest(ctx context.Context, in *FindNearestRequest, opts ...grpc.CallOption) (*FindNearestResponse, error)
 }
 
 type storeServiceClient struct {
@@ -63,20 +63,20 @@ func (c *storeServiceClient) GetStoreLocation(ctx context.Context, in *GetStoreL
 	return out, nil
 }
 
-func (c *storeServiceClient) FindNearest(ctx context.Context, in *FindNearestRequest, opts ...grpc.CallOption) (*FindNearestResponse, error) {
+func (c *storeServiceClient) ListStores(ctx context.Context, in *ListStoresRequest, opts ...grpc.CallOption) (*ListStoresResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(FindNearestResponse)
-	err := c.cc.Invoke(ctx, StoreService_FindNearest_FullMethodName, in, out, cOpts...)
+	out := new(ListStoresResponse)
+	err := c.cc.Invoke(ctx, StoreService_ListStores_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *storeServiceClient) ListStores(ctx context.Context, in *ListStoresRequest, opts ...grpc.CallOption) (*ListStoresResponse, error) {
+func (c *storeServiceClient) FindNearest(ctx context.Context, in *FindNearestRequest, opts ...grpc.CallOption) (*FindNearestResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListStoresResponse)
-	err := c.cc.Invoke(ctx, StoreService_ListStores_FullMethodName, in, out, cOpts...)
+	out := new(FindNearestResponse)
+	err := c.cc.Invoke(ctx, StoreService_FindNearest_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -89,8 +89,8 @@ func (c *storeServiceClient) ListStores(ctx context.Context, in *ListStoresReque
 type StoreServiceServer interface {
 	CreateStore(context.Context, *CreateStoreRequest) (*CreateStoreResponse, error)
 	GetStoreLocation(context.Context, *GetStoreLocationRequest) (*GetStoreLocationResponse, error)
-	FindNearest(context.Context, *FindNearestRequest) (*FindNearestResponse, error)
 	ListStores(context.Context, *ListStoresRequest) (*ListStoresResponse, error)
+	FindNearest(context.Context, *FindNearestRequest) (*FindNearestResponse, error)
 	mustEmbedUnimplementedStoreServiceServer()
 }
 
@@ -107,11 +107,11 @@ func (UnimplementedStoreServiceServer) CreateStore(context.Context, *CreateStore
 func (UnimplementedStoreServiceServer) GetStoreLocation(context.Context, *GetStoreLocationRequest) (*GetStoreLocationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStoreLocation not implemented")
 }
-func (UnimplementedStoreServiceServer) FindNearest(context.Context, *FindNearestRequest) (*FindNearestResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method FindNearest not implemented")
-}
 func (UnimplementedStoreServiceServer) ListStores(context.Context, *ListStoresRequest) (*ListStoresResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListStores not implemented")
+}
+func (UnimplementedStoreServiceServer) FindNearest(context.Context, *FindNearestRequest) (*FindNearestResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FindNearest not implemented")
 }
 func (UnimplementedStoreServiceServer) mustEmbedUnimplementedStoreServiceServer() {}
 func (UnimplementedStoreServiceServer) testEmbeddedByValue()                      {}
@@ -170,24 +170,6 @@ func _StoreService_GetStoreLocation_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _StoreService_FindNearest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(FindNearestRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(StoreServiceServer).FindNearest(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: StoreService_FindNearest_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StoreServiceServer).FindNearest(ctx, req.(*FindNearestRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _StoreService_ListStores_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListStoresRequest)
 	if err := dec(in); err != nil {
@@ -202,6 +184,24 @@ func _StoreService_ListStores_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(StoreServiceServer).ListStores(ctx, req.(*ListStoresRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StoreService_FindNearest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FindNearestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StoreServiceServer).FindNearest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StoreService_FindNearest_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StoreServiceServer).FindNearest(ctx, req.(*FindNearestRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -222,12 +222,12 @@ var StoreService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _StoreService_GetStoreLocation_Handler,
 		},
 		{
-			MethodName: "FindNearest",
-			Handler:    _StoreService_FindNearest_Handler,
-		},
-		{
 			MethodName: "ListStores",
 			Handler:    _StoreService_ListStores_Handler,
+		},
+		{
+			MethodName: "FindNearest",
+			Handler:    _StoreService_FindNearest_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

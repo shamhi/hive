@@ -404,8 +404,8 @@ func (x *FindNearestResponse) GetDistanceMeters() float64 {
 
 type ListBasesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Offset        int32                  `protobuf:"varint,1,opt,name=offset,proto3" json:"offset,omitempty"`
-	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset        int64                  `protobuf:"varint,1,opt,name=offset,proto3" json:"offset,omitempty"`
+	Limit         int64                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -440,14 +440,14 @@ func (*ListBasesRequest) Descriptor() ([]byte, []int) {
 	return file_base_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *ListBasesRequest) GetOffset() int32 {
+func (x *ListBasesRequest) GetOffset() int64 {
 	if x != nil {
 		return x.Offset
 	}
 	return 0
 }
 
-func (x *ListBasesRequest) GetLimit() int32 {
+func (x *ListBasesRequest) GetLimit() int64 {
 	if x != nil {
 		return x.Limit
 	}
@@ -528,15 +528,16 @@ const file_base_proto_rawDesc = "" +
 	"\x05found\x18\x02 \x01(\bR\x05found\x12'\n" +
 	"\x0fdistance_meters\x18\x05 \x01(\x01R\x0edistanceMeters\"@\n" +
 	"\x10ListBasesRequest\x12\x16\n" +
-	"\x06offset\x18\x01 \x01(\x05R\x06offset\x12\x14\n" +
-	"\x05limit\x18\x02 \x01(\x05R\x05limit\"5\n" +
+	"\x06offset\x18\x01 \x01(\x03R\x06offset\x12\x14\n" +
+	"\x05limit\x18\x02 \x01(\x03R\x05limit\"5\n" +
 	"\x11ListBasesResponse\x12 \n" +
 	"\x05bases\x18\x01 \x03(\v2\n" +
-	".base.BaseR\x05bases2\xdc\x01\n" +
+	".base.BaseR\x05bases2\xa0\x02\n" +
 	"\vBaseService\x12?\n" +
 	"\n" +
 	"CreateBase\x12\x17.base.CreateBaseRequest\x1a\x18.base.CreateBaseResponse\x12N\n" +
-	"\x0fGetBaseLocation\x12\x1c.base.GetBaseLocationRequest\x1a\x1d.base.GetBaseLocationResponse\x12<\n" +
+	"\x0fGetBaseLocation\x12\x1c.base.GetBaseLocationRequest\x1a\x1d.base.GetBaseLocationResponse\x12B\n" +
+	"\vFindNearest\x12\x18.base.FindNearestRequest\x1a\x19.base.FindNearestResponse\x12<\n" +
 	"\tListBases\x12\x16.base.ListBasesRequest\x1a\x17.base.ListBasesResponseB\x0fZ\rhive/gen/baseb\x06proto3"
 
 var (
@@ -572,12 +573,14 @@ var file_base_proto_depIdxs = []int32{
 	0, // 4: base.ListBasesResponse.bases:type_name -> base.Base
 	1, // 5: base.BaseService.CreateBase:input_type -> base.CreateBaseRequest
 	3, // 6: base.BaseService.GetBaseLocation:input_type -> base.GetBaseLocationRequest
-	7, // 7: base.BaseService.ListBases:input_type -> base.ListBasesRequest
-	2, // 8: base.BaseService.CreateBase:output_type -> base.CreateBaseResponse
-	4, // 9: base.BaseService.GetBaseLocation:output_type -> base.GetBaseLocationResponse
-	8, // 10: base.BaseService.ListBases:output_type -> base.ListBasesResponse
-	8, // [8:11] is the sub-list for method output_type
-	5, // [5:8] is the sub-list for method input_type
+	5, // 7: base.BaseService.FindNearest:input_type -> base.FindNearestRequest
+	7, // 8: base.BaseService.ListBases:input_type -> base.ListBasesRequest
+	2, // 9: base.BaseService.CreateBase:output_type -> base.CreateBaseResponse
+	4, // 10: base.BaseService.GetBaseLocation:output_type -> base.GetBaseLocationResponse
+	6, // 11: base.BaseService.FindNearest:output_type -> base.FindNearestResponse
+	8, // 12: base.BaseService.ListBases:output_type -> base.ListBasesResponse
+	9, // [9:13] is the sub-list for method output_type
+	5, // [5:9] is the sub-list for method input_type
 	5, // [5:5] is the sub-list for extension type_name
 	5, // [5:5] is the sub-list for extension extendee
 	0, // [0:5] is the sub-list for field type_name

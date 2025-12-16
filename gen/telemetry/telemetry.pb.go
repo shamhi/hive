@@ -248,6 +248,82 @@ func (TargetType) EnumDescriptor() ([]byte, []int) {
 	return file_telemetry_proto_rawDescGZIP(), []int{3}
 }
 
+type Drone struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	DroneId             string                 `protobuf:"bytes,1,opt,name=drone_id,json=droneId,proto3" json:"drone_id,omitempty"`
+	DroneLocation       *common.Location       `protobuf:"bytes,2,opt,name=drone_location,json=droneLocation,proto3" json:"drone_location,omitempty"`
+	Battery             float64                `protobuf:"fixed64,3,opt,name=battery,proto3" json:"battery,omitempty"`
+	SpeedMps            float64                `protobuf:"fixed64,4,opt,name=speed_mps,json=speedMps,proto3" json:"speed_mps,omitempty"`
+	ConsumptionPerMeter float64                `protobuf:"fixed64,5,opt,name=consumption_per_meter,json=consumptionPerMeter,proto3" json:"consumption_per_meter,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *Drone) Reset() {
+	*x = Drone{}
+	mi := &file_telemetry_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Drone) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Drone) ProtoMessage() {}
+
+func (x *Drone) ProtoReflect() protoreflect.Message {
+	mi := &file_telemetry_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Drone.ProtoReflect.Descriptor instead.
+func (*Drone) Descriptor() ([]byte, []int) {
+	return file_telemetry_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *Drone) GetDroneId() string {
+	if x != nil {
+		return x.DroneId
+	}
+	return ""
+}
+
+func (x *Drone) GetDroneLocation() *common.Location {
+	if x != nil {
+		return x.DroneLocation
+	}
+	return nil
+}
+
+func (x *Drone) GetBattery() float64 {
+	if x != nil {
+		return x.Battery
+	}
+	return 0
+}
+
+func (x *Drone) GetSpeedMps() float64 {
+	if x != nil {
+		return x.SpeedMps
+	}
+	return 0
+}
+
+func (x *Drone) GetConsumptionPerMeter() float64 {
+	if x != nil {
+		return x.ConsumptionPerMeter
+	}
+	return 0
+}
+
 type DroneTelemetry struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
 	DroneId             string                 `protobuf:"bytes,1,opt,name=drone_id,json=droneId,proto3" json:"drone_id,omitempty"`
@@ -264,7 +340,7 @@ type DroneTelemetry struct {
 
 func (x *DroneTelemetry) Reset() {
 	*x = DroneTelemetry{}
-	mi := &file_telemetry_proto_msgTypes[0]
+	mi := &file_telemetry_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -276,7 +352,7 @@ func (x *DroneTelemetry) String() string {
 func (*DroneTelemetry) ProtoMessage() {}
 
 func (x *DroneTelemetry) ProtoReflect() protoreflect.Message {
-	mi := &file_telemetry_proto_msgTypes[0]
+	mi := &file_telemetry_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -289,7 +365,7 @@ func (x *DroneTelemetry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DroneTelemetry.ProtoReflect.Descriptor instead.
 func (*DroneTelemetry) Descriptor() ([]byte, []int) {
-	return file_telemetry_proto_rawDescGZIP(), []int{0}
+	return file_telemetry_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *DroneTelemetry) GetDroneId() string {
@@ -360,7 +436,7 @@ type ServerCommand struct {
 
 func (x *ServerCommand) Reset() {
 	*x = ServerCommand{}
-	mi := &file_telemetry_proto_msgTypes[1]
+	mi := &file_telemetry_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -372,7 +448,7 @@ func (x *ServerCommand) String() string {
 func (*ServerCommand) ProtoMessage() {}
 
 func (x *ServerCommand) ProtoReflect() protoreflect.Message {
-	mi := &file_telemetry_proto_msgTypes[1]
+	mi := &file_telemetry_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -385,7 +461,7 @@ func (x *ServerCommand) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServerCommand.ProtoReflect.Descriptor instead.
 func (*ServerCommand) Descriptor() ([]byte, []int) {
-	return file_telemetry_proto_rawDescGZIP(), []int{1}
+	return file_telemetry_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ServerCommand) GetCommandId() string {
@@ -428,7 +504,7 @@ type SendCommandRequest struct {
 
 func (x *SendCommandRequest) Reset() {
 	*x = SendCommandRequest{}
-	mi := &file_telemetry_proto_msgTypes[2]
+	mi := &file_telemetry_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -440,7 +516,7 @@ func (x *SendCommandRequest) String() string {
 func (*SendCommandRequest) ProtoMessage() {}
 
 func (x *SendCommandRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_telemetry_proto_msgTypes[2]
+	mi := &file_telemetry_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -453,7 +529,7 @@ func (x *SendCommandRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendCommandRequest.ProtoReflect.Descriptor instead.
 func (*SendCommandRequest) Descriptor() ([]byte, []int) {
-	return file_telemetry_proto_rawDescGZIP(), []int{2}
+	return file_telemetry_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *SendCommandRequest) GetDroneId() string {
@@ -493,7 +569,7 @@ type SendCommandResponse struct {
 
 func (x *SendCommandResponse) Reset() {
 	*x = SendCommandResponse{}
-	mi := &file_telemetry_proto_msgTypes[3]
+	mi := &file_telemetry_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -505,7 +581,7 @@ func (x *SendCommandResponse) String() string {
 func (*SendCommandResponse) ProtoMessage() {}
 
 func (x *SendCommandResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_telemetry_proto_msgTypes[3]
+	mi := &file_telemetry_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -518,7 +594,7 @@ func (x *SendCommandResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendCommandResponse.ProtoReflect.Descriptor instead.
 func (*SendCommandResponse) Descriptor() ([]byte, []int) {
-	return file_telemetry_proto_rawDescGZIP(), []int{3}
+	return file_telemetry_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *SendCommandResponse) GetSuccess() bool {
@@ -532,7 +608,13 @@ var File_telemetry_proto protoreflect.FileDescriptor
 
 const file_telemetry_proto_rawDesc = "" +
 	"\n" +
-	"\x0ftelemetry.proto\x12\ttelemetry\x1a\fcommon.proto\"\xca\x02\n" +
+	"\x0ftelemetry.proto\x12\ttelemetry\x1a\fcommon.proto\"\xc6\x01\n" +
+	"\x05Drone\x12\x19\n" +
+	"\bdrone_id\x18\x01 \x01(\tR\adroneId\x127\n" +
+	"\x0edrone_location\x18\x02 \x01(\v2\x10.common.LocationR\rdroneLocation\x12\x18\n" +
+	"\abattery\x18\x03 \x01(\x01R\abattery\x12\x1b\n" +
+	"\tspeed_mps\x18\x04 \x01(\x01R\bspeedMps\x122\n" +
+	"\x15consumption_per_meter\x18\x05 \x01(\x01R\x13consumptionPerMeter\"\xca\x02\n" +
 	"\x0eDroneTelemetry\x12\x19\n" +
 	"\bdrone_id\x18\x01 \x01(\tR\adroneId\x127\n" +
 	"\x0edrone_location\x18\x02 \x01(\v2\x10.common.LocationR\rdroneLocation\x12\x18\n" +
@@ -601,37 +683,39 @@ func file_telemetry_proto_rawDescGZIP() []byte {
 }
 
 var file_telemetry_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_telemetry_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_telemetry_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_telemetry_proto_goTypes = []any{
 	(DroneStatus)(0),            // 0: telemetry.DroneStatus
 	(DroneEvent)(0),             // 1: telemetry.DroneEvent
 	(DroneAction)(0),            // 2: telemetry.DroneAction
 	(TargetType)(0),             // 3: telemetry.TargetType
-	(*DroneTelemetry)(nil),      // 4: telemetry.DroneTelemetry
-	(*ServerCommand)(nil),       // 5: telemetry.ServerCommand
-	(*SendCommandRequest)(nil),  // 6: telemetry.SendCommandRequest
-	(*SendCommandResponse)(nil), // 7: telemetry.SendCommandResponse
-	(*common.Location)(nil),     // 8: common.Location
+	(*Drone)(nil),               // 4: telemetry.Drone
+	(*DroneTelemetry)(nil),      // 5: telemetry.DroneTelemetry
+	(*ServerCommand)(nil),       // 6: telemetry.ServerCommand
+	(*SendCommandRequest)(nil),  // 7: telemetry.SendCommandRequest
+	(*SendCommandResponse)(nil), // 8: telemetry.SendCommandResponse
+	(*common.Location)(nil),     // 9: common.Location
 }
 var file_telemetry_proto_depIdxs = []int32{
-	8,  // 0: telemetry.DroneTelemetry.drone_location:type_name -> common.Location
-	0,  // 1: telemetry.DroneTelemetry.status:type_name -> telemetry.DroneStatus
-	1,  // 2: telemetry.DroneTelemetry.event:type_name -> telemetry.DroneEvent
-	2,  // 3: telemetry.ServerCommand.action:type_name -> telemetry.DroneAction
-	8,  // 4: telemetry.ServerCommand.target:type_name -> common.Location
-	3,  // 5: telemetry.ServerCommand.type:type_name -> telemetry.TargetType
-	2,  // 6: telemetry.SendCommandRequest.action:type_name -> telemetry.DroneAction
-	8,  // 7: telemetry.SendCommandRequest.target:type_name -> common.Location
-	3,  // 8: telemetry.SendCommandRequest.type:type_name -> telemetry.TargetType
-	4,  // 9: telemetry.TelemetryService.Link:input_type -> telemetry.DroneTelemetry
-	6,  // 10: telemetry.TelemetryService.SendCommand:input_type -> telemetry.SendCommandRequest
-	5,  // 11: telemetry.TelemetryService.Link:output_type -> telemetry.ServerCommand
-	7,  // 12: telemetry.TelemetryService.SendCommand:output_type -> telemetry.SendCommandResponse
-	11, // [11:13] is the sub-list for method output_type
-	9,  // [9:11] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	9,  // 0: telemetry.Drone.drone_location:type_name -> common.Location
+	9,  // 1: telemetry.DroneTelemetry.drone_location:type_name -> common.Location
+	0,  // 2: telemetry.DroneTelemetry.status:type_name -> telemetry.DroneStatus
+	1,  // 3: telemetry.DroneTelemetry.event:type_name -> telemetry.DroneEvent
+	2,  // 4: telemetry.ServerCommand.action:type_name -> telemetry.DroneAction
+	9,  // 5: telemetry.ServerCommand.target:type_name -> common.Location
+	3,  // 6: telemetry.ServerCommand.type:type_name -> telemetry.TargetType
+	2,  // 7: telemetry.SendCommandRequest.action:type_name -> telemetry.DroneAction
+	9,  // 8: telemetry.SendCommandRequest.target:type_name -> common.Location
+	3,  // 9: telemetry.SendCommandRequest.type:type_name -> telemetry.TargetType
+	5,  // 10: telemetry.TelemetryService.Link:input_type -> telemetry.DroneTelemetry
+	7,  // 11: telemetry.TelemetryService.SendCommand:input_type -> telemetry.SendCommandRequest
+	6,  // 12: telemetry.TelemetryService.Link:output_type -> telemetry.ServerCommand
+	8,  // 13: telemetry.TelemetryService.SendCommand:output_type -> telemetry.SendCommandResponse
+	12, // [12:14] is the sub-list for method output_type
+	10, // [10:12] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_telemetry_proto_init() }
@@ -645,7 +729,7 @@ func file_telemetry_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_telemetry_proto_rawDesc), len(file_telemetry_proto_rawDesc)),
 			NumEnums:      4,
-			NumMessages:   4,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

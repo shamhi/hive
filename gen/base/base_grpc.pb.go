@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	BaseService_CreateBase_FullMethodName      = "/base.BaseService/CreateBase"
 	BaseService_GetBaseLocation_FullMethodName = "/base.BaseService/GetBaseLocation"
+	BaseService_FindNearest_FullMethodName     = "/base.BaseService/FindNearest"
 	BaseService_ListBases_FullMethodName       = "/base.BaseService/ListBases"
 )
 
@@ -30,6 +31,7 @@ const (
 type BaseServiceClient interface {
 	CreateBase(ctx context.Context, in *CreateBaseRequest, opts ...grpc.CallOption) (*CreateBaseResponse, error)
 	GetBaseLocation(ctx context.Context, in *GetBaseLocationRequest, opts ...grpc.CallOption) (*GetBaseLocationResponse, error)
+	FindNearest(ctx context.Context, in *FindNearestRequest, opts ...grpc.CallOption) (*FindNearestResponse, error)
 	ListBases(ctx context.Context, in *ListBasesRequest, opts ...grpc.CallOption) (*ListBasesResponse, error)
 }
 
@@ -61,6 +63,16 @@ func (c *baseServiceClient) GetBaseLocation(ctx context.Context, in *GetBaseLoca
 	return out, nil
 }
 
+func (c *baseServiceClient) FindNearest(ctx context.Context, in *FindNearestRequest, opts ...grpc.CallOption) (*FindNearestResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FindNearestResponse)
+	err := c.cc.Invoke(ctx, BaseService_FindNearest_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *baseServiceClient) ListBases(ctx context.Context, in *ListBasesRequest, opts ...grpc.CallOption) (*ListBasesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListBasesResponse)
@@ -77,6 +89,7 @@ func (c *baseServiceClient) ListBases(ctx context.Context, in *ListBasesRequest,
 type BaseServiceServer interface {
 	CreateBase(context.Context, *CreateBaseRequest) (*CreateBaseResponse, error)
 	GetBaseLocation(context.Context, *GetBaseLocationRequest) (*GetBaseLocationResponse, error)
+	FindNearest(context.Context, *FindNearestRequest) (*FindNearestResponse, error)
 	ListBases(context.Context, *ListBasesRequest) (*ListBasesResponse, error)
 	mustEmbedUnimplementedBaseServiceServer()
 }
@@ -93,6 +106,9 @@ func (UnimplementedBaseServiceServer) CreateBase(context.Context, *CreateBaseReq
 }
 func (UnimplementedBaseServiceServer) GetBaseLocation(context.Context, *GetBaseLocationRequest) (*GetBaseLocationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBaseLocation not implemented")
+}
+func (UnimplementedBaseServiceServer) FindNearest(context.Context, *FindNearestRequest) (*FindNearestResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FindNearest not implemented")
 }
 func (UnimplementedBaseServiceServer) ListBases(context.Context, *ListBasesRequest) (*ListBasesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListBases not implemented")
@@ -154,6 +170,24 @@ func _BaseService_GetBaseLocation_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BaseService_FindNearest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FindNearestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BaseServiceServer).FindNearest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BaseService_FindNearest_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BaseServiceServer).FindNearest(ctx, req.(*FindNearestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BaseService_ListBases_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListBasesRequest)
 	if err := dec(in); err != nil {
@@ -186,6 +220,10 @@ var BaseService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetBaseLocation",
 			Handler:    _BaseService_GetBaseLocation_Handler,
+		},
+		{
+			MethodName: "FindNearest",
+			Handler:    _BaseService_FindNearest_Handler,
 		},
 		{
 			MethodName: "ListBases",
