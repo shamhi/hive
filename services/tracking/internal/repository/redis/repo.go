@@ -112,6 +112,67 @@ func (r *RedisRepo) GetByID(ctx context.Context, droneID string) (*drone.Drone, 
 	}, nil
 }
 
+func (r *RedisRepo) List(ctx context.Context, offset, limit int64) ([]*drone.Drone, error) {
+	start := offset
+	stop := offset + limit - 1
+
+	ids, err := r.rdb.Client.ZRange(ctx, AllDronesKey, start, stop).Result()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get drone ids: %w", err)
+	}
+
+	if len(ids) == 0 {
+		return []*drone.Drone{}, nil
+	}
+
+	pipe := r.rdb.Client.Pipeline()
+	hCmd := make([]*redis.MapStringStringCmd, 0, len(ids))
+	gCmd := make([]*redis.GeoPosCmd, 0, len(ids))
+
+	for _, id := range ids {
+		hCmd = append(hCmd, pipe.HGetAll(ctx, DroneDataKey+id))
+		gCmd = append(gCmd, pipe.GeoPos(ctx, DroneGeoKey, id))
+	}
+
+	if _, err := pipe.Exec(ctx); err != nil {
+		return nil, fmt.Errorf("failed to fetch drones data: %w", err)
+	}
+
+	drones := make([]*drone.Drone, 0, len(ids))
+	for i, id := range ids {
+		data, err := hCmd[i].Result()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get drone data: %w", err)
+		}
+
+		if len(data) == 0 {
+			continue
+		}
+
+		battery, _ := strconv.ParseFloat(data["battery"], 64)
+		speed, _ := strconv.ParseFloat(data["speed_mps"], 64)
+		consumption, _ := strconv.ParseFloat(data["consumption_per_meter"], 64)
+
+		posArr, err := gCmd[i].Result()
+		if err != nil || len(posArr) == 0 || posArr[0] == nil {
+			continue
+		}
+
+		drones = append(drones, &drone.Drone{
+			ID: id,
+			Location: shared.Location{
+				Lat: posArr[0].Latitude,
+				Lon: posArr[0].Longitude,
+			},
+			Battery:             battery,
+			SpeedMps:            speed,
+			ConsumptionPerMeter: consumption,
+		})
+	}
+
+	return drones, nil
+}
+
 func (r *RedisRepo) SetStatus(ctx context.Context, droneID string, status drone.DroneStatus) error {
 	exists, err := r.rdb.Client.Exists(ctx, DroneDataKey+droneID).Result()
 	if err != nil {

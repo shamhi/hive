@@ -9,5 +9,6 @@ import (
 type BaseRepository interface {
 	Save(ctx context.Context, s *base.Base) error
 	GetByID(ctx context.Context, id string) (*base.Base, error)
+	List(ctx context.Context, offset, limit int64) ([]*base.Base, error)
 	GetNearest(ctx context.Context, location shared.Location, radiusMeters float64) (*base.BaseNearest, error)
 }

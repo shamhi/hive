@@ -85,6 +85,65 @@ func (r *RedisRepo) GetByID(ctx context.Context, baseID string) (*base.Base, err
 	}, nil
 }
 
+func (r *RedisRepo) List(ctx context.Context, offset, limit int64) ([]*base.Base, error) {
+	start := offset
+	stop := offset + limit - 1
+
+	ids, err := r.client.ZRange(ctx, AllBasesKey, start, stop).Result()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get base ids: %w", err)
+	}
+
+	if len(ids) == 0 {
+		return []*base.Base{}, nil
+	}
+
+	pipe := r.client.Pipeline()
+	hCmd := make([]*redis.MapStringStringCmd, 0, len(ids))
+	gCmd := make([]*redis.GeoPosCmd, 0, len(ids))
+
+	for _, id := range ids {
+		hCmd = append(hCmd, pipe.HGetAll(ctx, BaseDataKey+id))
+		gCmd = append(gCmd, pipe.GeoPos(ctx, BaseGeoKey, id))
+	}
+
+	if _, err := pipe.Exec(ctx); err != nil {
+		return nil, fmt.Errorf("failed to fetch bases data: %w", err)
+	}
+
+	bases := make([]*base.Base, 0, len(ids))
+	for i, id := range ids {
+		data, err := hCmd[i].Result()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get base data: %w", err)
+		}
+
+		if len(data) == 0 {
+			continue
+		}
+
+		name := data["name"]
+		address := data["address"]
+
+		posArr, err := gCmd[i].Result()
+		if err != nil || len(posArr) == 0 || posArr[0] == nil {
+			continue
+		}
+
+		bases = append(bases, &base.Base{
+			ID:      id,
+			Name:    name,
+			Address: address,
+			Location: shared.Location{
+				Lat: posArr[0].Latitude,
+				Lon: posArr[0].Longitude,
+			},
+		})
+	}
+
+	return bases, nil
+}
+
 func (r *RedisRepo) GetNearest(
 	ctx context.Context,
 	location shared.Location,

@@ -55,6 +55,22 @@ func (s *StoreService) GetLocation(
 	return st, nil
 }
 
+func (s *StoreService) ListStores(
+	ctx context.Context,
+	offset, limit int64,
+) ([]*store.Store, error) {
+	if limit <= 0 {
+		return nil, fmt.Errorf("limit must be greater than zero")
+	}
+
+	stores, err := s.repo.List(ctx, offset, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list stores: %w", err)
+	}
+
+	return stores, nil
+}
+
 func (s *StoreService) FindNearest(
 	ctx context.Context,
 	location shared.Location,

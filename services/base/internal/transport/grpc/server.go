@@ -5,6 +5,7 @@ import (
 	"errors"
 	pb "hive/gen/base"
 	pbCommon "hive/gen/common"
+	"hive/services/base/internal/domain/mapping"
 	"hive/services/base/internal/domain/shared"
 	"hive/services/base/internal/service"
 
@@ -66,6 +67,26 @@ func (s *Server) GetBaseLocation(ctx context.Context, req *pb.GetBaseLocationReq
 			Lat: baseInfo.Location.Lat,
 			Lon: baseInfo.Location.Lon,
 		},
+	}, nil
+}
+
+func (s *Server) ListBases(ctx context.Context, req *pb.ListBasesRequest) (*pb.ListBasesResponse, error) {
+	if req.GetLimit() <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "limit must be greater than zero")
+	}
+
+	bases, err := s.svc.ListBases(ctx, req.GetOffset(), req.GetLimit())
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	pbBases := make([]*pb.Base, 0, len(bases))
+	for _, st := range bases {
+		pbBases = append(pbBases, mapping.BaseToProto(st))
+	}
+
+	return &pb.ListBasesResponse{
+		Bases: pbBases,
 	}, nil
 }
 

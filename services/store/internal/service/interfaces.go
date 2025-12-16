@@ -9,5 +9,6 @@ import (
 type StoreRepository interface {
 	Save(ctx context.Context, s *store.Store) error
 	GetByID(ctx context.Context, id string) (*store.Store, error)
+	List(ctx context.Context, offset, limit int64) ([]*store.Store, error)
 	GetNearest(ctx context.Context, location shared.Location, radiusMeters float64) (*store.StoreNearest, error)
 }

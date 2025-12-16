@@ -52,3 +52,16 @@ func DroneStatusFromProto(status pbTelemetry.DroneStatus) (drone.DroneStatus, bo
 		return "", false
 	}
 }
+
+func DroneToProto(d *drone.Drone) *pbTelemetry.Drone {
+	if d == nil {
+		return nil
+	}
+	return &pbTelemetry.Drone{
+		DroneId:             d.ID,
+		DroneLocation:       LocationToProto(&d.Location),
+		Battery:             d.Battery,
+		SpeedMps:            d.SpeedMps,
+		ConsumptionPerMeter: d.ConsumptionPerMeter,
+	}
+}

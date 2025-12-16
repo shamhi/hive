@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	pbCommon "hive/gen/common"
+	pbTelemetry "hive/gen/telemetry"
 	pb "hive/gen/tracking"
 	"hive/services/tracking/internal/domain/mapping"
 	"hive/services/tracking/internal/domain/shared"
@@ -94,5 +95,25 @@ func (s *Service) SetStatus(ctx context.Context, req *pb.SetStatusRequest) (*pb.
 
 	return &pb.SetStatusResponse{
 		Success: true,
+	}, nil
+}
+
+func (s *Service) ListDrones(ctx context.Context, req *pb.ListDronesRequest) (*pb.ListDronesResponse, error) {
+	if req.GetLimit() <= 0 {
+		return nil, status.Errorf(codes.InvalidArgument, "limit must be greater than zero")
+	}
+
+	drones, err := s.repo.List(ctx, req.GetOffset(), req.GetLimit())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to list drones: %v", err)
+	}
+
+	pbDrones := make([]*pbTelemetry.Drone, 0, len(drones))
+	for _, d := range drones {
+		pbDrones = append(pbDrones, mapping.DroneToProto(d))
+	}
+
+	return &pb.ListDronesResponse{
+		Drones: pbDrones,
 	}, nil
 }

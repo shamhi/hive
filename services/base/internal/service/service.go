@@ -55,6 +55,22 @@ func (s *BaseService) GetLocation(
 	return st, nil
 }
 
+func (s *BaseService) ListBases(
+	ctx context.Context,
+	offset, limit int64,
+) ([]*base.Base, error) {
+	if limit <= 0 {
+		return nil, fmt.Errorf("limit must be greater than zero")
+	}
+
+	bases, err := s.repo.List(ctx, offset, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list bases: %w", err)
+	}
+
+	return bases, nil
+}
+
 func (s *BaseService) FindNearest(
 	ctx context.Context,
 	location shared.Location,

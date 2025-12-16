@@ -5,6 +5,7 @@ import (
 	"errors"
 	pbCommon "hive/gen/common"
 	pb "hive/gen/store"
+	"hive/services/store/internal/domain/mapping"
 	"hive/services/store/internal/domain/shared"
 	"hive/services/store/internal/service"
 
@@ -66,6 +67,26 @@ func (s *Server) GetStoreLocation(ctx context.Context, req *pb.GetStoreLocationR
 			Lat: storeInfo.Location.Lat,
 			Lon: storeInfo.Location.Lon,
 		},
+	}, nil
+}
+
+func (s *Server) ListStores(ctx context.Context, req *pb.ListStoresRequest) (*pb.ListStoresResponse, error) {
+	if req.GetLimit() <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "limit must be greater than zero")
+	}
+
+	stores, err := s.svc.ListStores(ctx, req.GetOffset(), req.GetLimit())
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	pbStores := make([]*pb.Store, 0, len(stores))
+	for _, st := range stores {
+		pbStores = append(pbStores, mapping.StoreToProto(st))
+	}
+
+	return &pb.ListStoresResponse{
+		Stores: pbStores,
 	}, nil
 }
 
