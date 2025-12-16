@@ -22,16 +22,24 @@ type App struct {
 	grpcServer *grpc.Server
 }
 
-func New(cfg *config.ServerConfig, lg logger.Logger, repo service.DroneRepository) (*App, error) {
+func New(
+	cfg *config.ServerConfig,
+	lg logger.Logger,
+	repo service.DroneRepository,
+) (*App, error) {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GRPCPort))
 	if err != nil {
 		return nil, fmt.Errorf("failed to listen on port %d: %w", cfg.GRPCPort, err)
 	}
 
 	grpcServer := grpc.NewServer(
-		grpc.UnaryInterceptor(grpcx.UnaryServerLoggingTimeoutInterceptor(lg, 10*time.Second)))
+		grpc.UnaryInterceptor(grpcx.UnaryServerLoggingTimeoutInterceptor(lg, 10*time.Second)),
+	)
 
-	trackingService := service.New(repo)
+	trackingService := service.New(
+		repo,
+		lg,
+	)
 	trackingGen.RegisterTrackingServiceServer(grpcServer, trackingService)
 
 	return &App{

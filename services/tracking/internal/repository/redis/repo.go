@@ -76,7 +76,10 @@ func (r *RedisRepo) GetNearest(
 	return nil, service.ErrDroneNotFound
 }
 
-func (r *RedisRepo) GetByID(ctx context.Context, droneID string) (*drone.Drone, error) {
+func (r *RedisRepo) GetByID(
+	ctx context.Context,
+	droneID string,
+) (*drone.Drone, error) {
 	data, err := r.rdb.Client.HGetAll(ctx, DroneDataKey+droneID).Result()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get drone data: %w", err)
@@ -113,7 +116,10 @@ func (r *RedisRepo) GetByID(ctx context.Context, droneID string) (*drone.Drone, 
 	}, nil
 }
 
-func (r *RedisRepo) List(ctx context.Context, offset, limit int64) ([]*drone.Drone, error) {
+func (r *RedisRepo) List(
+	ctx context.Context,
+	offset, limit int64,
+) ([]*drone.Drone, error) {
 	if limit <= 0 {
 		return []*drone.Drone{}, nil
 	}
@@ -189,7 +195,11 @@ func (r *RedisRepo) List(ctx context.Context, offset, limit int64) ([]*drone.Dro
 	return drones, nil
 }
 
-func (r *RedisRepo) SetStatus(ctx context.Context, droneID string, status drone.DroneStatus) error {
+func (r *RedisRepo) SetStatus(
+	ctx context.Context,
+	droneID string,
+	status drone.DroneStatus,
+) error {
 	exists, err := r.rdb.Client.Exists(ctx, DroneDataKey+droneID).Result()
 	if err != nil {
 		return fmt.Errorf("failed to check drone existence: %w", err)
@@ -208,7 +218,10 @@ func (r *RedisRepo) SetStatus(ctx context.Context, droneID string, status drone.
 	return nil
 }
 
-func (r *RedisRepo) UpdateState(ctx context.Context, tm drone.TelemetryData) error {
+func (r *RedisRepo) UpdateState(
+	ctx context.Context,
+	tm drone.TelemetryData,
+) error {
 	pipe := r.rdb.Client.TxPipeline()
 
 	pipe.SAdd(ctx, AllDronesKey, tm.DroneID)

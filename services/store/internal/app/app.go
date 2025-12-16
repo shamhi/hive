@@ -36,6 +36,7 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 
 	storeService := service.NewStoreService(
 		repo,
+		lg,
 	)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GRPCPort))

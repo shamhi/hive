@@ -8,6 +8,7 @@ import (
 	pg "hive/pkg/db/postgres"
 	"hive/pkg/grpcx"
 	"hive/pkg/logger"
+	"hive/pkg/resilience"
 	"hive/services/order/internal/config"
 	grpcDispatchClient "hive/services/order/internal/infrastructure/grpc/dispatch"
 	repoPostgres "hive/services/order/internal/repository/postgres"
@@ -44,6 +45,19 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 		grpc.WithUnaryInterceptor(grpcx.UnaryClientResilienceInterceptor(lg, grpcx.ClientResilienceConfig{
 			Name:    "order->dispatch",
 			Timeout: cfg.RequestTimeout,
+			Retry: resilience.RetryConfig{
+				MaxAttempts: 3,
+				BaseDelay:   50 * time.Millisecond,
+				MaxDelay:    500 * time.Millisecond,
+				Jitter:      0.2,
+			},
+			Breaker: resilience.BreakerConfig{
+				Interval:    10 * time.Second,
+				Timeout:     5 * time.Second,
+				MaxRequests: 3,
+				MinRequests: 5,
+				FailureRate: 0.6,
+			},
 		})),
 	)
 	if err != nil {
@@ -54,6 +68,7 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	orderService := service.NewOrderService(
 		repo,
 		dispatchClient,
+		lg,
 	)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GRPCPort))

@@ -10,6 +10,7 @@ import (
 	pbTracking "hive/gen/tracking"
 	"hive/pkg/grpcx"
 	"hive/pkg/logger"
+	"hive/pkg/resilience"
 	"hive/services/api-gateway/internal/config"
 	grpcBaseClient "hive/services/api-gateway/internal/infrastructure/grpc/base"
 	grpcOrderClient "hive/services/api-gateway/internal/infrastructure/grpc/order"
@@ -17,6 +18,7 @@ import (
 	grpcTrackingClient "hive/services/api-gateway/internal/infrastructure/grpc/tracking"
 	apiV1 "hive/services/api-gateway/internal/transport/http/v1"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -55,6 +57,19 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 		grpc.WithUnaryInterceptor(grpcx.UnaryClientResilienceInterceptor(lg, grpcx.ClientResilienceConfig{
 			Name:    "api->order",
 			Timeout: cfg.RequestTimeout,
+			Retry: resilience.RetryConfig{
+				MaxAttempts: 3,
+				BaseDelay:   50 * time.Millisecond,
+				MaxDelay:    500 * time.Millisecond,
+				Jitter:      0.2,
+			},
+			Breaker: resilience.BreakerConfig{
+				Interval:    10 * time.Second,
+				Timeout:     5 * time.Second,
+				MaxRequests: 3,
+				MinRequests: 5,
+				FailureRate: 0.6,
+			},
 		})),
 	)
 	if err != nil {
@@ -68,6 +83,19 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 		grpc.WithUnaryInterceptor(grpcx.UnaryClientResilienceInterceptor(lg, grpcx.ClientResilienceConfig{
 			Name:    "api->base",
 			Timeout: cfg.RequestTimeout,
+			Retry: resilience.RetryConfig{
+				MaxAttempts: 3,
+				BaseDelay:   50 * time.Millisecond,
+				MaxDelay:    500 * time.Millisecond,
+				Jitter:      0.2,
+			},
+			Breaker: resilience.BreakerConfig{
+				Interval:    10 * time.Second,
+				Timeout:     5 * time.Second,
+				MaxRequests: 3,
+				MinRequests: 5,
+				FailureRate: 0.6,
+			},
 		})),
 	)
 	if err != nil {
@@ -82,6 +110,19 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 		grpc.WithUnaryInterceptor(grpcx.UnaryClientResilienceInterceptor(lg, grpcx.ClientResilienceConfig{
 			Name:    "api->store",
 			Timeout: cfg.RequestTimeout,
+			Retry: resilience.RetryConfig{
+				MaxAttempts: 3,
+				BaseDelay:   50 * time.Millisecond,
+				MaxDelay:    500 * time.Millisecond,
+				Jitter:      0.2,
+			},
+			Breaker: resilience.BreakerConfig{
+				Interval:    10 * time.Second,
+				Timeout:     5 * time.Second,
+				MaxRequests: 3,
+				MinRequests: 5,
+				FailureRate: 0.6,
+			},
 		})),
 	)
 	if err != nil {
@@ -97,6 +138,19 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 		grpc.WithUnaryInterceptor(grpcx.UnaryClientResilienceInterceptor(lg, grpcx.ClientResilienceConfig{
 			Name:    "api->tracking",
 			Timeout: cfg.RequestTimeout,
+			Retry: resilience.RetryConfig{
+				MaxAttempts: 3,
+				BaseDelay:   50 * time.Millisecond,
+				MaxDelay:    500 * time.Millisecond,
+				Jitter:      0.2,
+			},
+			Breaker: resilience.BreakerConfig{
+				Interval:    10 * time.Second,
+				Timeout:     5 * time.Second,
+				MaxRequests: 3,
+				MinRequests: 5,
+				FailureRate: 0.6,
+			},
 		})),
 	)
 	if err != nil {

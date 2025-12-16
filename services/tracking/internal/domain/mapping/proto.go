@@ -17,29 +17,6 @@ func LocationToProto(loc *shared.Location) *pbCommon.Location {
 	}
 }
 
-func LocationFromProto(loc *pbCommon.Location) *shared.Location {
-	if loc == nil {
-		return nil
-	}
-	return &shared.Location{
-		Lat: loc.Lat,
-		Lon: loc.Lon,
-	}
-}
-
-func DroneStatusToProto(status drone.DroneStatus) pbTelemetry.DroneStatus {
-	switch status {
-	case drone.DroneStatusFree:
-		return pbTelemetry.DroneStatus_STATUS_FREE
-	case drone.DroneStatusBusy:
-		return pbTelemetry.DroneStatus_STATUS_BUSY
-	case drone.DroneStatusCharging:
-		return pbTelemetry.DroneStatus_STATUS_CHARGING
-	default:
-		return pbTelemetry.DroneStatus_STATUS_UNKNOWN
-	}
-}
-
 func DroneStatusFromProto(status pbTelemetry.DroneStatus) (drone.DroneStatus, bool) {
 	switch status {
 	case pbTelemetry.DroneStatus_STATUS_FREE:

@@ -35,6 +35,7 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 		dataProducer.Writer,
 		cfg.EventsTopic,
 		cfg.DataTopic,
+		lg,
 	)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GRPCPort))
