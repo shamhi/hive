@@ -8,17 +8,17 @@ services:
     volumes:
       - ./infra/nginx/conf.d:/etc/nginx/conf.d:ro
     depends_on:
-      - api
+      - api-gateway
 
-  api:
+  api-gateway:
     build:
       context: .
-      dockerfile: services/api/Dockerfile
+      dockerfile: services/api-gateway/Dockerfile
       target: server
-    container_name: HIVE_api
+    container_name: HIVE_api-gateway
     restart: unless-stopped
     env_file:
-      - services/api/config/.env
+      - services/api-gateway/config/.env
 
   order:
     build:
