@@ -75,7 +75,7 @@ func UnaryClientResilienceInterceptor(lg logger.Logger, cfg ClientResilienceConf
 			zap.String("method", method),
 		)
 
-		ctx, cancel := withMaxTimeout(ctx, cfg.Timeout)
+		ctx, cancel := ensureMaxTimeout(ctx, cfg.Timeout)
 		defer cancel()
 
 		start := time.Now()
@@ -96,7 +96,7 @@ func UnaryClientResilienceInterceptor(lg logger.Logger, cfg ClientResilienceConf
 			return err
 		}
 
-		l.Info(ctx, "gRPC request started", zap.Any("req", req))
+		l.Info(ctx, "gRPC request started")
 
 		var err error
 		if cfg.ShouldRetryMethod(method) {
@@ -139,7 +139,7 @@ func UnaryServerLoggingTimeoutInterceptor(lg logger.Logger, maxTimeout time.Dura
 			zap.String("method", info.FullMethod),
 		)
 
-		ctx, cancel := withMaxTimeout(ctx, maxTimeout)
+		ctx, cancel := ensureMaxTimeout(ctx, maxTimeout)
 		defer cancel()
 
 		start := time.Now()
@@ -157,7 +157,7 @@ func UnaryServerLoggingTimeoutInterceptor(lg logger.Logger, maxTimeout time.Dura
 
 func LoggingTimeoutStreamServerInterceptor(lg logger.Logger, maxTimeout time.Duration) grpc.StreamServerInterceptor {
 	if maxTimeout <= 0 {
-		maxTimeout = 10 * time.Minute
+		maxTimeout = 0
 	}
 
 	return func(
@@ -172,7 +172,7 @@ func LoggingTimeoutStreamServerInterceptor(lg logger.Logger, maxTimeout time.Dur
 		)
 
 		ctx := ss.Context()
-		ctx, cancel := withMaxTimeout(ctx, maxTimeout)
+		ctx, cancel := capDeadline(ctx, maxTimeout)
 		defer cancel()
 
 		wrapped := &serverStreamWithContext{ServerStream: ss, ctx: ctx}
@@ -202,11 +202,9 @@ type serverStreamWithContext struct {
 	ctx context.Context
 }
 
-func (s *serverStreamWithContext) Context() context.Context {
-	return s.ctx
-}
+func (s *serverStreamWithContext) Context() context.Context { return s.ctx }
 
-func withMaxTimeout(ctx context.Context, timeout time.Duration) (context.Context, context.CancelFunc) {
+func ensureMaxTimeout(ctx context.Context, timeout time.Duration) (context.Context, context.CancelFunc) {
 	if timeout <= 0 {
 		return ctx, func() {}
 	}
@@ -216,6 +214,20 @@ func withMaxTimeout(ctx context.Context, timeout time.Duration) (context.Context
 		}
 	}
 	return context.WithTimeout(ctx, timeout)
+}
+
+func capDeadline(ctx context.Context, maxTimeout time.Duration) (context.Context, context.CancelFunc) {
+	if maxTimeout <= 0 {
+		return ctx, func() {}
+	}
+	dl, ok := ctx.Deadline()
+	if !ok {
+		return ctx, func() {}
+	}
+	if time.Until(dl) <= maxTimeout {
+		return ctx, func() {}
+	}
+	return context.WithTimeout(ctx, maxTimeout)
 }
 
 func defaultRetryableError(err error) bool {

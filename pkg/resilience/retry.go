@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+func init() { rand.NewSource(time.Now().UnixNano()) }
+
 type RetryConfig struct {
 	MaxAttempts int           // включая первую попытку
 	BaseDelay   time.Duration // например 50ms
