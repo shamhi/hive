@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"fmt"
+
 	pbStore "hive/gen/store"
 	"hive/services/api-gateway/internal/domain/mapping"
 	"hive/services/api-gateway/internal/domain/store"
@@ -13,31 +14,32 @@ type StoreClient struct {
 }
 
 func NewStoreClient(client pbStore.StoreServiceClient) *StoreClient {
-	return &StoreClient{
-		client: client,
-	}
+	return &StoreClient{client: client}
 }
 
-func (c *StoreClient) ListStores(
-	ctx context.Context,
-	offset, limit int64,
-) ([]*store.Store, error) {
+func (c *StoreClient) ListStores(ctx context.Context, offset, limit int64) ([]*store.Store, error) {
 	req := &pbStore.ListStoresRequest{
 		Offset: offset,
 		Limit:  limit,
 	}
+
 	resp, err := c.client.ListStores(ctx, req)
 	if err != nil {
-		return nil, fmt.Errorf("ListStores: %w", err)
+		return nil, fmt.Errorf("failed to list stores: %w", err)
 	}
+	if resp == nil {
+		return nil, fmt.Errorf("received nil response when listing stores")
+	}
+
 	pbStores := resp.GetStores()
-	stores := make([]*store.Store, 0, len(pbStores))
-	for _, pbS := range resp.GetStores() {
+	out := make([]*store.Store, 0, len(pbStores))
+	for _, pbS := range pbStores {
 		s, ok := mapping.StoreFromProto(pbS)
-		if !ok {
+		if !ok || s == nil {
 			continue
 		}
-		stores = append(stores, s)
+		out = append(out, s)
 	}
-	return stores, nil
+
+	return out, nil
 }

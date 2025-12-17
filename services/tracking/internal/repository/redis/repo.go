@@ -92,6 +92,8 @@ func (r *RedisRepo) GetByID(
 	battery, _ := strconv.ParseFloat(data["battery"], 64)
 	speed, _ := strconv.ParseFloat(data["speed_mps"], 64)
 	consumption, _ := strconv.ParseFloat(data["consumption_per_meter"], 64)
+	status := drone.DroneStatus(data["status"])
+	ts, _ := strconv.ParseInt(data["timestamp"], 10, 64)
 
 	positions, err := r.rdb.Client.GeoPos(ctx, DroneGeoKey, droneID).Result()
 	if err != nil {
@@ -105,14 +107,16 @@ func (r *RedisRepo) GetByID(
 	pos := positions[0]
 
 	return &drone.Drone{
-		ID: droneID,
+		ID:                  droneID,
+		Battery:             battery,
+		SpeedMps:            speed,
+		ConsumptionPerMeter: consumption,
+		Status:              status,
 		Location: shared.Location{
 			Lat: pos.Latitude,
 			Lon: pos.Longitude,
 		},
-		Battery:             battery,
-		SpeedMps:            speed,
-		ConsumptionPerMeter: consumption,
+		UpdatedAt: ts,
 	}, nil
 }
 
@@ -174,6 +178,8 @@ func (r *RedisRepo) List(
 		battery, _ := strconv.ParseFloat(data["battery"], 64)
 		speed, _ := strconv.ParseFloat(data["speed_mps"], 64)
 		consumption, _ := strconv.ParseFloat(data["consumption_per_meter"], 64)
+		status := drone.DroneStatus(data["status"])
+		ts, _ := strconv.ParseInt(data["timestamp"], 10, 64)
 
 		posArr, err := gCmd[i].Result()
 		if err != nil || len(posArr) == 0 || posArr[0] == nil {
@@ -181,14 +187,16 @@ func (r *RedisRepo) List(
 		}
 
 		drones = append(drones, &drone.Drone{
-			ID: id,
+			ID:                  id,
+			Battery:             battery,
+			SpeedMps:            speed,
+			ConsumptionPerMeter: consumption,
+			Status:              status,
 			Location: shared.Location{
 				Lat: posArr[0].Latitude,
 				Lon: posArr[0].Longitude,
 			},
-			Battery:             battery,
-			SpeedMps:            speed,
-			ConsumptionPerMeter: consumption,
+			UpdatedAt: ts,
 		})
 	}
 

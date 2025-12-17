@@ -21,16 +21,6 @@ func LocationToProto(loc *shared.Location) *pbCommon.Location {
 	}
 }
 
-func LocationFromProto(loc *pbCommon.Location) *shared.Location {
-	if loc == nil {
-		return nil
-	}
-	return &shared.Location{
-		Lat: loc.Lat,
-		Lon: loc.Lon,
-	}
-}
-
 func AssignmentStatusToProto(status assignment.AssignmentStatus) pb.AssignmentStatus {
 	switch status {
 	case assignment.AssignmentStatusCreated:
@@ -77,23 +67,6 @@ func OrderStatusToProto(status order.OrderStatus) pbOrder.OrderStatus {
 	}
 }
 
-func OrderStatusFromProto(status pbOrder.OrderStatus) (order.OrderStatus, bool) {
-	switch status {
-	case pbOrder.OrderStatus_CREATED:
-		return order.OrderStatusCreated, true
-	case pbOrder.OrderStatus_PENDING:
-		return order.OrderStatusPending, true
-	case pbOrder.OrderStatus_ASSIGNED:
-		return order.OrderStatusAssigned, true
-	case pbOrder.OrderStatus_COMPLETED:
-		return order.OrderStatusCompleted, true
-	case pbOrder.OrderStatus_FAILED:
-		return order.OrderStatusFailed, true
-	default:
-		return "", false
-	}
-}
-
 func DroneActionToProto(action drone.DroneAction) pbTelemetry.DroneAction {
 	switch action {
 	case drone.DroneActionWait:
@@ -111,23 +84,6 @@ func DroneActionToProto(action drone.DroneAction) pbTelemetry.DroneAction {
 	}
 }
 
-func DroneActionFromProto(action pbTelemetry.DroneAction) (drone.DroneAction, bool) {
-	switch action {
-	case pbTelemetry.DroneAction_ACTION_WAIT:
-		return drone.DroneActionWait, true
-	case pbTelemetry.DroneAction_ACTION_FLY_TO:
-		return drone.DroneActionFlyTo, true
-	case pbTelemetry.DroneAction_ACTION_PICKUP_CARGO:
-		return drone.DroneActionPickupCargo, true
-	case pbTelemetry.DroneAction_ACTION_DROP_CARGO:
-		return drone.DroneActionDropCargo, true
-	case pbTelemetry.DroneAction_ACTION_CHARGE:
-		return drone.DroneActionCharge, true
-	default:
-		return "", false
-	}
-}
-
 func DroneTargetTypeToProto(targetType drone.TargetType) pbTelemetry.TargetType {
 	switch targetType {
 	case drone.TargetTypePoint:
@@ -140,23 +96,6 @@ func DroneTargetTypeToProto(targetType drone.TargetType) pbTelemetry.TargetType 
 		return pbTelemetry.TargetType_TARGET_BASE
 	default:
 		return pbTelemetry.TargetType_TARGET_NONE
-	}
-}
-
-func DroneTargetTypeFromProto(targetType pbTelemetry.TargetType) (drone.TargetType, bool) {
-	switch targetType {
-	case pbTelemetry.TargetType_TARGET_NONE:
-		return drone.TargetTypeNone, true
-	case pbTelemetry.TargetType_TARGET_POINT:
-		return drone.TargetTypePoint, true
-	case pbTelemetry.TargetType_TARGET_STORE:
-		return drone.TargetTypeStore, true
-	case pbTelemetry.TargetType_TARGET_CLIENT:
-		return drone.TargetTypeClient, true
-	case pbTelemetry.TargetType_TARGET_BASE:
-		return drone.TargetTypeBase, true
-	default:
-		return "", false
 	}
 }
 
@@ -181,25 +120,6 @@ func DroneStatusFromProto(status pbTelemetry.DroneStatus) (drone.DroneStatus, bo
 		return drone.DroneStatusBusy, true
 	case pbTelemetry.DroneStatus_STATUS_CHARGING:
 		return drone.DroneStatusCharging, true
-	default:
-		return "", false
-	}
-}
-
-func DroneEventFromProto(event pbTelemetry.DroneEvent) (drone.DroneEvent, bool) {
-	switch event {
-	case pbTelemetry.DroneEvent_EVENT_ARRIVED_AT_STORE:
-		return drone.DroneEventArrivedAtStore, true
-	case pbTelemetry.DroneEvent_EVENT_PICKED_UP_CARGO:
-		return drone.DroneEventPickedUpCargo, true
-	case pbTelemetry.DroneEvent_EVENT_ARRIVED_AT_CLIENT:
-		return drone.DroneEventArrivedAtClient, true
-	case pbTelemetry.DroneEvent_EVENT_DROPPED_CARGO:
-		return drone.DroneEventDroppedCargo, true
-	case pbTelemetry.DroneEvent_EVENT_ARRIVED_AT_BASE:
-		return drone.DroneEventArrivedAtBase, true
-	case pbTelemetry.DroneEvent_EVENT_FULLY_CHARGED:
-		return drone.DroneEventFullyCharged, true
 	default:
 		return "", false
 	}

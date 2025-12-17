@@ -3,9 +3,11 @@ package mapping
 import (
 	pbBase "hive/gen/base"
 	pbCommon "hive/gen/common"
+	pb "hive/gen/dispatch"
 	pbOrder "hive/gen/order"
 	pbStore "hive/gen/store"
 	pbTelemetry "hive/gen/telemetry"
+	"hive/services/api-gateway/internal/domain/assignment"
 	"hive/services/api-gateway/internal/domain/base"
 	"hive/services/api-gateway/internal/domain/drone"
 	"hive/services/api-gateway/internal/domain/order"
@@ -13,21 +15,14 @@ import (
 	"hive/services/api-gateway/internal/domain/store"
 )
 
-func OrderStatusToProto(status order.OrderStatus) pbOrder.OrderStatus {
-	switch status {
-	case order.OrderStatusCreated:
-		return pbOrder.OrderStatus_CREATED
-	case order.OrderStatusPending:
-		return pbOrder.OrderStatus_PENDING
-	case order.OrderStatusAssigned:
-		return pbOrder.OrderStatus_ASSIGNED
-	case order.OrderStatusCompleted:
-		return pbOrder.OrderStatus_COMPLETED
-	case order.OrderStatusFailed:
-		return pbOrder.OrderStatus_FAILED
-	default:
-		return pbOrder.OrderStatus_UNKNOWN
+func LocationFromProto(loc *pbCommon.Location) (shared.Location, bool) {
+	if loc == nil {
+		return shared.Location{}, false
 	}
+	return shared.Location{
+		Lat: loc.Lat,
+		Lon: loc.Lon,
+	}, true
 }
 
 func OrderStatusFromProto(status pbOrder.OrderStatus) (order.OrderStatus, bool) {
@@ -47,36 +42,77 @@ func OrderStatusFromProto(status pbOrder.OrderStatus) (order.OrderStatus, bool) 
 	}
 }
 
+func DroneStatusFromProto(status pbTelemetry.DroneStatus) (drone.DroneStatus, bool) {
+	switch status {
+	case pbTelemetry.DroneStatus_STATUS_FREE:
+		return drone.DroneStatusFree, true
+	case pbTelemetry.DroneStatus_STATUS_BUSY:
+		return drone.DroneStatusBusy, true
+	case pbTelemetry.DroneStatus_STATUS_CHARGING:
+		return drone.DroneStatusCharging, true
+	default:
+		return "", false
+	}
+}
+
+func AssignmentStatusFromProto(status pb.AssignmentStatus) (assignment.AssignmentStatus, bool) {
+	switch status {
+	case pb.AssignmentStatus_ASSIGNMENT_STATUS_CREATED:
+		return assignment.AssignmentStatusCreated, true
+	case pb.AssignmentStatus_ASSIGNMENT_STATUS_ASSIGNED:
+		return assignment.AssignmentStatusAssigned, true
+	case pb.AssignmentStatus_ASSIGNMENT_STATUS_FLYING_TO_STORE:
+		return assignment.AssignmentStatusFlyingToStore, true
+	case pb.AssignmentStatus_ASSIGNMENT_STATUS_AT_STORE:
+		return assignment.AssignmentStatusAtStore, true
+	case pb.AssignmentStatus_ASSIGNMENT_STATUS_PICKED_UP_CARGO:
+		return assignment.AssignmentStatusPickedUpCargo, true
+	case pb.AssignmentStatus_ASSIGNMENT_STATUS_FLYING_TO_CLIENT:
+		return assignment.AssignmentStatusFlyingToClient, true
+	case pb.AssignmentStatus_ASSIGNMENT_STATUS_AT_CLIENT:
+		return assignment.AssignmentStatusAtClient, true
+	case pb.AssignmentStatus_ASSIGNMENT_STATUS_DROPPED_CARGO:
+		return assignment.AssignmentStatusDroppedCargo, true
+	case pb.AssignmentStatus_ASSIGNMENT_STATUS_RETURNING_BASE:
+		return assignment.AssignmentStatusReturningBase, true
+	case pb.AssignmentStatus_ASSIGNMENT_STATUS_COMPLETED:
+		return assignment.AssignmentStatusCompleted, true
+	case pb.AssignmentStatus_ASSIGNMENT_STATUS_FAILED:
+		return assignment.AssignmentStatusFailed, true
+	default:
+		return "", false
+	}
+}
+
 func BaseFromProto(b *pbBase.Base) (*base.Base, bool) {
 	if b == nil {
+		return nil, false
+	}
+	loc, ok := LocationFromProto(b.Location)
+	if !ok {
 		return nil, false
 	}
 	return &base.Base{
 		ID:       b.BaseId,
 		Name:     b.Name,
 		Address:  b.Address,
-		Location: *LocationFromProto(b.Location),
+		Location: loc,
 	}, true
-}
-func LocationFromProto(loc *pbCommon.Location) *shared.Location {
-	if loc == nil {
-		return nil
-	}
-	return &shared.Location{
-		Lat: loc.Lat,
-		Lon: loc.Lon,
-	}
 }
 
 func StoreFromProto(s *pbStore.Store) (*store.Store, bool) {
 	if s == nil {
 		return nil, false
 	}
+	loc, ok := LocationFromProto(s.Location)
+	if !ok {
+		return nil, false
+	}
 	return &store.Store{
 		ID:       s.StoreId,
 		Name:     s.Name,
 		Address:  s.Address,
-		Location: *LocationFromProto(s.Location),
+		Location: loc,
 	}, true
 }
 
@@ -84,11 +120,21 @@ func DroneFromProto(d *pbTelemetry.Drone) (*drone.Drone, bool) {
 	if d == nil {
 		return nil, false
 	}
+	loc, ok := LocationFromProto(d.DroneLocation)
+	if !ok {
+		return nil, false
+	}
+	st, ok := DroneStatusFromProto(d.Status)
+	if !ok {
+		return nil, false
+	}
 	return &drone.Drone{
 		ID:                  d.DroneId,
-		Location:            *LocationFromProto(d.DroneLocation),
+		Location:            loc,
 		Battery:             d.Battery,
 		SpeedMps:            d.SpeedMps,
 		ConsumptionPerMeter: d.ConsumptionPerMeter,
+		Status:              st,
+		UpdatedAt:           d.UpdatedAt,
 	}, true
 }

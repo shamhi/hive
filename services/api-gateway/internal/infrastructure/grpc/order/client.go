@@ -15,17 +15,10 @@ type OrderClient struct {
 }
 
 func NewOrderClient(client pbOrder.OrderServiceClient) *OrderClient {
-	return &OrderClient{
-		client: client,
-	}
+	return &OrderClient{client: client}
 }
 
-func (c *OrderClient) CreateOrder(
-	ctx context.Context,
-	userID string,
-	items []string,
-	location shared.Location,
-) (*order.OrderInfo, error) {
+func (c *OrderClient) CreateOrder(ctx context.Context, userID string, items []string, location shared.Location) (*order.OrderInfo, error) {
 	req := &pbOrder.CreateOrderRequest{
 		UserId: userID,
 		Items:  items,
@@ -34,14 +27,15 @@ func (c *OrderClient) CreateOrder(
 			Lon: location.Lon,
 		},
 	}
+
 	resp, err := c.client.CreateOrder(ctx, req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("CreateOrder: %w", err)
 	}
 
 	st, ok := mapping.OrderStatusFromProto(resp.GetStatus())
 	if !ok {
-		return nil, fmt.Errorf("unknown order status from proto: %v", resp.GetStatus())
+		return nil, fmt.Errorf("CreateOrder: unknown order status from proto: %v", resp.GetStatus())
 	}
 
 	return &order.OrderInfo{
@@ -53,17 +47,21 @@ func (c *OrderClient) CreateOrder(
 }
 
 func (c *OrderClient) GetOrder(ctx context.Context, orderID string) (*order.Order, error) {
-	req := &pbOrder.GetOrderRequest{
-		OrderId: orderID,
-	}
+	req := &pbOrder.GetOrderRequest{OrderId: orderID}
+
 	resp, err := c.client.GetOrder(ctx, req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get order: %w", err)
 	}
 
 	st, ok := mapping.OrderStatusFromProto(resp.GetStatus())
 	if !ok {
 		return nil, fmt.Errorf("unknown order status from proto: %v", resp.GetStatus())
+	}
+
+	dl := resp.GetDeliveryLocation()
+	if dl == nil {
+		return nil, fmt.Errorf("delivery location is nil")
 	}
 
 	return &order.Order{
@@ -73,8 +71,8 @@ func (c *OrderClient) GetOrder(ctx context.Context, orderID string) (*order.Orde
 		Items:   resp.GetItems(),
 		Status:  st,
 		Location: shared.Location{
-			Lat: resp.GetDeliveryLocation().GetLat(),
-			Lon: resp.GetDeliveryLocation().GetLon(),
+			Lat: dl.GetLat(),
+			Lon: dl.GetLon(),
 		},
 	}, nil
 }

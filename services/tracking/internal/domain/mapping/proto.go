@@ -17,6 +17,19 @@ func LocationToProto(loc *shared.Location) *pbCommon.Location {
 	}
 }
 
+func DroneStatusToProto(status drone.DroneStatus) pbTelemetry.DroneStatus {
+	switch status {
+	case drone.DroneStatusFree:
+		return pbTelemetry.DroneStatus_STATUS_FREE
+	case drone.DroneStatusBusy:
+		return pbTelemetry.DroneStatus_STATUS_BUSY
+	case drone.DroneStatusCharging:
+		return pbTelemetry.DroneStatus_STATUS_CHARGING
+	default:
+		return pbTelemetry.DroneStatus_STATUS_UNKNOWN
+	}
+}
+
 func DroneStatusFromProto(status pbTelemetry.DroneStatus) (drone.DroneStatus, bool) {
 	switch status {
 	case pbTelemetry.DroneStatus_STATUS_FREE:
@@ -40,5 +53,7 @@ func DroneToProto(d *drone.Drone) *pbTelemetry.Drone {
 		Battery:             d.Battery,
 		SpeedMps:            d.SpeedMps,
 		ConsumptionPerMeter: d.ConsumptionPerMeter,
+		Status:              DroneStatusToProto(d.Status),
+		UpdatedAt:           d.UpdatedAt,
 	}
 }

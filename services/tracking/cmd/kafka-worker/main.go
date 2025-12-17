@@ -34,7 +34,10 @@ func main() {
 	}
 
 	repo := redis.NewRedisRepo(redisDb)
-	handler := tkafka.New(repo)
+	handler := tkafka.New(
+		repo,
+		lg,
+	)
 
 	kafkaConsumer := kafka.NewConsumer(cfg.KafkaConfig, cfg.DataTopic, lg)
 

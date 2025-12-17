@@ -4,10 +4,12 @@ import "hive/services/api-gateway/internal/domain/shared"
 
 type Drone struct {
 	ID                  string
-	Location            shared.Location
 	Battery             float64
 	SpeedMps            float64
 	ConsumptionPerMeter float64
+	Status              DroneStatus
+	Location            shared.Location
+	UpdatedAt           int64
 }
 
 type DroneNearest struct {

@@ -15,6 +15,7 @@ import (
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 )
 
 type App struct {
@@ -47,7 +48,15 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 
 	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(grpcx.UnaryServerLoggingTimeoutInterceptor(lg, 10*time.Second)),
-		grpc.ChainStreamInterceptor(grpcx.LoggingTimeoutStreamServerInterceptor(lg, 10*time.Minute)),
+		grpc.ChainStreamInterceptor(grpcx.LoggingTimeoutStreamServerInterceptor(lg, 0)),
+		grpc.KeepaliveParams(keepalive.ServerParameters{
+			Time:    30 * time.Second,
+			Timeout: 10 * time.Second,
+		}),
+		grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
+			MinTime:             10 * time.Second,
+			PermitWithoutStream: true,
+		}),
 	)
 	telemetryServer := transportGrpc.NewServer(telemetryService)
 	pb.RegisterTelemetryServiceServer(grpcServer, telemetryServer)

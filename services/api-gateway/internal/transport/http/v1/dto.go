@@ -44,19 +44,31 @@ type StoreDTO struct {
 	Location Location `json:"location"`
 }
 type DroneDTO struct {
-	DroneID             string   `json:"drone_id"`
-	Location            Location `json:"location"`
-	Battery             float64  `json:"battery"`
-	SpeedMps            float64  `json:"speed_mps"`
-	ConsumptionPerMeter float64  `json:"consumption_per_meter"`
+	DroneID             string         `json:"drone_id"`
+	Battery             float64        `json:"battery"`
+	SpeedMps            float64        `json:"speed_mps"`
+	ConsumptionPerMeter float64        `json:"consumption_per_meter"`
+	Status              string         `json:"status"`
+	UpdatedAtMs         int64          `json:"updated_at_ms"`
+	Location            Location       `json:"location"`
+	Assignment          *AssignmentDTO `json:"assignment,omitempty"`
 }
+
+type AssignmentDTO struct {
+	AssignmentID   string    `json:"assignment_id"`
+	Status         string    `json:"status"`
+	TargetLocation *Location `json:"target_location"`
+}
+
 type ListBasesResponse struct {
-	Bases []BaseDTO `json:"bases"`
+	Items []BaseDTO `json:"items"`
 }
+
 type ListStoresResponse struct {
-	Stores []StoreDTO `json:"stores"`
+	Items []StoreDTO `json:"items"`
 }
 
 type ListDroneResponse struct {
-	Drones []DroneDTO `json:"drones"`
+	ServerTimeMs int64      `json:"server_time_ms"`
+	Items        []DroneDTO `json:"items"`
 }

@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"hive/services/api-gateway/internal/domain/assignment"
 	"hive/services/api-gateway/internal/domain/base"
 	"hive/services/api-gateway/internal/domain/drone"
 	"hive/services/api-gateway/internal/domain/order"
@@ -41,4 +42,11 @@ type TrackingClient interface {
 		ctx context.Context,
 		offset, limit int64,
 	) ([]*drone.Drone, error)
+}
+
+type DispatchClient interface {
+	GetAssignment(
+		ctx context.Context,
+		droneID string,
+	) (*assignment.Assignment, error)
 }

@@ -146,6 +146,7 @@ func (s *DispatchService) AssignDrone(
 		zap.Float64("drone_battery", droneInfo.Battery),
 		zap.Float64("drone_speed_mps", droneInfo.SpeedMps),
 		zap.Float64("drone_consumption_per_meter", droneInfo.ConsumptionPerMeter),
+		zap.String("drone_status", string(droneInfo.Status)),
 	)
 
 	nearestBase, err := s.base.FindNearest(ctx, deliveryLocation)

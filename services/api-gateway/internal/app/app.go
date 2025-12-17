@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	pbBase "hive/gen/base"
+	pbDispatch "hive/gen/dispatch"
 	pbOrder "hive/gen/order"
 	pbStore "hive/gen/store"
 	pbTracking "hive/gen/tracking"
@@ -13,6 +14,7 @@ import (
 	"hive/pkg/resilience"
 	"hive/services/api-gateway/internal/config"
 	grpcBaseClient "hive/services/api-gateway/internal/infrastructure/grpc/base"
+	grpcDispatchClient "hive/services/api-gateway/internal/infrastructure/grpc/dispatch"
 	grpcOrderClient "hive/services/api-gateway/internal/infrastructure/grpc/order"
 	grpcStoreClient "hive/services/api-gateway/internal/infrastructure/grpc/store"
 	grpcTrackingClient "hive/services/api-gateway/internal/infrastructure/grpc/tracking"
@@ -161,11 +163,42 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	}
 	trackingClient := grpcTrackingClient.NewTrackingClient(pbTracking.NewTrackingServiceClient(trackingConn))
 
+	dispatchConn, err := grpc.NewClient(
+		cfg.DispatchAddr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(grpcx.UnaryClientResilienceInterceptor(lg, grpcx.ClientResilienceConfig{
+			Name:    "api->tracking",
+			Timeout: cfg.RequestTimeout,
+			Retry: resilience.RetryConfig{
+				MaxAttempts: 3,
+				BaseDelay:   50 * time.Millisecond,
+				MaxDelay:    500 * time.Millisecond,
+				Jitter:      0.2,
+			},
+			Breaker: resilience.BreakerConfig{
+				Interval:    10 * time.Second,
+				Timeout:     5 * time.Second,
+				MaxRequests: 3,
+				MinRequests: 5,
+				FailureRate: 0.6,
+			},
+		})),
+	)
+	if err != nil {
+		orderConn.Close()
+		baseConn.Close()
+		storeConn.Close()
+		trackingConn.Close()
+		return nil, fmt.Errorf("failed to connect to dispatch service: %w", err)
+	}
+	dispatchClient := grpcDispatchClient.NewDispatchClient(pbDispatch.NewDispatchServiceClient(dispatchConn))
+
 	handler := apiV1.NewHandler(
 		orderClient,
 		baseClient,
 		storeClient,
 		trackingClient,
+		dispatchClient,
 	)
 	apiV1.RegisterRoutes(e, handler)
 
@@ -173,7 +206,7 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 		cfg:       cfg,
 		lg:        lg,
 		e:         e,
-		grpcConns: []*grpc.ClientConn{orderConn, baseConn, storeConn, trackingConn},
+		grpcConns: []*grpc.ClientConn{orderConn, baseConn, storeConn, trackingConn, dispatchConn},
 	}, nil
 }
 

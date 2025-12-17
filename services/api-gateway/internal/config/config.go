@@ -19,6 +19,7 @@ type Config struct {
 	BaseAddr     string `env:"BASE_ADDR" env-required:"true"`
 	StoreAddr    string `env:"STORE_ADDR" env-required:"true"`
 	TrackingAddr string `env:"TRACKING_ADDR" env-required:"true"`
+	DispatchAddr string `env:"DISPATCH_ADDR" env-required:"true"`
 }
 
 func Load() (*Config, error) {

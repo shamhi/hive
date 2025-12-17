@@ -77,15 +77,21 @@ func (c *TrackingClient) GetDroneLocation(ctx context.Context, droneID string) (
 		return nil, fmt.Errorf("no location data returned for drone")
 	}
 
+	st, ok := mapping.DroneStatusFromProto(resp.GetStatus())
+	if !ok {
+		return nil, fmt.Errorf("unknown drone status from proto: %v", resp.GetStatus())
+	}
+
 	return &drone.Drone{
-		ID: droneID,
+		ID:                  droneID,
+		Battery:             resp.GetBattery(),
+		SpeedMps:            resp.GetSpeedMps(),
+		ConsumptionPerMeter: resp.GetConsumptionPerMeter(),
+		Status:              st,
 		Location: shared.Location{
 			Lat: locationPb.GetLat(),
 			Lon: locationPb.GetLon(),
 		},
-		Battery:             resp.GetBattery(),
-		SpeedMps:            resp.GetSpeedMps(),
-		ConsumptionPerMeter: resp.GetConsumptionPerMeter(),
 	}, nil
 }
 

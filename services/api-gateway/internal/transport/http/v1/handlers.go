@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"hive/services/api-gateway/internal/domain/shared"
 	"net/http"
 	"strconv"
@@ -14,6 +15,7 @@ type Handler struct {
 	base     BaseClient
 	store    StoreClient
 	tracking TrackingClient
+	dispatch DispatchClient
 }
 
 func NewHandler(
@@ -21,12 +23,14 @@ func NewHandler(
 	base BaseClient,
 	store StoreClient,
 	tracking TrackingClient,
+	dispatch DispatchClient,
 ) *Handler {
 	return &Handler{
 		order:    order,
 		base:     base,
 		store:    store,
 		tracking: tracking,
+		dispatch: dispatch,
 	}
 }
 
@@ -37,15 +41,13 @@ func (h *Handler) Ping(c echo.Context) error {
 func (h *Handler) CreateOrder(c echo.Context) error {
 	var req CreateOrderRequest
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid request format"})
+		return jsonError(c, http.StatusBadRequest, "invalid request format")
 	}
-
 	if err := c.Validate(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return jsonError(c, http.StatusBadRequest, err.Error())
 	}
-
 	if _, err := uuid.Parse(req.UserID); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid user_id format"})
+		return jsonError(c, http.StatusBadRequest, "invalid user_id format")
 	}
 
 	ctx := c.Request().Context()
@@ -53,39 +55,33 @@ func (h *Handler) CreateOrder(c echo.Context) error {
 		ctx,
 		req.UserID,
 		req.Items,
-		shared.Location{
-			Lat: req.DeliveryLocation.Lat,
-			Lon: req.DeliveryLocation.Lon,
-		},
+		shared.Location{Lat: req.DeliveryLocation.Lat, Lon: req.DeliveryLocation.Lon},
 	)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Failed to create order: " + err.Error()})
+		return jsonError(c, http.StatusInternalServerError, "failed to create order")
 	}
 
-	resp := CreateOrderResponse{
+	return c.JSON(http.StatusCreated, CreateOrderResponse{
 		OrderID:    orderInfo.ID,
 		Status:     string(orderInfo.Status),
 		DroneID:    orderInfo.DroneID,
 		EtaSeconds: orderInfo.EtaSeconds,
-	}
-
-	return c.JSON(http.StatusCreated, resp)
+	})
 }
 
 func (h *Handler) GetOrder(c echo.Context) error {
 	orderID := c.Param("id")
-
 	if _, err := uuid.Parse(orderID); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid order_id format"})
+		return jsonError(c, http.StatusBadRequest, "invalid order_id format")
 	}
 
 	ctx := c.Request().Context()
 	o, err := h.order.GetOrder(ctx, orderID)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Failed to get order: " + err.Error()})
+		return jsonError(c, http.StatusInternalServerError, "failed to get order")
 	}
 
-	resp := GetOrderResponse{
+	return c.JSON(http.StatusOK, GetOrderResponse{
 		OrderID: o.ID,
 		UserID:  o.UserID,
 		DroneID: o.DroneID,
@@ -95,113 +91,114 @@ func (h *Handler) GetOrder(c echo.Context) error {
 			Lat: o.Location.Lat,
 			Lon: o.Location.Lon,
 		},
-	}
-
-	return c.JSON(http.StatusOK, resp)
+	})
 }
 
 func (h *Handler) ListBases(c echo.Context) error {
-	offset, _ := strconv.ParseInt(c.QueryParam("offset"), 10, 64)
-	limit, _ := strconv.ParseInt(c.QueryParam("limit"), 10, 64)
-
-	if offset < 0 {
-		offset = 0
+	offset, limit, err := parsePagination(c)
+	if err != nil {
+		return jsonError(c, http.StatusBadRequest, err.Error())
 	}
-	if limit <= 0 {
-		c.JSON(http.StatusOK, ListBasesResponse{
-			Bases: []BaseDTO{},
-		})
+	if limit == 0 {
+		return c.JSON(http.StatusOK, ListBasesResponse{Items: []BaseDTO{}})
 	}
 
 	ctx := c.Request().Context()
 	bases, err := h.base.ListBases(ctx, offset, limit)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Failed to get bases: " + err.Error()})
+		return jsonError(c, http.StatusInternalServerError, "failed to get bases")
 	}
-	basesDTO := make([]BaseDTO, 0, len(bases))
+
+	items := make([]BaseDTO, 0, len(bases))
 	for _, b := range bases {
-		basesDTO = append(basesDTO, BaseDTO{
-			BaseID:  b.ID,
-			Name:    b.Name,
-			Address: b.Address,
-			Location: Location{
-				Lat: b.Location.Lat,
-				Lon: b.Location.Lon,
-			},
-		})
+		items = append(items, toBaseDTO(b))
 	}
-	return c.JSON(http.StatusOK, ListBasesResponse{
-		Bases: basesDTO,
-	})
+	return c.JSON(http.StatusOK, ListBasesResponse{Items: items})
 }
 
 func (h *Handler) ListStores(c echo.Context) error {
-	offset, _ := strconv.ParseInt(c.QueryParam("offset"), 10, 64)
-	limit, _ := strconv.ParseInt(c.QueryParam("limit"), 10, 64)
-
-	if offset < 0 {
-		offset = 0
+	offset, limit, err := parsePagination(c)
+	if err != nil {
+		return jsonError(c, http.StatusBadRequest, err.Error())
 	}
-	if limit <= 0 {
-		c.JSON(http.StatusOK, ListStoresResponse{
-			Stores: []StoreDTO{},
-		})
+	if limit == 0 {
+		return c.JSON(http.StatusOK, ListStoresResponse{Items: []StoreDTO{}})
 	}
 
 	ctx := c.Request().Context()
 	stores, err := h.store.ListStores(ctx, offset, limit)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Failed to get stores: " + err.Error()})
+		return jsonError(c, http.StatusInternalServerError, "failed to get stores")
 	}
-	storesDTO := make([]StoreDTO, 0, len(stores))
+
+	items := make([]StoreDTO, 0, len(stores))
 	for _, s := range stores {
-		storesDTO = append(storesDTO, StoreDTO{
-			StoreID: s.ID,
-			Name:    s.Name,
-			Address: s.Address,
-			Location: Location{
-				Lat: s.Location.Lat,
-				Lon: s.Location.Lon,
-			},
-		})
+		items = append(items, toStoreDTO(s))
 	}
-	return c.JSON(http.StatusOK, ListStoresResponse{
-		Stores: storesDTO,
-	})
+	return c.JSON(http.StatusOK, ListStoresResponse{Items: items})
 }
 
 func (h *Handler) ListDrones(c echo.Context) error {
-	offset, _ := strconv.ParseInt(c.QueryParam("offset"), 10, 64)
-	limit, _ := strconv.ParseInt(c.QueryParam("limit"), 10, 64)
-
-	if offset < 0 {
-		offset = 0
+	offset, limit, err := parsePagination(c)
+	if err != nil {
+		return jsonError(c, http.StatusBadRequest, err.Error())
 	}
-	if limit <= 0 {
-		c.JSON(http.StatusOK, ListDroneResponse{
-			Drones: []DroneDTO{},
-		})
+	if limit == 0 {
+		return c.JSON(http.StatusOK, ListDroneResponse{Items: []DroneDTO{}})
 	}
 
 	ctx := c.Request().Context()
 	drones, err := h.tracking.ListDrones(ctx, offset, limit)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Failed to get drones: " + err.Error()})
+		return jsonError(c, http.StatusInternalServerError, "failed to get drones")
 	}
-	dronesDTO := make([]DroneDTO, 0, len(drones))
+
+	items := make([]DroneDTO, 0, len(drones))
 	for _, d := range drones {
-		dronesDTO = append(dronesDTO, DroneDTO{
-			DroneID: d.ID,
-			Location: Location{
-				Lat: d.Location.Lat,
-				Lon: d.Location.Lon,
-			},
-			Battery:             d.Battery,
-			SpeedMps:            d.SpeedMps,
-			ConsumptionPerMeter: d.ConsumptionPerMeter,
-		})
+		a, err := h.dispatch.GetAssignment(ctx, d.ID)
+		if err != nil {
+			return jsonError(c, http.StatusInternalServerError, "failed to get assignment")
+		}
+		items = append(items, toDroneDTO(d, a))
 	}
-	return c.JSON(http.StatusOK, ListDroneResponse{
-		Drones: dronesDTO,
-	})
+	return c.JSON(http.StatusOK, ListDroneResponse{Items: items})
+}
+
+func jsonError(c echo.Context, code int, msg string) error {
+	return c.JSON(code, ErrorResponse{Error: msg})
+}
+
+func parsePagination(c echo.Context) (int64, int64, error) {
+	offsetStr := c.QueryParam("offset")
+	limitStr := c.QueryParam("limit")
+
+	var offset int64
+	if offsetStr != "" {
+		v, err := strconv.ParseInt(offsetStr, 10, 64)
+		if err != nil || v < 0 {
+			return 0, 0, fmt.Errorf("invalid offset")
+		}
+		offset = v
+	}
+
+	var limit int64 = 20
+	if limitStr != "" {
+		v, err := strconv.ParseInt(limitStr, 10, 64)
+		if err != nil {
+			return 0, 0, fmt.Errorf("invalid limit")
+		}
+		limit = v
+	}
+
+	if limit < 0 {
+		return 0, 0, fmt.Errorf("invalid limit")
+	}
+	if limit == 0 {
+		return offset, 0, nil
+	}
+	if limit > 200 {
+		limit = 200
+	}
+
+	return offset, limit, nil
 }
