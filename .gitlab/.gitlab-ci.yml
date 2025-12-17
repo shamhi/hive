@@ -31,14 +31,13 @@ test-coverage:
     - go mod download
   script:
     - |
-      set -euo pipefail
+      set -eu
 
       THRESHOLD=30
-      SERVICES=(order dispatch telemetry tracking base store)
 
       mkdir -p coverage
 
-      for s in "${SERVICES[@]}"; do
+      for s in order dispatch telemetry tracking base store; do
         echo "==> Coverage for service: $s"
 
         go test "./services/${s}/..." \
@@ -49,7 +48,7 @@ test-coverage:
         echo "Coverage (${s}) = ${COV}%"
 
         awk -v c="${COV}" -v t="${THRESHOLD}" 'BEGIN{exit ((c+0) < (t+0))}' \
-          || (echo "Coverage for ${s} is below ${THRESHOLD}%"; exit 1)
+          || { echo "Coverage for ${s} is below ${THRESHOLD}%"; exit 1; }
       done
 
       echo "All services coverage OK (>= ${THRESHOLD}%)."
