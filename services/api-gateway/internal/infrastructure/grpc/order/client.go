@@ -30,12 +30,12 @@ func (c *OrderClient) CreateOrder(ctx context.Context, userID string, items []st
 
 	resp, err := c.client.CreateOrder(ctx, req)
 	if err != nil {
-		return nil, fmt.Errorf("CreateOrder: %w", err)
+		return nil, err
 	}
 
 	st, ok := mapping.OrderStatusFromProto(resp.GetStatus())
 	if !ok {
-		return nil, fmt.Errorf("CreateOrder: unknown order status from proto: %v", resp.GetStatus())
+		return nil, fmt.Errorf("unknown order status from proto: %v", resp.GetStatus())
 	}
 
 	return &order.OrderInfo{
@@ -51,7 +51,7 @@ func (c *OrderClient) GetOrder(ctx context.Context, orderID string) (*order.Orde
 
 	resp, err := c.client.GetOrder(ctx, req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get order: %w", err)
+		return nil, err
 	}
 
 	st, ok := mapping.OrderStatusFromProto(resp.GetStatus())

@@ -2,8 +2,6 @@ package tracking
 
 import (
 	"context"
-	"fmt"
-
 	pbTracking "hive/gen/tracking"
 	"hive/services/api-gateway/internal/domain/drone"
 	"hive/services/api-gateway/internal/domain/mapping"
@@ -25,10 +23,7 @@ func (c *TrackingClient) ListDrones(ctx context.Context, offset, limit int64) ([
 
 	resp, err := c.client.ListDrones(ctx, req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to list drones: %w", err)
-	}
-	if resp == nil {
-		return nil, fmt.Errorf("received nil response when listing drones")
+		return nil, err
 	}
 
 	pbDrones := resp.GetDrones()

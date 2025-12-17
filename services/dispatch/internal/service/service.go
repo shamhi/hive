@@ -273,6 +273,10 @@ func (s *DispatchService) GetAssignment(
 	start := time.Now()
 	a, err := s.repo.GetByDroneID(ctx, droneID)
 	if err != nil {
+		if errors.Is(err, ErrAssignmentNotFound) {
+			lg.Info(ctx, "assignment not found", zap.Duration("duration", time.Since(start)))
+			return nil, ErrAssignmentNotFound
+		}
 		lg.Error(ctx, "failed to get assignment by drone ID", zap.Error(err), zap.Duration("duration", time.Since(start)))
 		return nil, fmt.Errorf("failed to get assignment by drone ID %s: %w", droneID, err)
 	}

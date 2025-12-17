@@ -59,7 +59,7 @@ func (h *Handler) CreateOrder(c echo.Context) error {
 		shared.Location{Lat: req.DeliveryLocation.Lat, Lon: req.DeliveryLocation.Lon},
 	)
 	if err != nil {
-		return jsonError(c, http.StatusInternalServerError, "failed to create order")
+		return writeGRPCError(c, err, "failed to create order")
 	}
 
 	return c.JSON(http.StatusCreated, CreateOrderResponse{
@@ -79,7 +79,7 @@ func (h *Handler) GetOrder(c echo.Context) error {
 	ctx := c.Request().Context()
 	o, err := h.order.GetOrder(ctx, orderID)
 	if err != nil {
-		return jsonError(c, http.StatusInternalServerError, "failed to get order")
+		return writeGRPCError(c, err, "failed to get order")
 	}
 
 	return c.JSON(http.StatusOK, GetOrderResponse{
@@ -107,7 +107,7 @@ func (h *Handler) ListBases(c echo.Context) error {
 	ctx := c.Request().Context()
 	bases, err := h.base.ListBases(ctx, offset, limit)
 	if err != nil {
-		return jsonError(c, http.StatusInternalServerError, "failed to get bases")
+		return writeGRPCError(c, err, "failed to get bases")
 	}
 
 	items := make([]BaseDTO, 0, len(bases))
@@ -129,7 +129,7 @@ func (h *Handler) ListStores(c echo.Context) error {
 	ctx := c.Request().Context()
 	stores, err := h.store.ListStores(ctx, offset, limit)
 	if err != nil {
-		return jsonError(c, http.StatusInternalServerError, "failed to get stores")
+		return writeGRPCError(c, err, "failed to get stores")
 	}
 
 	items := make([]StoreDTO, 0, len(stores))
@@ -154,7 +154,7 @@ func (h *Handler) ListDrones(c echo.Context) error {
 	ctx := c.Request().Context()
 	drones, err := h.tracking.ListDrones(ctx, offset, limit)
 	if err != nil {
-		return jsonError(c, http.StatusInternalServerError, "failed to get drones")
+		return writeGRPCError(c, err, "failed to get drones")
 	}
 
 	items := make([]DroneDTO, 0, len(drones))

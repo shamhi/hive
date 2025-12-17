@@ -2,8 +2,6 @@ package base
 
 import (
 	"context"
-	"fmt"
-
 	pbBase "hive/gen/base"
 	"hive/services/api-gateway/internal/domain/base"
 	"hive/services/api-gateway/internal/domain/mapping"
@@ -25,10 +23,7 @@ func (c *BaseClient) ListBases(ctx context.Context, offset, limit int64) ([]*bas
 
 	resp, err := c.client.ListBases(ctx, req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to list bases: %w", err)
-	}
-	if resp == nil {
-		return nil, fmt.Errorf("received nil response when listing bases")
+		return nil, err
 	}
 
 	pbBases := resp.GetBases()

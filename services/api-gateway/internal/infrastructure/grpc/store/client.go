@@ -2,8 +2,6 @@ package store
 
 import (
 	"context"
-	"fmt"
-
 	pbStore "hive/gen/store"
 	"hive/services/api-gateway/internal/domain/mapping"
 	"hive/services/api-gateway/internal/domain/store"
@@ -25,10 +23,7 @@ func (c *StoreClient) ListStores(ctx context.Context, offset, limit int64) ([]*s
 
 	resp, err := c.client.ListStores(ctx, req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to list stores: %w", err)
-	}
-	if resp == nil {
-		return nil, fmt.Errorf("received nil response when listing stores")
+		return nil, err
 	}
 
 	pbStores := resp.GetStores()

@@ -7,9 +7,6 @@ import (
 	"hive/services/api-gateway/internal/domain/assignment"
 	"hive/services/api-gateway/internal/domain/mapping"
 	"hive/services/api-gateway/internal/domain/shared"
-
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type DispatchClient struct {
@@ -30,10 +27,7 @@ func (c *DispatchClient) GetAssignment(
 
 	resp, err := c.client.GetAssignment(ctx, req)
 	if err != nil {
-		if status.Code(err) == codes.NotFound {
-			return nil, nil
-		}
-		return nil, fmt.Errorf("failed to get assignment: %w", err)
+		return nil, err
 	}
 
 	var tloc *shared.Location

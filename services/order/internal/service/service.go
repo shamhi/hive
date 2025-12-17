@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"hive/pkg/logger"
 	"hive/services/order/internal/domain/order"
@@ -141,6 +142,10 @@ func (s *OrderService) GetOrder(ctx context.Context, orderID string) (*order.Ord
 
 	o, err := s.repo.GetByID(ctx, orderID)
 	if err != nil {
+		if errors.Is(err, ErrOrderNotFound) {
+			lg.Info(ctx, "order not found", zap.Duration("duration", time.Since(start)))
+			return nil, ErrOrderNotFound
+		}
 		lg.Error(ctx, "failed to get order", zap.Error(err), zap.Duration("duration", time.Since(start)))
 		return nil, fmt.Errorf("failed to get order: %w", err)
 	}
