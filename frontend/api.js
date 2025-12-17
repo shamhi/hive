@@ -77,14 +77,16 @@ function ageFrom(ms) {
 function normalizeEnum(v) {
     const s = String(v || "").trim().toUpperCase();
     if (!s) return "UNKNOWN";
-    return s
-        .replace(/^.*STATUS_/, "")
-        .replace(/^.*TARGET_/, "")
-        .replace(/^.*ACTION_/, "")
-        .replace(/^.*EVENT_/, "")
-        .replace(/[^A-Z0-9_]/g, "_")
-        .replace(/_+/g, "_")
-        .replace(/^_+|_+$/g, "") || "UNKNOWN";
+    return (
+        s
+            .replace(/^.*STATUS_/, "")
+            .replace(/^.*TARGET_/, "")
+            .replace(/^.*ACTION_/, "")
+            .replace(/^.*EVENT_/, "")
+            .replace(/[^A-Z0-9_]/g, "_")
+            .replace(/_+/g, "_")
+            .replace(/^_+|_+$/g, "") || "UNKNOWN"
+    );
 }
 
 function humanizeEnum(v) {
@@ -242,20 +244,78 @@ function buildDronePopup(dr) {
   `;
 }
 
-function droneIcon(dr) {
-    const status = normalizeEnum(dr.status);
-    const short = String(dr.drone_id || "").slice(0, 4).toUpperCase();
-    const key = `${status}:${short}`;
-    const icon = L.divIcon({
-        className: "",
-        html: `<div class="droneIcon droneIcon--${escapeHtml(status)}"><div class="inner">${escapeHtml(short)}</div></div>`,
-        iconSize: [42, 42],
-        iconAnchor: [21, 21],
-        popupAnchor: [0, -18],
-        tooltipAnchor: [0, -18],
+/* ========= SVG icons ========= */
+
+function svgIcon(html, size = 28, anchor = size / 2) {
+    return L.divIcon({
+        className: "svgMarker",
+        html,
+        iconSize: [size, size],
+        iconAnchor: [anchor, anchor],
+        popupAnchor: [0, -anchor],
+        tooltipAnchor: [0, -anchor],
     });
-    return {icon, key};
 }
+
+function iconBase() {
+    return svgIcon(
+        `
+    <div class="svgMarker__wrap svgMarker__wrap--base">
+      <svg viewBox="0 0 24 24" class="svgMarker__svg" aria-hidden="true">
+        <path d="M12 3s-6.186 5.34-9.643 8.232c-.203.184-.357.452-.357.768 0 .553.447 1 1 1h2v7c0 .553.447 1 1 1h3c.553 0 1-.448 1-1v-4h4v4c0 .552.447 1 1 1h3c.553 0 1-.447 1-1v-7h2c.553 0 1-.447 1-1 0-.316-.154-.584-.383-.768-3.433-2.892-9.617-8.232-9.617-8.232z"/>
+      </svg>
+    </div>
+  `,
+        30
+    );
+}
+
+function iconStore() {
+    return svgIcon(
+        `
+    <div class="svgMarker__wrap svgMarker__wrap--store">
+      <svg viewBox="0 0 24 24" class="svgMarker__svg" aria-hidden="true">
+        <path d="M5 9V5C5 3.89543 5.89543 3 7 3H17C18.1046 3 19 3.89543 19 5V9M5 9H19M5 9V15M19 9V15M19 15V19C19 20.1046 18.1046 21 17 21H7C5.89543 21 5 20.1046 5 19V15M19 15H5M8 12H8.01M8 6H8.01M8 18H8.01" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  `,
+        30
+    );
+}
+
+function iconPick() {
+    return svgIcon(
+        `
+    <div class="svgMarker__wrap svgMarker__wrap--pin">
+      <svg viewBox="0 0 24 24" class="svgMarker__svg" aria-hidden="true">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M12.5742 21.8187C12.2295 22.0604 11.7699 22.0601 11.4253 21.8184L11.4228 21.8166L11.4172 21.8127L11.3986 21.7994C11.3829 21.7882 11.3607 21.7722 11.3325 21.7517C11.2762 21.7106 11.1956 21.6511 11.0943 21.5741C10.8917 21.4203 10.6058 21.1962 10.2641 20.9101C9.58227 20.3389 8.67111 19.5139 7.75692 18.4988C5.96368 16.5076 4 13.6105 4 10.3636C4 8.16134 4.83118 6.0397 6.32548 4.46777C7.82141 2.89413 9.86146 2 12 2C14.1385 2 16.1786 2.89413 17.6745 4.46777C19.1688 6.0397 20 8.16134 20 10.3636C20 13.6105 18.0363 16.5076 16.2431 18.4988C15.3289 19.5139 14.4177 20.3389 13.7359 20.9101C13.3942 21.1962 13.1083 21.4203 12.9057 21.5741C12.8044 21.6511 12.7238 21.7106 12.6675 21.7517C12.6393 21.7722 12.6171 21.7882 12.6014 21.7994L12.5828 21.8127L12.5772 21.8166L12.5754 21.8179L12.5742 21.8187ZM9 10C9 8.34315 10.3431 7 12 7C13.6569 7 15 8.34315 15 10C15 11.6569 13.6569 13 12 13C10.3431 13 9 11.6569 9 10Z" fill="#000000"/>
+      </svg>
+    </div>
+  `,
+        30,
+        15
+    );
+}
+
+function iconDrone(status) {
+    const st = normalizeEnum(status);
+    return svgIcon(
+        `
+    <div class="svgMarker__wrap svgMarker__wrap--drone svgMarker__wrap--${escapeHtml(st)}">
+      <svg viewBox="0 0 48 48" class="svgMarker__svg svgMarker__svg--fill" aria-hidden="true">
+        <rect width="48" height="48" fill="white" fill-opacity="0.01"/>
+        <path d="M11 11L19 19M37 37L29 29" stroke="#000000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M37 11L29 19M11 37L19 29" stroke="#000000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="19" y="19" width="10" height="10" fill="#2F88FF" stroke="#000000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M37 18C38.3845 18 39.7379 17.5895 40.889 16.8203C42.0401 16.0511 42.9373 14.9579 43.4672 13.6788C43.997 12.3997 44.1356 10.9922 43.8655 9.63437C43.5954 8.2765 42.9287 7.02922 41.9498 6.05026C40.9708 5.07129 39.7235 4.4046 38.3656 4.13451C37.0078 3.86441 35.6003 4.00303 34.3212 4.53285C33.0421 5.06266 31.9489 5.95987 31.1797 7.11101C30.4105 8.26215 30 9.61553 30 11M37 30C38.3845 30 39.7379 30.4105 40.889 31.1797C42.0401 31.9489 42.9373 33.0421 43.4672 34.3212C43.997 35.6003 44.1356 37.0078 43.8655 38.3656C43.5954 39.7235 42.9287 40.9708 41.9498 41.9497C40.9708 42.9287 39.7235 43.5954 38.3656 43.8655C37.0078 44.1356 35.6003 43.997 34.3212 43.4672C33.0421 42.9373 31.9489 42.0401 31.1797 40.889C30.4105 39.7379 30 38.3845 30 37M11 18C9.61553 18 8.26216 17.5895 7.11101 16.8203C5.95987 16.0511 5.06266 14.9579 4.53285 13.6788C4.00303 12.3997 3.86441 10.9922 4.13451 9.63437C4.4046 8.2765 5.07129 7.02922 6.05026 6.05026C7.02922 5.07129 8.2765 4.4046 9.63437 4.13451C10.9922 3.86441 12.3997 4.00303 13.6788 4.53285C14.9579 5.06266 16.0511 5.95987 16.8203 7.11101C17.5895 8.26215 18 9.61553 18 11M11 30C9.61553 30 8.26216 30.4105 7.11101 31.1797C5.95987 31.9489 5.06266 33.0421 4.53285 34.3212C4.00303 35.6003 3.86441 37.0078 4.13451 38.3656C4.4046 39.7235 5.07129 40.9708 6.05026 41.9497C7.02922 42.9287 8.2765 43.5954 9.63437 43.8655C10.9922 44.1356 12.3997 43.997 13.6788 43.4672C14.9579 42.9373 16.0511 42.0401 16.8203 40.889C17.5895 39.7379 18 38.3845 18 37" stroke="#000000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  `,
+        34
+    );
+}
+
+/* ========= API helpers ========= */
 
 async function apiGet(path) {
     const url = `${API_BASE}${path}`;
@@ -425,10 +485,14 @@ function updateOrderCard(order, fetchedAtMs) {
         }
 
         let color = getComputedStyle(document.documentElement).getPropertyValue("--c-order-default").trim() || "#94a3b8";
-        if (tech === "PENDING" || tech === "CREATED") color = getComputedStyle(document.documentElement).getPropertyValue("--c-order-pending").trim() || "#38bdf8";
-        if (tech === "ASSIGNED" || tech === "DELIVERING") color = getComputedStyle(document.documentElement).getPropertyValue("--c-order-assigned").trim() || "#f59e0b";
-        if (tech === "COMPLETED") color = getComputedStyle(document.documentElement).getPropertyValue("--c-order-completed").trim() || "#22c55e";
-        if (tech === "FAILED" || tech === "CANCELED") color = getComputedStyle(document.documentElement).getPropertyValue("--c-order-failed").trim() || "#ef4444";
+        if (tech === "PENDING" || tech === "CREATED")
+            color = getComputedStyle(document.documentElement).getPropertyValue("--c-order-pending").trim() || "#38bdf8";
+        if (tech === "ASSIGNED" || tech === "DELIVERING")
+            color = getComputedStyle(document.documentElement).getPropertyValue("--c-order-assigned").trim() || "#f59e0b";
+        if (tech === "COMPLETED")
+            color = getComputedStyle(document.documentElement).getPropertyValue("--c-order-completed").trim() || "#22c55e";
+        if (tech === "FAILED" || tech === "CANCELED")
+            color = getComputedStyle(document.documentElement).getPropertyValue("--c-order-failed").trim() || "#ef4444";
         marker.setStyle({color, fillColor: color});
     }
 }
@@ -509,14 +573,8 @@ function renderPois() {
 
     for (const s of stores) {
         if (!s.location) continue;
-        const icon = L.divIcon({
-            className: "",
-            html: `<div class="poi poi--store"></div>`,
-            iconSize: [16, 16],
-            iconAnchor: [8, 8],
-        });
 
-        const m = L.marker([s.location.lat, s.location.lon], {icon});
+        const m = L.marker([s.location.lat, s.location.lon], {icon: iconStore()});
         m.bindTooltip(`Store: ${escapeHtml(s.name)}`, {direction: "top", offset: [0, -8]});
         m.bindPopup(`
       <div class="popup">
@@ -524,7 +582,10 @@ function renderPois() {
         <div class="sub">${escapeHtml(s.name)}</div>
         <div class="kv"><div class="k">ID</div><div class="v"><code>${escapeHtml(s.store_id)}</code></div></div>
         <div class="kv"><div class="k">Address</div><div class="v">${escapeHtml(s.address || "—")}</div></div>
-        <div class="kv"><div class="k">Location</div><div class="v"><code>${fmtNum(s.location.lat, 6)}, ${fmtNum(s.location.lon, 6)}</code></div></div>
+        <div class="kv"><div class="k">Location</div><div class="v"><code>${fmtNum(s.location.lat, 6)}, ${fmtNum(
+            s.location.lon,
+            6
+        )}</code></div></div>
       </div>
     `);
         m.addTo(storesLayer);
@@ -532,14 +593,8 @@ function renderPois() {
 
     for (const b of bases) {
         if (!b.location) continue;
-        const icon = L.divIcon({
-            className: "",
-            html: `<div class="poi poi--base"></div>`,
-            iconSize: [16, 16],
-            iconAnchor: [8, 8],
-        });
 
-        const m = L.marker([b.location.lat, b.location.lon], {icon});
+        const m = L.marker([b.location.lat, b.location.lon], {icon: iconBase()});
         m.bindTooltip(`Base: ${escapeHtml(b.name)}`, {direction: "top", offset: [0, -8]});
         m.bindPopup(`
       <div class="popup">
@@ -547,7 +602,10 @@ function renderPois() {
         <div class="sub">${escapeHtml(b.name)}</div>
         <div class="kv"><div class="k">ID</div><div class="v"><code>${escapeHtml(b.base_id)}</code></div></div>
         <div class="kv"><div class="k">Address</div><div class="v">${escapeHtml(b.address || "—")}</div></div>
-        <div class="kv"><div class="k">Location</div><div class="v"><code>${fmtNum(b.location.lat, 6)}, ${fmtNum(b.location.lon, 6)}</code></div></div>
+        <div class="kv"><div class="k">Location</div><div class="v"><code>${fmtNum(b.location.lat, 6)}, ${fmtNum(
+            b.location.lon,
+            6
+        )}</code></div></div>
       </div>
     `);
         m.addTo(basesLayer);
@@ -582,7 +640,8 @@ async function refreshDrones(map) {
             const lon = dr.location.lon;
 
             const old = droneMarkers.get(dr.drone_id);
-            const {icon, key} = droneIcon(dr);
+            const icon = iconDrone(dr.status);
+            const key = normalizeEnum(dr.status);
 
             const tooltip = `${dr.drone_id.slice(0, 8)} • ${droneStatusLabel(dr.status)} • ${fmtBattery(dr.battery)}`;
 
@@ -677,11 +736,10 @@ async function handleCreateOrderSubmit(ev) {
 }
 
 function initMap() {
-    const map = L.map("map", {zoomControl: true}).setView([55.75, 37.62], 11);
+    const map = L.map("map", {zoomControl: true, attributionControl: false}).setView([55.75, 37.62], 11);
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
-        attribution: "&copy; OpenStreetMap contributors",
     }).addTo(map);
 
     storesLayer = L.layerGroup().addTo(map);
@@ -691,13 +749,14 @@ function initMap() {
 
     map.on("click", (ev) => {
         if (!pickMode) return;
+
         const {lat, lng} = ev.latlng;
         elLat.value = String(lat);
         elLon.value = String(lng);
 
         if (!pickMarker) {
-            pickMarker = L.circleMarker([lat, lng], {radius: 7, weight: 2, opacity: 0.9, fillOpacity: 0.25}).addTo(map);
-            pickMarker.bindTooltip("Delivery location", {direction: "top"});
+            pickMarker = L.marker([lat, lng], {icon: iconPick()}).addTo(map);
+            pickMarker.bindTooltip("Delivery location", {direction: "top", offset: [0, -14]});
         } else {
             pickMarker.setLatLng([lat, lng]);
         }

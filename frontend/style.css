@@ -283,6 +283,67 @@ code{
 .popup .k{color:rgba(148,163,184,.95);font-size:12px}
 .popup .v{color:rgba(226,232,240,.95);font-size:12px;text-align:right}
 
+.svgMarker {
+    background: transparent !important;
+    border: 0 !important;
+}
+
+.svgMarker__wrap {
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+
+    box-shadow: 0 8px 20px rgba(0,0,0,.25);
+    border: 1px solid rgba(255,255,255,.18);
+
+    transform: translateZ(0);
+}
+
+.svgMarker__svg {
+    width: 18px;
+    height: 18px;
+
+    fill: none;
+    stroke: rgba(255,255,255,.92);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.svgMarker__wrap--base  { background: #2563eb; }  /* blue */
+.svgMarker__wrap--store { background: #7c3aed; }  /* violet */
+.svgMarker__wrap--pin {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: 0 !important;
+}
+.svgMarker__svg--fill {
+    fill: rgba(255,255,255,.92) !important;
+    stroke: none !important;
+}
+.svgMarker__wrap--drone { background: #334155; }  /* slate (fallback) */
+.svgMarker__wrap--FREE      { background: #16a34a; } /* green */
+.svgMarker__wrap--BUSY      { background: #f59e0b; } /* amber */
+.svgMarker__wrap--CHARGING  { background: #0ea5e9; } /* cyan */
+.svgMarker__wrap--OFFLINE   { background: #ef4444; } /* red */
+.svgMarker__wrap--UNKNOWN   { background: #64748b; } /* gray */
+
+.svgMarker__wrap--drone {
+    width: 34px;
+    height: 34px;
+}
+.svgMarker__wrap--drone .svgMarker__svg {
+    width: 20px;
+    height: 20px;
+}
+
+.svgMarker__wrap--solid .svgMarker__svg {
+    fill: rgba(255,255,255,.92);
+    stroke: none;
+}
+
 @media (max-width: 900px) {
     .main {
         display: flex;
