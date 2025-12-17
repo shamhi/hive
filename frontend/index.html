@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>HIVE — Drone Ops</title>
+
+    <link
+            rel="stylesheet"
+            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+            integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+            crossorigin=""
+    />
+    <script
+            defer
+            src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""
+    ></script>
+
+    <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+<div class="app">
+    <header class="topbar">
+        <div class="brand">
+            <div class="logo">H</div>
+            <div class="brand-text">
+                <div class="title">HIVE Drone Ops</div>
+                <div class="subtitle">Live map • drones 500ms • orders 1500ms</div>
+            </div>
+        </div>
+
+        <div class="topbar-right">
+            <div id="apiStatus" class="pill pill--gray" title="API status">
+                <span class="dot"></span>
+                <span class="text">API: …</span>
+            </div>
+            <button id="btnFit" class="btn btn--ghost" type="button" title="Fit view to all drones">
+                Fit drones
+            </button>
+        </div>
+    </header>
+
+    <main class="main">
+        <div id="map" class="map"></div>
+
+        <aside class="sidebar">
+            <section class="card">
+                <div class="card-title">Legend</div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <span class="legend-dot legend-dot--base"></span>
+                        <span>Base</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot legend-dot--store"></span>
+                        <span>Store</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot legend-dot--drone-free"></span>
+                        <span>Drone: Available</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot legend-dot--drone-busy"></span>
+                        <span>Drone: On mission</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot legend-dot--drone-charging"></span>
+                        <span>Drone: Charging</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="card-title">Create order</div>
+
+                <form id="orderForm" class="form">
+                    <label class="field">
+                        <div class="label">User ID (uuid)</div>
+                        <input id="userId" class="input" type="text" placeholder="e.g. 3fa85f64-5717-4562-b3fc-2c963f66afa6" />
+                        <div class="hint">
+                            <button id="btnGenUser" class="link" type="button">generate</button>
+                        </div>
+                    </label>
+
+                    <label class="field">
+                        <div class="label">Items (comma-separated)</div>
+                        <input id="items" class="input" type="text" placeholder="iPhone, cable, case" />
+                    </label>
+
+                    <div class="grid2">
+                        <label class="field">
+                            <div class="label">Delivery lat</div>
+                            <input id="lat" class="input" type="number" step="any" placeholder="55.75" />
+                        </label>
+                        <label class="field">
+                            <div class="label">Delivery lon</div>
+                            <input id="lon" class="input" type="number" step="any" placeholder="37.61" />
+                        </label>
+                    </div>
+
+                    <div class="row">
+                        <button id="btnPickOnMap" class="btn btn--ghost" type="button">Pick on map</button>
+                        <button class="btn btn--primary" type="submit">Create order</button>
+                    </div>
+
+                    <div id="orderCreateResult" class="result"></div>
+                </form>
+            </section>
+
+            <section class="card">
+                <div class="card-title">My orders (localStorage)</div>
+                <div class="card-subtitle">Statuses update automatically</div>
+
+                <div class="row">
+                    <button id="btnRefreshOrders" class="btn btn--ghost" type="button">Refresh</button>
+                    <button id="btnClearOrders" class="btn btn--danger" type="button">Clear</button>
+                </div>
+
+                <div id="ordersList" class="orders"></div>
+            </section>
+
+            <section class="card">
+                <div class="card-title">Settings</div>
+                <div class="kv">
+                    <div class="k">Drones poll</div>
+                    <div class="v"><span id="dronesPollMs">500</span> ms</div>
+                </div>
+                <div class="kv">
+                    <div class="k">Orders poll</div>
+                    <div class="v"><span id="ordersPollMs">1500</span> ms</div>
+                </div>
+
+                <details class="details">
+                    <summary>API base</summary>
+                    <div class="muted">
+                        Default is <code>/api/v1</code>. Override with <code>window.HIVE_API_BASE</code> (in <code>api.js</code> or DevTools).
+                    </div>
+                </details>
+            </section>
+
+            <footer class="footer">
+                <div class="muted">Hover a drone for tooltip. Click for details.</div>
+            </footer>
+        </aside>
+    </main>
+</div>
+
+<script type="module" src="./api.js"></script>
+</body>
+</html>
