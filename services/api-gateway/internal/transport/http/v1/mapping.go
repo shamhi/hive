@@ -45,9 +45,9 @@ func toDroneDTO(d *drone.Drone, a *assignment.Assignment) DroneDTO {
 		UpdatedAtMs: d.UpdatedAt,
 	}
 	if a != nil {
-		var tloc Location
+		var tloc *Location
 		if a.Target != nil {
-			tloc = Location{
+			tloc = &Location{
 				Lat: a.Target.Lat,
 				Lon: a.Target.Lon,
 			}
@@ -55,7 +55,7 @@ func toDroneDTO(d *drone.Drone, a *assignment.Assignment) DroneDTO {
 		dDTO.Assignment = &AssignmentDTO{
 			AssignmentID:   a.ID,
 			Status:         string(a.Status),
-			TargetLocation: &tloc,
+			TargetLocation: tloc,
 		}
 	}
 

@@ -5,6 +5,7 @@ import (
 	"hive/services/api-gateway/internal/domain/shared"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -155,13 +156,13 @@ func (h *Handler) ListDrones(c echo.Context) error {
 
 	items := make([]DroneDTO, 0, len(drones))
 	for _, d := range drones {
-		a, err := h.dispatch.GetAssignment(ctx, d.ID)
-		if err != nil {
-			return jsonError(c, http.StatusInternalServerError, "failed to get assignment")
-		}
+		a, _ := h.dispatch.GetAssignment(ctx, d.ID)
 		items = append(items, toDroneDTO(d, a))
 	}
-	return c.JSON(http.StatusOK, ListDroneResponse{Items: items})
+	return c.JSON(http.StatusOK, ListDroneResponse{
+		ServerTimeMs: time.Now().UnixMilli(),
+		Items:        items,
+	})
 }
 
 func jsonError(c echo.Context, code int, msg string) error {

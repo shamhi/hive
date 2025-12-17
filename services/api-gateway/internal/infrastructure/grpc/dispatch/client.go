@@ -7,6 +7,9 @@ import (
 	"hive/services/api-gateway/internal/domain/assignment"
 	"hive/services/api-gateway/internal/domain/mapping"
 	"hive/services/api-gateway/internal/domain/shared"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type DispatchClient struct {
@@ -21,20 +24,21 @@ func (c *DispatchClient) GetAssignment(
 	ctx context.Context,
 	droneID string,
 ) (*assignment.Assignment, error) {
-	req := pbDispatch.GetAssignmentRequest{
+	req := &pbDispatch.GetAssignmentRequest{
 		DroneId: droneID,
 	}
-	resp, err := c.client.GetAssignment(ctx, &req)
+
+	resp, err := c.client.GetAssignment(ctx, req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get assignment for %s drone: %w", droneID, err)
+		if status.Code(err) == codes.NotFound {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to get assignment: %w", err)
 	}
 
-	var tloc shared.Location
-	if resp.GetTargetLocation() != nil {
-		tloc = shared.Location{
-			Lat: resp.GetTargetLocation().Lat,
-			Lon: resp.GetTargetLocation().Lon,
-		}
+	var tloc *shared.Location
+	if tl := resp.GetTargetLocation(); tl != nil {
+		tloc = &shared.Location{Lat: tl.GetLat(), Lon: tl.GetLon()}
 	}
 
 	st, ok := mapping.AssignmentStatusFromProto(resp.GetStatus())
@@ -45,6 +49,6 @@ func (c *DispatchClient) GetAssignment(
 	return &assignment.Assignment{
 		ID:     resp.GetAssignmentId(),
 		Status: st,
-		Target: &tloc,
+		Target: tloc,
 	}, nil
 }

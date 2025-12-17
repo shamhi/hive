@@ -133,6 +133,7 @@ func (s *Service) GetDroneLocation(ctx context.Context, req *pb.GetDroneLocation
 		Battery:             d.Battery,
 		SpeedMps:            d.SpeedMps,
 		ConsumptionPerMeter: d.ConsumptionPerMeter,
+		Status:              mapping.DroneStatusToProto(d.Status),
 	}, nil
 }
 
