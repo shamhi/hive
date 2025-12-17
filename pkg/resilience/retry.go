@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func init() { rand.Seed(time.Now().UnixNano()) }
+var rnd = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 type RetryConfig struct {
 	MaxAttempts int
@@ -71,7 +71,7 @@ func backoff(cfg RetryConfig, attempt int) time.Duration {
 	}
 	if cfg.Jitter > 0 {
 		amp := float64(d) * cfg.Jitter
-		delta := (rand.Float64()*2 - 1) * amp
+		delta := (rnd.Float64()*2 - 1) * amp
 		d = time.Duration(float64(d) + delta)
 		if d < 0 {
 			d = 0
