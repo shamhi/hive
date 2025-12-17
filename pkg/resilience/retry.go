@@ -10,10 +10,10 @@ import (
 func init() { rand.Seed(time.Now().UnixNano()) }
 
 type RetryConfig struct {
-	MaxAttempts int           // включая первую попытку
-	BaseDelay   time.Duration // например 50ms
-	MaxDelay    time.Duration // например 1s
-	Jitter      float64       // 0..1 (например 0.2)
+	MaxAttempts int
+	BaseDelay   time.Duration
+	MaxDelay    time.Duration
+	Jitter      float64
 }
 
 func Retry(ctx context.Context, cfg RetryConfig, shouldRetry func(error) bool, fn func(context.Context) error) error {

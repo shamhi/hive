@@ -156,10 +156,6 @@ func UnaryServerLoggingTimeoutInterceptor(lg logger.Logger, maxTimeout time.Dura
 }
 
 func LoggingTimeoutStreamServerInterceptor(lg logger.Logger, maxTimeout time.Duration) grpc.StreamServerInterceptor {
-	if maxTimeout <= 0 {
-		maxTimeout = 0
-	}
-
 	return func(
 		srv any,
 		ss grpc.ServerStream,
@@ -172,7 +168,11 @@ func LoggingTimeoutStreamServerInterceptor(lg logger.Logger, maxTimeout time.Dur
 		)
 
 		ctx := ss.Context()
-		ctx, cancel := capDeadline(ctx, maxTimeout)
+		var cancel context.CancelFunc = func() {}
+
+		if maxTimeout > 0 {
+			ctx, cancel = ensureMaxTimeout(ctx, maxTimeout)
+		}
 		defer cancel()
 
 		wrapped := &serverStreamWithContext{ServerStream: ss, ctx: ctx}
@@ -184,6 +184,14 @@ func LoggingTimeoutStreamServerInterceptor(lg logger.Logger, maxTimeout time.Dur
 
 		dur := time.Since(start)
 		if err != nil {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				l.Info(ctx, "gRPC stream closed",
+					zap.Duration("duration", dur),
+					zap.Error(err),
+				)
+				return err
+			}
+
 			st, _ := status.FromError(err)
 			l.Error(ctx, "gRPC stream failed",
 				zap.Duration("duration", dur),
@@ -193,6 +201,7 @@ func LoggingTimeoutStreamServerInterceptor(lg logger.Logger, maxTimeout time.Dur
 		} else {
 			l.Info(ctx, "gRPC stream completed", zap.Duration("duration", dur))
 		}
+
 		return err
 	}
 }
@@ -214,18 +223,6 @@ func ensureMaxTimeout(ctx context.Context, timeout time.Duration) (context.Conte
 		}
 	}
 	return context.WithTimeout(ctx, timeout)
-}
-
-func capDeadline(ctx context.Context, maxTimeout time.Duration) (context.Context, context.CancelFunc) {
-	if maxTimeout <= 0 {
-		return ctx, func() {}
-	}
-	if dl, ok := ctx.Deadline(); ok {
-		if time.Until(dl) <= maxTimeout {
-			return ctx, func() {}
-		}
-	}
-	return context.WithTimeout(ctx, maxTimeout)
 }
 
 func defaultRetryableError(err error) bool {
