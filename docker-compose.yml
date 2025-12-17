@@ -35,7 +35,7 @@ services:
         condition: service_healthy
       order-migrate:
         condition: service_completed_successfully
-  
+
   order-migrate:
     build:
       context: .
@@ -234,8 +234,8 @@ services:
     image: postgres:15
     restart: always
     container_name: HIVE_postgres
-    ports:
-      - "5432:5432"
+    #    ports:
+    #      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker-pg-init.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh
@@ -253,8 +253,8 @@ services:
     image: redis:latest
     restart: always
     container_name: HIVE_redis
-    ports:
-      - "6379:6379"
+    #    ports:
+    #      - "6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -267,8 +267,8 @@ services:
     image: confluentinc/cp-zookeeper:7.3.0
     restart: always
     container_name: HIVE_zookeeper
-    ports:
-      - "2181:2181"
+    #    ports:
+    #      - "2181:2181"
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
 
@@ -276,8 +276,8 @@ services:
     image: confluentinc/cp-kafka:7.3.0
     restart: always
     container_name: HIVE_kafka
-    ports:
-      - "9092:9092"
+    #    ports:
+    #      - "9092:9092"
     environment:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
