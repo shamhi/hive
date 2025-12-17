@@ -50,7 +50,17 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
 		AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.PATCH, echo.DELETE, echo.OPTIONS},
-		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		AllowHeaders: []string{
+			echo.HeaderOrigin,
+			echo.HeaderContentType,
+			echo.HeaderAccept,
+			echo.HeaderAuthorization,
+			echo.HeaderXRequestedWith,
+			echo.HeaderAccessControlRequestMethod,
+			echo.HeaderAccessControlRequestHeaders,
+		},
+		ExposeHeaders: []string{echo.HeaderXRequestID},
+		MaxAge:        86400,
 	}))
 
 	orderConn, err := grpc.NewClient(
@@ -167,7 +177,7 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 		cfg.DispatchAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithUnaryInterceptor(grpcx.UnaryClientResilienceInterceptor(lg, grpcx.ClientResilienceConfig{
-			Name:    "api->tracking",
+			Name:    "api->dispatch",
 			Timeout: cfg.RequestTimeout,
 			Retry: resilience.RetryConfig{
 				MaxAttempts: 3,

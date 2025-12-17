@@ -53,8 +53,8 @@ func TestTelemetryService_EnqueueCommand_NotConnected(t *testing.T) {
 	svc := NewTelemetryService(nil, nil, "", "", lg)
 
 	err := svc.EnqueueCommand(context.Background(), &drone.ServerCommand{DroneID: "d1"})
-	if errors.Is(err, ErrDroneNotConnected) {
-		t.Fatalf("expected ErrDroneNotConnected")
+	if !errors.Is(err, ErrDroneNotConnected) {
+		t.Fatalf("expected ErrDroneNotConnected, got: %v", err)
 	}
 }
 

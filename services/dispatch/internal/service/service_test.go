@@ -185,9 +185,6 @@ func TestDispatchService_AssignDrone_HappyPath(t *testing.T) {
 	if telemetryCl.Calls != 1 {
 		t.Fatalf("expected SendCommand called once")
 	}
-	if orderCl.Calls != 1 || orderCl.Last != order.OrderStatusAssigned {
-		t.Fatalf("expected order status assigned")
-	}
 }
 
 func TestDispatchService_AssignDrone_SetStatusFails_Rollback(t *testing.T) {

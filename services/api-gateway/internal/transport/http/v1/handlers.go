@@ -145,7 +145,10 @@ func (h *Handler) ListDrones(c echo.Context) error {
 		return jsonError(c, http.StatusBadRequest, err.Error())
 	}
 	if limit == 0 {
-		return c.JSON(http.StatusOK, ListDroneResponse{Items: []DroneDTO{}})
+		return c.JSON(http.StatusOK, ListDroneResponse{
+			ServerTimeMs: time.Now().UnixMilli(),
+			Items:        []DroneDTO{},
+		})
 	}
 
 	ctx := c.Request().Context()
