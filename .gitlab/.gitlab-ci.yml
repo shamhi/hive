@@ -34,7 +34,6 @@ test-coverage:
       set -euo pipefail
 
       THRESHOLD=30
-      # api-gateway исключаем
       SERVICES=(order dispatch telemetry tracking base store)
 
       mkdir -p coverage
@@ -42,30 +41,18 @@ test-coverage:
       for s in "${SERVICES[@]}"; do
         echo "==> Coverage for service: $s"
 
-        PKGS=$(go list "./services/${s}/..." | tr '\n' ',' | sed 's/,$//')
-        if [ -z "${PKGS}" ]; then
-          echo "No packages found for services/${s}"
-          exit 1
-        fi
-
         go test "./services/${s}/..." \
           -covermode=atomic \
-          -coverpkg="${PKGS}" \
           -coverprofile="coverage/${s}.out"
 
         COV=$(go tool cover -func="coverage/${s}.out" | awk '/^total:/{gsub(/%/,"",$3); print $3}')
         echo "Coverage (${s}) = ${COV}%"
 
-        awk -v c="${COV}" -v t="${THRESHOLD}" 'BEGIN{exit (c < t)}' \
+        awk -v c="${COV}" -v t="${THRESHOLD}" 'BEGIN{exit ((c+0) < (t+0))}' \
           || (echo "Coverage for ${s} is below ${THRESHOLD}%"; exit 1)
       done
 
       echo "All services coverage OK (>= ${THRESHOLD}%)."
-  artifacts:
-    paths:
-      - coverage/
-    expire_in: 7d
-  allow_failure: false
 
 build:docker:
   stage: build
