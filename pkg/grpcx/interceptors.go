@@ -12,6 +12,7 @@ import (
 
 	"github.com/sony/gobreaker/v2"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -96,7 +97,7 @@ func UnaryClientResilienceInterceptor(lg logger.Logger, cfg ClientResilienceConf
 			return err
 		}
 
-		l.Info(ctx, "gRPC request started")
+		l.Debug(ctx, "gRPC request started")
 
 		var err error
 		if cfg.ShouldRetryMethod(method) {
@@ -107,11 +108,24 @@ func UnaryClientResilienceInterceptor(lg logger.Logger, cfg ClientResilienceConf
 
 		dur := time.Since(start)
 		if err != nil {
-			l.Error(ctx, "gRPC request failed",
+			lvl, codeStr := classifyGRPCError(err)
+			fields := []zap.Field{
 				zap.Duration("duration", dur),
 				zap.Int("attempts", attempts),
-				zap.Error(err),
-			)
+			}
+			if codeStr != "" {
+				fields = append(fields, zap.String("code", codeStr))
+			}
+			fields = append(fields, zap.Error(err))
+
+			switch lvl {
+			case zapcore.InfoLevel:
+				l.Info(ctx, "gRPC request finished", fields...)
+			case zapcore.WarnLevel:
+				l.Warn(ctx, "gRPC request finished", fields...)
+			default:
+				l.Error(ctx, "gRPC request failed", fields...)
+			}
 		} else {
 			l.Info(ctx, "gRPC request completed",
 				zap.Duration("duration", dur),
@@ -147,10 +161,25 @@ func UnaryServerLoggingTimeoutInterceptor(lg logger.Logger, maxTimeout time.Dura
 		dur := time.Since(start)
 
 		if err != nil {
-			l.Error(ctx, "gRPC request failed", zap.Duration("duration", dur), zap.Error(err))
+			lvl, codeStr := classifyGRPCError(err)
+			fields := []zap.Field{zap.Duration("duration", dur)}
+			if codeStr != "" {
+				fields = append(fields, zap.String("code", codeStr))
+			}
+			fields = append(fields, zap.Error(err))
+
+			switch lvl {
+			case zapcore.InfoLevel:
+				l.Info(ctx, "gRPC request finished", fields...)
+			case zapcore.WarnLevel:
+				l.Warn(ctx, "gRPC request finished", fields...)
+			default:
+				l.Error(ctx, "gRPC request failed", fields...)
+			}
 		} else {
 			l.Info(ctx, "gRPC request completed", zap.Duration("duration", dur))
 		}
+
 		return resp, err
 	}
 }
@@ -178,26 +207,27 @@ func LoggingTimeoutStreamServerInterceptor(lg logger.Logger, maxTimeout time.Dur
 		wrapped := &serverStreamWithContext{ServerStream: ss, ctx: ctx}
 
 		start := time.Now()
-		l.Info(ctx, "gRPC stream started", zap.Any("server", srv))
+		l.Info(ctx, "gRPC stream started")
 
 		err := handler(srv, wrapped)
 
 		dur := time.Since(start)
 		if err != nil {
-			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-				l.Info(ctx, "gRPC stream closed",
-					zap.Duration("duration", dur),
-					zap.Error(err),
-				)
-				return err
+			lvl, codeStr := classifyGRPCError(err)
+			fields := []zap.Field{zap.Duration("duration", dur)}
+			if codeStr != "" {
+				fields = append(fields, zap.String("code", codeStr))
 			}
+			fields = append(fields, zap.Error(err))
 
-			st, _ := status.FromError(err)
-			l.Error(ctx, "gRPC stream failed",
-				zap.Duration("duration", dur),
-				zap.String("code", st.Code().String()),
-				zap.Error(err),
-			)
+			switch lvl {
+			case zapcore.InfoLevel:
+				l.Info(ctx, "gRPC stream finished", fields...)
+			case zapcore.WarnLevel:
+				l.Warn(ctx, "gRPC stream finished", fields...)
+			default:
+				l.Error(ctx, "gRPC stream failed", fields...)
+			}
 		} else {
 			l.Info(ctx, "gRPC stream completed", zap.Duration("duration", dur))
 		}
@@ -223,6 +253,36 @@ func ensureMaxTimeout(ctx context.Context, timeout time.Duration) (context.Conte
 		}
 	}
 	return context.WithTimeout(ctx, timeout)
+}
+
+func classifyGRPCError(err error) (zapcore.Level, string) {
+	if err == nil {
+		return zapcore.InfoLevel, ""
+	}
+
+	if errors.Is(err, context.Canceled) {
+		return zapcore.InfoLevel, "Canceled"
+	}
+	if errors.Is(err, context.DeadlineExceeded) {
+		return zapcore.WarnLevel, "DeadlineExceeded"
+	}
+
+	st, ok := status.FromError(err)
+	if !ok {
+		return zapcore.ErrorLevel, "Unknown"
+	}
+
+	code := st.Code()
+	switch code {
+	case codes.NotFound, codes.InvalidArgument, codes.AlreadyExists, codes.FailedPrecondition:
+		return zapcore.InfoLevel, code.String()
+	case codes.Canceled:
+		return zapcore.InfoLevel, code.String()
+	case codes.DeadlineExceeded, codes.Unavailable, codes.ResourceExhausted, codes.Aborted:
+		return zapcore.WarnLevel, code.String()
+	default:
+		return zapcore.ErrorLevel, code.String()
+	}
 }
 
 func defaultRetryableError(err error) bool {
@@ -271,6 +331,9 @@ func defaultFailure(err error) bool {
 }
 
 func RetryOnlyReads(method string) bool {
+	if method == "" {
+		return false
+	}
 	parts := strings.Split(method, "/")
 	m := parts[len(parts)-1]
 	return strings.HasPrefix(m, "Get") || strings.HasPrefix(m, "Find") || strings.HasPrefix(m, "List")
