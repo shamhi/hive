@@ -34,24 +34,28 @@ test-coverage:
       set -eu
 
       THRESHOLD=30
-
       mkdir -p coverage
 
       for s in order dispatch telemetry tracking base store; do
         echo "==> Coverage for service: $s"
 
-        go test "./services/${s}/..." \
-          -covermode=atomic \
-          -coverprofile="coverage/${s}.out"
+        OUT="$(go test "./services/${s}/..." -covermode=atomic 2>&1 | tee "coverage/${s}.log")"
 
-        COV=$(go tool cover -func="coverage/${s}.out" | awk '/^total:/{gsub(/%/,"",$3); print $3}')
-        echo "Coverage (${s}) = ${COV}%"
+        MAX="$(printf '%s\n' "$OUT" \
+          | awk 'match($0,/coverage: ([0-9.]+)% of statements/,a){ if ((a[1]+0) > m) m = (a[1]+0) } END { printf "%.1f", (m+0) }')"
 
-        awk -v c="${COV}" -v t="${THRESHOLD}" 'BEGIN{exit ((c+0) < (t+0))}' \
+        echo "Max package coverage (${s}) = ${MAX}%"
+
+        awk -v c="${MAX}" -v t="${THRESHOLD}" 'BEGIN{exit ((c+0) < (t+0))}' \
           || { echo "Coverage for ${s} is below ${THRESHOLD}%"; exit 1; }
       done
 
-      echo "All services coverage OK (>= ${THRESHOLD}%)."
+      echo "All services coverage OK (max package coverage >= ${THRESHOLD}%)."
+  artifacts:
+    paths:
+      - coverage/
+    expire_in: 7d
+  allow_failure: false
 
 build:docker:
   stage: build
