@@ -193,6 +193,7 @@ type GetDroneLocationResponse struct {
 	Battery             float64                `protobuf:"fixed64,2,opt,name=battery,proto3" json:"battery,omitempty"`
 	SpeedMps            float64                `protobuf:"fixed64,3,opt,name=speed_mps,json=speedMps,proto3" json:"speed_mps,omitempty"`
 	ConsumptionPerMeter float64                `protobuf:"fixed64,4,opt,name=consumption_per_meter,json=consumptionPerMeter,proto3" json:"consumption_per_meter,omitempty"`
+	Status              telemetry.DroneStatus  `protobuf:"varint,5,opt,name=status,proto3,enum=telemetry.DroneStatus" json:"status,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -253,6 +254,13 @@ func (x *GetDroneLocationResponse) GetConsumptionPerMeter() float64 {
 		return x.ConsumptionPerMeter
 	}
 	return 0
+}
+
+func (x *GetDroneLocationResponse) GetStatus() telemetry.DroneStatus {
+	if x != nil {
+		return x.Status
+	}
+	return telemetry.DroneStatus(0)
 }
 
 type SetStatusRequest struct {
@@ -462,12 +470,13 @@ const file_tracking_proto_rawDesc = "" +
 	"\bdrone_id\x18\x02 \x01(\tR\adroneId\x12'\n" +
 	"\x0fdistance_meters\x18\x04 \x01(\x01R\x0edistanceMeters\"4\n" +
 	"\x17GetDroneLocationRequest\x12\x19\n" +
-	"\bdrone_id\x18\x01 \x01(\tR\adroneId\"\xb3\x01\n" +
+	"\bdrone_id\x18\x01 \x01(\tR\adroneId\"\xe3\x01\n" +
 	"\x18GetDroneLocationResponse\x12,\n" +
 	"\blocation\x18\x01 \x01(\v2\x10.common.LocationR\blocation\x12\x18\n" +
 	"\abattery\x18\x02 \x01(\x01R\abattery\x12\x1b\n" +
 	"\tspeed_mps\x18\x03 \x01(\x01R\bspeedMps\x122\n" +
-	"\x15consumption_per_meter\x18\x04 \x01(\x01R\x13consumptionPerMeter\"]\n" +
+	"\x15consumption_per_meter\x18\x04 \x01(\x01R\x13consumptionPerMeter\x12.\n" +
+	"\x06status\x18\x05 \x01(\x0e2\x16.telemetry.DroneStatusR\x06status\"]\n" +
 	"\x10SetStatusRequest\x12\x19\n" +
 	"\bdrone_id\x18\x01 \x01(\tR\adroneId\x12.\n" +
 	"\x06status\x18\x02 \x01(\x0e2\x16.telemetry.DroneStatusR\x06status\"-\n" +
@@ -514,21 +523,22 @@ var file_tracking_proto_goTypes = []any{
 var file_tracking_proto_depIdxs = []int32{
 	8,  // 0: tracking.FindNearestRequest.store_location:type_name -> common.Location
 	8,  // 1: tracking.GetDroneLocationResponse.location:type_name -> common.Location
-	9,  // 2: tracking.SetStatusRequest.status:type_name -> telemetry.DroneStatus
-	10, // 3: tracking.ListDronesResponse.drones:type_name -> telemetry.Drone
-	0,  // 4: tracking.TrackingService.FindNearest:input_type -> tracking.FindNearestRequest
-	2,  // 5: tracking.TrackingService.GetDroneLocation:input_type -> tracking.GetDroneLocationRequest
-	4,  // 6: tracking.TrackingService.SetStatus:input_type -> tracking.SetStatusRequest
-	6,  // 7: tracking.TrackingService.ListDrones:input_type -> tracking.ListDronesRequest
-	1,  // 8: tracking.TrackingService.FindNearest:output_type -> tracking.FindNearestResponse
-	3,  // 9: tracking.TrackingService.GetDroneLocation:output_type -> tracking.GetDroneLocationResponse
-	5,  // 10: tracking.TrackingService.SetStatus:output_type -> tracking.SetStatusResponse
-	7,  // 11: tracking.TrackingService.ListDrones:output_type -> tracking.ListDronesResponse
-	8,  // [8:12] is the sub-list for method output_type
-	4,  // [4:8] is the sub-list for method input_type
-	4,  // [4:4] is the sub-list for extension type_name
-	4,  // [4:4] is the sub-list for extension extendee
-	0,  // [0:4] is the sub-list for field type_name
+	9,  // 2: tracking.GetDroneLocationResponse.status:type_name -> telemetry.DroneStatus
+	9,  // 3: tracking.SetStatusRequest.status:type_name -> telemetry.DroneStatus
+	10, // 4: tracking.ListDronesResponse.drones:type_name -> telemetry.Drone
+	0,  // 5: tracking.TrackingService.FindNearest:input_type -> tracking.FindNearestRequest
+	2,  // 6: tracking.TrackingService.GetDroneLocation:input_type -> tracking.GetDroneLocationRequest
+	4,  // 7: tracking.TrackingService.SetStatus:input_type -> tracking.SetStatusRequest
+	6,  // 8: tracking.TrackingService.ListDrones:input_type -> tracking.ListDronesRequest
+	1,  // 9: tracking.TrackingService.FindNearest:output_type -> tracking.FindNearestResponse
+	3,  // 10: tracking.TrackingService.GetDroneLocation:output_type -> tracking.GetDroneLocationResponse
+	5,  // 11: tracking.TrackingService.SetStatus:output_type -> tracking.SetStatusResponse
+	7,  // 12: tracking.TrackingService.ListDrones:output_type -> tracking.ListDronesResponse
+	9,  // [9:13] is the sub-list for method output_type
+	5,  // [5:9] is the sub-list for method input_type
+	5,  // [5:5] is the sub-list for extension type_name
+	5,  // [5:5] is the sub-list for extension extendee
+	0,  // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_tracking_proto_init() }

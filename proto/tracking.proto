@@ -34,6 +34,7 @@ message GetDroneLocationResponse {
   double battery = 2;
   double speed_mps = 3;
   double consumption_per_meter = 4;
+  telemetry.DroneStatus status = 5;
 }
 
 message SetStatusRequest {

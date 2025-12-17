@@ -251,10 +251,12 @@ func (TargetType) EnumDescriptor() ([]byte, []int) {
 type Drone struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
 	DroneId             string                 `protobuf:"bytes,1,opt,name=drone_id,json=droneId,proto3" json:"drone_id,omitempty"`
-	DroneLocation       *common.Location       `protobuf:"bytes,2,opt,name=drone_location,json=droneLocation,proto3" json:"drone_location,omitempty"`
-	Battery             float64                `protobuf:"fixed64,3,opt,name=battery,proto3" json:"battery,omitempty"`
-	SpeedMps            float64                `protobuf:"fixed64,4,opt,name=speed_mps,json=speedMps,proto3" json:"speed_mps,omitempty"`
-	ConsumptionPerMeter float64                `protobuf:"fixed64,5,opt,name=consumption_per_meter,json=consumptionPerMeter,proto3" json:"consumption_per_meter,omitempty"`
+	Battery             float64                `protobuf:"fixed64,2,opt,name=battery,proto3" json:"battery,omitempty"`
+	SpeedMps            float64                `protobuf:"fixed64,3,opt,name=speed_mps,json=speedMps,proto3" json:"speed_mps,omitempty"`
+	ConsumptionPerMeter float64                `protobuf:"fixed64,4,opt,name=consumption_per_meter,json=consumptionPerMeter,proto3" json:"consumption_per_meter,omitempty"`
+	Status              DroneStatus            `protobuf:"varint,5,opt,name=status,proto3,enum=telemetry.DroneStatus" json:"status,omitempty"`
+	DroneLocation       *common.Location       `protobuf:"bytes,6,opt,name=drone_location,json=droneLocation,proto3" json:"drone_location,omitempty"`
+	UpdatedAt           int64                  `protobuf:"varint,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -296,13 +298,6 @@ func (x *Drone) GetDroneId() string {
 	return ""
 }
 
-func (x *Drone) GetDroneLocation() *common.Location {
-	if x != nil {
-		return x.DroneLocation
-	}
-	return nil
-}
-
 func (x *Drone) GetBattery() float64 {
 	if x != nil {
 		return x.Battery
@@ -320,6 +315,27 @@ func (x *Drone) GetSpeedMps() float64 {
 func (x *Drone) GetConsumptionPerMeter() float64 {
 	if x != nil {
 		return x.ConsumptionPerMeter
+	}
+	return 0
+}
+
+func (x *Drone) GetStatus() DroneStatus {
+	if x != nil {
+		return x.Status
+	}
+	return DroneStatus_STATUS_UNKNOWN
+}
+
+func (x *Drone) GetDroneLocation() *common.Location {
+	if x != nil {
+		return x.DroneLocation
+	}
+	return nil
+}
+
+func (x *Drone) GetUpdatedAt() int64 {
+	if x != nil {
+		return x.UpdatedAt
 	}
 	return 0
 }
@@ -608,13 +624,16 @@ var File_telemetry_proto protoreflect.FileDescriptor
 
 const file_telemetry_proto_rawDesc = "" +
 	"\n" +
-	"\x0ftelemetry.proto\x12\ttelemetry\x1a\fcommon.proto\"\xc6\x01\n" +
+	"\x0ftelemetry.proto\x12\ttelemetry\x1a\fcommon.proto\"\x95\x02\n" +
 	"\x05Drone\x12\x19\n" +
-	"\bdrone_id\x18\x01 \x01(\tR\adroneId\x127\n" +
-	"\x0edrone_location\x18\x02 \x01(\v2\x10.common.LocationR\rdroneLocation\x12\x18\n" +
-	"\abattery\x18\x03 \x01(\x01R\abattery\x12\x1b\n" +
-	"\tspeed_mps\x18\x04 \x01(\x01R\bspeedMps\x122\n" +
-	"\x15consumption_per_meter\x18\x05 \x01(\x01R\x13consumptionPerMeter\"\xca\x02\n" +
+	"\bdrone_id\x18\x01 \x01(\tR\adroneId\x12\x18\n" +
+	"\abattery\x18\x02 \x01(\x01R\abattery\x12\x1b\n" +
+	"\tspeed_mps\x18\x03 \x01(\x01R\bspeedMps\x122\n" +
+	"\x15consumption_per_meter\x18\x04 \x01(\x01R\x13consumptionPerMeter\x12.\n" +
+	"\x06status\x18\x05 \x01(\x0e2\x16.telemetry.DroneStatusR\x06status\x127\n" +
+	"\x0edrone_location\x18\x06 \x01(\v2\x10.common.LocationR\rdroneLocation\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\a \x01(\x03R\tupdatedAt\"\xca\x02\n" +
 	"\x0eDroneTelemetry\x12\x19\n" +
 	"\bdrone_id\x18\x01 \x01(\tR\adroneId\x127\n" +
 	"\x0edrone_location\x18\x02 \x01(\v2\x10.common.LocationR\rdroneLocation\x12\x18\n" +
@@ -697,25 +716,26 @@ var file_telemetry_proto_goTypes = []any{
 	(*common.Location)(nil),     // 9: common.Location
 }
 var file_telemetry_proto_depIdxs = []int32{
-	9,  // 0: telemetry.Drone.drone_location:type_name -> common.Location
-	9,  // 1: telemetry.DroneTelemetry.drone_location:type_name -> common.Location
-	0,  // 2: telemetry.DroneTelemetry.status:type_name -> telemetry.DroneStatus
-	1,  // 3: telemetry.DroneTelemetry.event:type_name -> telemetry.DroneEvent
-	2,  // 4: telemetry.ServerCommand.action:type_name -> telemetry.DroneAction
-	9,  // 5: telemetry.ServerCommand.target:type_name -> common.Location
-	3,  // 6: telemetry.ServerCommand.type:type_name -> telemetry.TargetType
-	2,  // 7: telemetry.SendCommandRequest.action:type_name -> telemetry.DroneAction
-	9,  // 8: telemetry.SendCommandRequest.target:type_name -> common.Location
-	3,  // 9: telemetry.SendCommandRequest.type:type_name -> telemetry.TargetType
-	5,  // 10: telemetry.TelemetryService.Link:input_type -> telemetry.DroneTelemetry
-	7,  // 11: telemetry.TelemetryService.SendCommand:input_type -> telemetry.SendCommandRequest
-	6,  // 12: telemetry.TelemetryService.Link:output_type -> telemetry.ServerCommand
-	8,  // 13: telemetry.TelemetryService.SendCommand:output_type -> telemetry.SendCommandResponse
-	12, // [12:14] is the sub-list for method output_type
-	10, // [10:12] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	0,  // 0: telemetry.Drone.status:type_name -> telemetry.DroneStatus
+	9,  // 1: telemetry.Drone.drone_location:type_name -> common.Location
+	9,  // 2: telemetry.DroneTelemetry.drone_location:type_name -> common.Location
+	0,  // 3: telemetry.DroneTelemetry.status:type_name -> telemetry.DroneStatus
+	1,  // 4: telemetry.DroneTelemetry.event:type_name -> telemetry.DroneEvent
+	2,  // 5: telemetry.ServerCommand.action:type_name -> telemetry.DroneAction
+	9,  // 6: telemetry.ServerCommand.target:type_name -> common.Location
+	3,  // 7: telemetry.ServerCommand.type:type_name -> telemetry.TargetType
+	2,  // 8: telemetry.SendCommandRequest.action:type_name -> telemetry.DroneAction
+	9,  // 9: telemetry.SendCommandRequest.target:type_name -> common.Location
+	3,  // 10: telemetry.SendCommandRequest.type:type_name -> telemetry.TargetType
+	5,  // 11: telemetry.TelemetryService.Link:input_type -> telemetry.DroneTelemetry
+	7,  // 12: telemetry.TelemetryService.SendCommand:input_type -> telemetry.SendCommandRequest
+	6,  // 13: telemetry.TelemetryService.Link:output_type -> telemetry.ServerCommand
+	8,  // 14: telemetry.TelemetryService.SendCommand:output_type -> telemetry.SendCommandResponse
+	13, // [13:15] is the sub-list for method output_type
+	11, // [11:13] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_telemetry_proto_init() }
