@@ -35,7 +35,6 @@ func (r *RedisRepo) GetNearest(
 	radiusMeters float64,
 	minBattery float64,
 ) (*drone.DroneNearest, error) {
-	fmt.Printf("[[[!!!]]] location=%v", location)
 	result, err := r.rdb.Client.GeoSearchLocation(
 		ctx,
 		DroneGeoKey,
@@ -54,8 +53,6 @@ func (r *RedisRepo) GetNearest(
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Printf("[[[!!!]]] found drones: %v", result)
 
 	for _, res := range result {
 		data, err := r.rdb.Client.HGetAll(ctx, DroneDataKey+res.Name).Result()
