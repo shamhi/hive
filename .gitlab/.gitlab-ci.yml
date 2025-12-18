@@ -31,26 +31,33 @@ test-coverage:
     - go mod download
   script:
     - |
-      set -eu
-
+      bash -euo pipefail <<'BASH'
       THRESHOLD=30
+      SERVICES="order dispatch telemetry tracking base store"
       mkdir -p coverage
 
-      for s in order dispatch telemetry tracking base store; do
+      for s in $SERVICES; do
         echo "==> Coverage for service: $s"
 
-        OUT="$(go test "./services/${s}/..." -covermode=atomic 2>&1 | tee "coverage/${s}.log")"
+        OUT_FILE="coverage/${s}.log"
+        OUT="$(go test -cover -covermode=atomic "./services/${s}/..." 2>&1 | tee "$OUT_FILE")"
 
         MAX="$(printf '%s\n' "$OUT" \
-          | awk 'match($0,/coverage: ([0-9.]+)% of statements/,a){ if ((a[1]+0) > m) m = (a[1]+0) } END { printf "%.1f", (m+0) }')"
+          | sed -n 's/.*coverage: \([0-9.][0-9.]*\)% of statements.*/\1/p' \
+          | awk '($1+0)>m{m=$1+0} END{if(NR==0)m=0; printf "%.1f", m}')"
 
         echo "Max package coverage (${s}) = ${MAX}%"
 
-        awk -v c="${MAX}" -v t="${THRESHOLD}" 'BEGIN{exit ((c+0) < (t+0))}' \
-          || { echo "Coverage for ${s} is below ${THRESHOLD}%"; exit 1; }
+        if awk -v c="$MAX" -v t="$THRESHOLD" 'BEGIN{exit (c<t)}'; then
+          echo "OK: ${s} has at least one package with coverage >= ${THRESHOLD}%"
+        else
+          echo "Coverage for ${s} is below ${THRESHOLD}% (max was ${MAX}%)"
+          exit 1
+        fi
       done
 
       echo "All services coverage OK (max package coverage >= ${THRESHOLD}%)."
+      BASH
   artifacts:
     paths:
       - coverage/
