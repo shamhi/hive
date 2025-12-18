@@ -25,10 +25,9 @@ tags:
     description: Drone tracking
 
 paths:
-
   /api/v1/ping:
     get:
-      tags: [system]
+      tags: [ system ]
       summary: Ping API Gateway
       responses:
         "200":
@@ -41,10 +40,11 @@ paths:
                   status:
                     type: string
                     example: ok
+                required: [ status ]
 
   /api/v1/orders:
     post:
-      tags: [orders]
+      tags: [ orders ]
       summary: Create new order
       requestBody:
         required: true
@@ -58,13 +58,23 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Order"
+                $ref: "#/components/schemas/CreateOrderResponse"
         "400":
           description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /api/v1/orders/{id}:
     get:
-      tags: [orders]
+      tags: [ orders ]
       summary: Get order by id
       parameters:
         - name: id
@@ -72,161 +82,351 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
       responses:
         "200":
           description: Order found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Order"
+                $ref: "#/components/schemas/GetOrderResponse"
+        "400":
+          description: Invalid order_id format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /api/v1/bases:
     get:
-      tags: [bases]
+      tags: [ bases ]
       summary: List drone bases
+      parameters:
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+            maximum: 200
+            default: 20
       responses:
         "200":
           description: List of bases
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Base"
+                $ref: "#/components/schemas/ListBasesResponse"
+        "400":
+          description: Invalid pagination params
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /api/v1/stores:
     get:
-      tags: [stores]
+      tags: [ stores ]
       summary: List dark stores
+      parameters:
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+            maximum: 200
+            default: 20
       responses:
         "200":
           description: List of stores
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Store"
+                $ref: "#/components/schemas/ListStoresResponse"
+        "400":
+          description: Invalid pagination params
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /api/v1/drones:
     get:
-      tags: [drones]
+      tags: [ drones ]
       summary: List drones with last known state
+      parameters:
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+            maximum: 200
+            default: 20
       responses:
         "200":
           description: List of drones
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Drone"
+                $ref: "#/components/schemas/ListDroneResponse"
+        "400":
+          description: Invalid pagination params
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
 components:
-
   schemas:
+    Location:
+      type: object
+      properties:
+        lat:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+          example: 55.751244
+        lon:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+          example: 37.618423
+      required: [ lat, lon ]
 
     CreateOrderRequest:
       type: object
-      required:
-        - user_id
-        - items
-        - delivery_lat
-        - delivery_lon
       properties:
         user_id:
           type: string
-          example: user-123
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
         items:
           type: array
+          minItems: 1
           items:
             type: string
-          example: ["pizza", "cola"]
-        delivery_lat:
-          type: number
-          format: double
-          example: 55.751244
-        delivery_lon:
-          type: number
-          format: double
-          example: 37.618423
+          example: [ "pizza", "cola" ]
+        delivery_location:
+          $ref: "#/components/schemas/Location"
+      required: [ user_id, items, delivery_location ]
 
-    Order:
+    CreateOrderResponse:
       type: object
       properties:
-        id:
+        order_id:
           type: string
-          example: order-uuid
-        user_id:
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        status:
           type: string
-          example: user-123
+          example: "CREATED"
         drone_id:
           type: string
-          nullable: true
-          example: drone-42
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440002"
+        eta_seconds:
+          type: integer
+          format: int32
+          example: 120
+      required: [ order_id, status ]
+
+    GetOrderResponse:
+      type: object
+      properties:
+        order_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        drone_id:
+          type: string
+          format: uuid
         items:
           type: array
           items:
             type: string
         status:
           type: string
-          example: ASSIGNED
-        delivery_lat:
-          type: number
-          format: double
-        delivery_lon:
-          type: number
-          format: double
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
+        delivery_location:
+          $ref: "#/components/schemas/Location"
+      required: [ order_id, user_id, items, status, delivery_location ]
 
-    Base:
+    ErrorResponse:
       type: object
       properties:
-        id:
+        error:
           type: string
-          example: base-1
-        lat:
-          type: number
-          format: double
-        lon:
-          type: number
-          format: double
+          example: "invalid request format"
+      required: [ error ]
 
-    Store:
+    BaseDTO:
       type: object
       properties:
-        id:
+        base_id:
           type: string
-          example: store-1
-        lat:
-          type: number
-          format: double
-        lon:
-          type: number
-          format: double
+          format: uuid
+        name:
+          type: string
+        address:
+          type: string
+        location:
+          $ref: "#/components/schemas/Location"
+      required: [ base_id, name, address, location ]
 
-    Drone:
+    StoreDTO:
       type: object
       properties:
-        id:
+        store_id:
           type: string
-          example: drone-42
+          format: uuid
+        name:
+          type: string
+        address:
+          type: string
+        location:
+          $ref: "#/components/schemas/Location"
+      required: [ store_id, name, address, location ]
+
+    AssignmentDTO:
+      type: object
+      properties:
+        assignment_id:
+          type: string
+          format: uuid
         status:
           type: string
-          example: FREE
-        lat:
-          type: number
-          format: double
-        lon:
-          type: number
-          format: double
+        target_location:
+          $ref: "#/components/schemas/Location"
+          nullable: true
+      required: [ assignment_id, status, target_location ]
+
+    DroneDTO:
+      type: object
+      properties:
+        drone_id:
+          type: string
+          format: uuid
         battery:
+          type: number
+          format: double
+          example: 85.5
+        speed_mps:
+          type: number
+          format: double
+          example: 12.3
+        consumption_per_meter:
+          type: number
+          format: double
+          example: 0.02
+        status:
+          type: string
+          example: "FREE"
+        updated_at_ms:
           type: integer
-          example: 85
+          format: int64
+          example: 1734540000000
+        location:
+          $ref: "#/components/schemas/Location"
+        assignment:
+          $ref: "#/components/schemas/AssignmentDTO"
+      required:
+        - drone_id
+        - battery
+        - speed_mps
+        - consumption_per_meter
+        - status
+        - updated_at_ms
+        - location
+
+    ListBasesResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/BaseDTO"
+      required: [ items ]
+
+    ListStoresResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/StoreDTO"
+      required: [ items ]
+
+    ListDroneResponse:
+      type: object
+      properties:
+        server_time_ms:
+          type: integer
+          format: int64
+          example: 1734540000000
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/DroneDTO"
+      required: [ server_time_ms, items ]

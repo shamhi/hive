@@ -343,13 +343,17 @@ Nginx используется как единая точка входа в си
 
 ### Запуск
 
-```
+```bash
 docker compose up --build -d
 ```
 
 ### Проверка
 
-```
+```bash
+# Nginx
+curl http://localhost/nginx/health
+
+# API
 curl http://localhost/api/v1/ping
 ```
 

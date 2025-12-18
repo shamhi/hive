@@ -42,21 +42,21 @@ test-coverage:
         OUT_FILE="coverage/${s}.log"
         OUT="$(go test -cover -covermode=atomic "./services/${s}/..." 2>&1 | tee "$OUT_FILE")"
 
-        MAX="$(printf '%s\n' "$OUT" \
+        COV="$(printf '%s\n' "$OUT" \
           | sed -n 's/.*coverage: \([0-9.][0-9.]*\)% of statements.*/\1/p' \
           | awk '($1+0)>m{m=$1+0} END{if(NR==0)m=0; printf "%.1f", m}')"
 
-        echo "Max package coverage (${s}) = ${MAX}%"
+        echo "Package coverage (${s}) = ${COV}%"
 
-        if awk -v c="$MAX" -v t="$THRESHOLD" 'BEGIN{exit (c<t)}'; then
-          echo "OK: ${s} has at least one package with coverage >= ${THRESHOLD}%"
+        if awk -v c="$COV" -v t="$THRESHOLD" 'BEGIN{exit (c<t)}'; then
+          echo "OK: ${s} coverage >= ${THRESHOLD}%"
         else
-          echo "Coverage for ${s} is below ${THRESHOLD}% (max was ${MAX}%)"
+          echo "Coverage for ${s} is below ${THRESHOLD}% (was ${COV}%)"
           exit 1
         fi
       done
 
-      echo "All services coverage OK (max package coverage >= ${THRESHOLD}%)."
+      echo "All services coverage OK (>= ${THRESHOLD}%)."
       BASH
   artifacts:
     paths:
