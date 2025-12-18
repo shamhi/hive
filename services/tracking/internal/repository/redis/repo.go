@@ -7,6 +7,7 @@ import (
 	"hive/services/tracking/internal/domain/drone"
 	"hive/services/tracking/internal/domain/shared"
 	"hive/services/tracking/internal/service"
+	"slices"
 	"sort"
 	"strconv"
 
@@ -63,7 +64,10 @@ func (r *RedisRepo) GetNearest(
 		battery, _ := strconv.ParseFloat(data["battery"], 64)
 		status := drone.DroneStatus(data["status"])
 
-		if battery < minBattery || status != drone.DroneStatusFree {
+		if battery < minBattery || !slices.Contains([]drone.DroneStatus{
+			drone.DroneStatusFree,
+			drone.DroneStatusCharging,
+		}, status) {
 			continue
 		}
 
