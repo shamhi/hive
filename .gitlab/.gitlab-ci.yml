@@ -78,7 +78,7 @@ build:docker:
       printf '{"auths":{"%s":{"auth":"%s"}}}\n' "${CI_REGISTRY}" "${AUTH}" > /kaniko/.docker/config.json
   parallel:
     matrix:
-      - SERVICE: "api"
+      - SERVICE: "api-gateway"
         TARGET: "server"
       - SERVICE: "order"
         TARGET: "server"
