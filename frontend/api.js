@@ -9,7 +9,6 @@ const elApiStatus = document.getElementById("apiStatus");
 const elOrdersList = document.getElementById("ordersList");
 const elOrderCreateResult = document.getElementById("orderCreateResult");
 
-const elUserId = document.getElementById("userId");
 const elItems = document.getElementById("items");
 const elLat = document.getElementById("lat");
 const elLon = document.getElementById("lon");
@@ -202,19 +201,28 @@ function buildDronePopup(dr) {
     const targetKindHuman = targetKindLabel(targetKindTech);
 
     let targetName = "—";
+    let targetAddress = "—";
     let targetCoords = "—";
 
     const t = asg?.target_location || null;
     if (t && typeof t.lat === "number" && typeof t.lon === "number") {
         targetCoords = `${fmtNum(t.lat, 6)}, ${fmtNum(t.lon, 6)}`;
+
         if (targetKindTech === "STORE") {
             const n = findNearestPoi(stores, t.lat, t.lon);
-            if (n) targetName = `${n.poi.name} (${Math.round(n.distance_m)}m)`;
+            if (n) {
+                targetName = n.poi.name;
+                targetAddress = n.poi.address || "—";
+            }
         } else if (targetKindTech === "BASE") {
             const n = findNearestPoi(bases, t.lat, t.lon);
-            if (n) targetName = `${n.poi.name} (${Math.round(n.distance_m)}m)`;
+            if (n) {
+                targetName = n.poi.name;
+                targetAddress = n.poi.address || "—";
+            }
         } else if (targetKindTech === "CLIENT") {
             targetName = "Customer location";
+            targetAddress = "—";
         }
     }
 
@@ -233,17 +241,17 @@ function buildDronePopup(dr) {
 
       <div style="height:8px"></div>
 
-      <div class="kv"><div class="k">Assignment</div><div class="v">${escapeHtml(asgStatusHuman)}</div></div>
-      <div class="kv"><div class="k">Target</div><div class="v">${escapeHtml(targetKindHuman)}</div></div>
-      <div class="kv"><div class="k">Target name</div><div class="v">${escapeHtml(targetName)}</div></div>
-      <div class="kv"><div class="k">Target coords</div><div class="v"><code>${escapeHtml(targetCoords)}</code></div></div>
+      ${asgStatusHuman !== "—" ? `<div class="kv"><div class="k">Assignment</div><div class="v">${escapeHtml(asgStatusHuman)}</div></div>` : ""}
+      ${targetKindHuman !== "None" ? `<div class="kv"><div class="k">Target</div><div class="v">${escapeHtml(targetKindHuman)}</div></div>` : ""}
+      ${targetName !== "—" ? `<div class="kv"><div class="k">Target name</div><div class="v">${escapeHtml(targetName)}</div></div>` : ""}
+      ${targetAddress !== "—" ? `<div class="kv"><div class="k">Target address</div><div class="v">${escapeHtml(targetAddress)}</div></div>` : ""}
+      ${targetCoords !== "—" ? `<div class="kv"><div class="k">Target coords</div><div class="v"><code>${escapeHtml(targetCoords)}</code></div></div>` : ""}
 
       <div style="height:8px"></div>
       <div class="muted">Raw: status=<code>${escapeHtml(normalizeEnum(dr.status))}</code>, assignment=<code>${escapeHtml(normalizeEnum(asgStatusTech))}</code></div>
     </div>
   `;
 }
-
 /* ========= SVG icons ========= */
 
 function svgIcon(html, size = 28, anchor = size / 2) {
@@ -680,30 +688,26 @@ async function refreshDrones(map) {
     }
 }
 
-function ensureUserId() {
-    if (!elUserId.value.trim()) {
-        elUserId.value = crypto?.randomUUID ? crypto.randomUUID() : "00000000-0000-0000-0000-000000000000";
-    }
-}
-
 function setCreateResult(html) {
     elOrderCreateResult.innerHTML = html || "";
+}
+
+function uuidv4() {
+    const b = new Uint8Array(16);
+    crypto.getRandomValues(b);
+    b[6] = (b[6] & 0x0f) | 0x40; // version 4
+    b[8] = (b[8] & 0x3f) | 0x80; // variant
+    const h = [...b].map(x => x.toString(16).padStart(2, "0")).join("");
+    return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`;
 }
 
 async function handleCreateOrderSubmit(ev) {
     ev.preventDefault();
 
-    ensureUserId();
-
-    const user_id = elUserId.value.trim();
     const items = parseItems(elItems.value);
     const lat = Number(elLat.value);
     const lon = Number(elLon.value);
 
-    if (!user_id) {
-        setCreateResult(`<span class="text-danger">user_id required</span>`);
-        return;
-    }
     if (items.length === 0) {
         setCreateResult(`<span class="text-danger">items required</span>`);
         return;
@@ -716,6 +720,7 @@ async function handleCreateOrderSubmit(ev) {
     setCreateResult(`<span class="muted">Creating…</span>`);
 
     try {
+        const user_id = crypto?.randomUUID ? crypto.randomUUID() : uuidv4();
         const resp = await apiPost("/orders", {user_id, items, delivery_location: {lat, lon}});
 
         addOrderToLS(resp.order_id);
@@ -767,11 +772,6 @@ function initMap() {
 
 async function main() {
     const map = initMap();
-
-    ensureUserId();
-    document.getElementById("btnGenUser").addEventListener("click", () => {
-        if (crypto?.randomUUID) elUserId.value = crypto.randomUUID();
-    });
 
     btnPickOnMap.addEventListener("click", () => setPickMode(!pickMode));
     document.getElementById("orderForm").addEventListener("submit", handleCreateOrderSubmit);
