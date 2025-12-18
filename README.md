@@ -1,109 +1,387 @@
-# Архитектура флота дронов Hive
+# Drone Delivery Platform
 
-[ТЗ подробнее](docs/TR.md)
+[Изначальная архитектура проекта в ExcalidDraw](https://excalidraw.com/#json=UyeMlv9V4wQKOuthpubgd,X1H_Zg0GTbg-xaFboX-exA)
 
-## Обзор системы
+Микросервисный проект, демонстрирующий архитектуру системы автоматической доставки заказов дронами.
+Проект моделирует полный цикл доставки: создание заказа, подбор ближайшего даркстора и дрона, назначение, полёт,
+телеметрию, обработку событий и завершение доставки.
 
-### Цель и границы решения
+![full](docs/full.png)
+![target](docs/target.png)
 
-- Hive — это cloud-native платформа для автоматизированной доставки товаров мультикоптерами. В рамках MVP реализованы
-  пять микросервисов, взаимодействующих по gRPC и Kafka, а также REST-шлюз для клиентов. Эмулятор дрона позволяет
-  отладить логику без полётов. Система не покрывает авторизацию, оплату и складскую логистику.
+---
 
-### High-level архитектура
+## Общая идея
 
-- Клиент → API Gateway (REST) → Order Service → Dispatch Service → Tracking + Telemetry. Дроны подключаются по gRPC
-  стриму к Telemetry Service и публикуют телеметрию в Kafka. Tracking Service потребляет telemetry.raw и обновляет
-  Redis-геоиндекс. Все сервисы контейнеризованы, CI/CD на GitLab.
+Пользователь оформляет заказ через веб-интерфейс.
+HTTP-запрос поступает в API Gateway, где создаётся заказ и инициируется назначение дрона:
 
-## Сервис телеметрии
+* дрон подключается по gRPC stream,
+* телеметрия публикуется в Kafka,
+* Dispatch обрабатывает события и управляет состоянием доставки,
+* Tracking отвечает за поиск и состояние дронов,
+* Store и Base предоставляют геоданные инфраструктуры.
 
-### Хранилище активных соединений
+---
 
-- Для каждого дрона заводится долгоживущий gRPC стрим. В памяти сервиса размещён sync.Map вида droneID→Connection, что
-  обеспечивает O(1) доступ к каналу отправки команд. При разрыве TCP соединение удаляется из мапы, и дрон считается
-  оффлайн.
+## Архитектура
 
-### Валидация и публикация данных
+### Общая схема взаимодействия
 
-- Каждое входящее сообщение DroneTelemetry проверяется: заряд 0–100, координаты внутри разрешённого полигона, статус из
-  enum. При ошибке соединение обрывается. Валидные пакеты сериализуются в protobuf и публикуются в Kafka топик
-  telemetry.raw с ключом drone_id для партиционирования.
+```
+Frontend
+   |
+   v
+Nginx
+   |
+   v
+API Gateway (HTTP /api/v1)
+   |
+   +--> Order (gRPC, PostgreSQL)
+   |        |
+   |        v
+   |     Dispatch (gRPC, PostgreSQL, Kafka consumer)
+   |        |
+   |        v
+   |     Telemetry (gRPC stream, Kafka producer)
+   |
+   +--> Tracking (gRPC, Redis GEO, Kafka consumer)
+   +--> Store (gRPC, Redis GEO)
+   +--> Base (gRPC, Redis GEO)
+```
 
-### Команды от диспетчера
+---
 
-- Метод SendCommand ищет соединение по drone_id в sync.Map и формирует ServerCommand с уникальным command_id. Команда
-  пишется в стрим. Ответ содержит флаг успеха: false, если дрон оффлайн или стрим закрыт.
+## Технологический стек
 
-### События жизненного цикла
+### Frontend
 
-- Дрон самостоятельно отправляет события ARRIVED, PICKED_UP, DROPPED_CARGO через поле DroneEvent. Telemetry Service
-  копирует это поле в отдельное Kafka-сообщение в топик events. Dispatch Service потребляет события и триггерит
-  следующую команду, формируя конечный автомат доставки.
+* HTML (index.html)
+* JavaScript (api.js)
+* CSS (style.css)
+* Leaflet
+* OpenStreetMap
 
-## Tracking Service
+### Backend
 
-### Потребление и индексация
+* Go 1.25.5
+* gRPC
+* Echo v4
+* Kafka
+* Redis (Geo)
+* PostgreSQL
+* Docker
+* Docker Compose
+* Nginx
 
-- Сервис входит в consumer-group tracking-group и читает telemetry.raw. Для каждого сообщения выполняется GEOADD drones
-  lon lat drone_id и HSET drone:id battery status. Redis хранит гео-индекс и хэш-документы, что позволяет искать по
-  радиусу и фильтровать по полям за оптимальное время.
+---
 
-### Поиск ближайшего дрона
+## Сервисы
 
-- gRPC метод FindNearest принимает координаты склада. Выполняется GEOSEARCH … BYRADIUS 30 km WITHDIST, затем фильтрация
-  по статусу FREE и battery > 20 %. Результат сортируется по расстоянию, возвращается первый ID и дистанция в метрах.
-  Если свободных дронов нет — found=false.
+### API Gateway
 
-### Чтение и обновление статуса
+HTTP-интерфейс для клиента.
 
-- GetDroneLocation возвращает последние известные координаты и заряд из хэша drone:id. SetStatus позволяет внешним
-  сервисам атомарно менять поле status в Redis, что используется Dispatch Service для смены статуса дрона.
+* Framework: echo/v4
+* Base path: /api/v1
 
-## Order и Dispatch
+Методы:
 
-### Жизненный цикл заказа
+* GET /ping
+* POST /orders
+* GET /orders/:id
+* GET /bases
+* GET /stores
+* GET /drones
 
-- Order Service хранит заказы в PostgreSQL. CreateOrder вставляет запись со статусом PENDING и синхронно вызывает
-  dispatch.AssignDrone. В случае успеха статус переходит в ASSIGNED, иначе FAILED. GetOrder отдаёт данные по ID, а
-  UpdateStatus позволяет диспетчеру фиксировать завершение доставки.
+---
 
-### Логика назначения дрона
+### Order Service
 
-- Dispatch Service реализует оркестрацию. AssignDrone находит ближайший склад к клиенту, вызывает tracking.FindNearest,
-  захватывает дрон через SetStatus(BUSY) и отправляет первую команду FLY_TO(Store). Все вызовы выполняются в одной
-  транзакции gRPC, что минимизирует race condition.
+Управление заказами.
 
-### Конечный автомат доставки
+* gRPC
+* PostgreSQL
 
-- Dispatch потребляет топик events и переводит заказ по состояниям:
-  ARRIVED_AT_STORE→PICKUP_CARGO→PICKED_UP_CARGO→FLY_TO(Client)→ARRIVED_AT_CLIENT→DROP_CARGO→DROPPED_CARGO→FLY_TO(Base)
-  →ARRIVED_AT_BASE→CHARGE/FREE. После выгрузки заказу проставляется COMPLETED, дрон освобождается.
+Методы:
 
-## API Gateway и инфраструктура
+* CreateOrder
+* GetOrder
+* UpdateStatus
 
-### REST-интерфейс клиента
+[Протофайл](proto/order.proto)
 
-- Echo-сервер на порту 8080 предоставляет POST /api/v1/orders для создания заказа и GET /api/v1/orders/{id} для
-  получения статуса. Валидация координат, списка товаров и UUID происходит на шлюзе. Ответы агрегируют данные из Order и
-  Tracking сервисов.
+---
 
-### Контейнеризация и CI/CD
+### Dispatch Service
 
-- Каждый микросервис имеет собственный Dockerfile с многостадийной сборкой Go-образа. Docker Compose описывает сеть,
-  зависимости (Kafka, Redis, Postgres) и переменные окружения. GitLab CI/CD запускает линтер, юнит-тесты, собирает
-  образы и публикует их в Registry.
+Назначение дронов и управление доставкой.
 
-## Эмулятор и следующие шаги
+* gRPC
+* Kafka consumer
+* PostgreSQL
 
-### Поведение виртуального дрона
+Методы:
 
-- Эмулятор запускает N горутин-дронов, каждая устанавливает gRPC стрим к Telemetry Service. В цикле тика дрон обновляет
-  координаты в направлении цели с фиксированной скоростью, расходует заряд и отправляет события при достижении точек.
-  Команды FLY_TO, PICKUP, DROP, CHARGE обрабатываются без физической симуляции, что достаточно для тестирования логики.
+* AssignDrone
+* GetAssignment
 
-### Роадмап и масштабирование
+[Протофайл](proto/dispatch.proto)
 
-- MVP покрывает happy path доставки. Далее планируется: авторизация пользователей, rate-limiting на шлюзе, кеширование
-  ответов, горизонтальное масштабирование Tracking Service через Redis Cluster, шардирование Kafka, интеграция платёжной
-  системы, а также веб-карта полёта для оператора. Архитектура готова к добавлению новых доменов без рефакторинга ядра.
+---
+
+### Telemetry Service
+
+Связь с дронами и телеметрия.
+
+* gRPC streaming
+* Kafka producer
+
+Методы:
+
+* Link (stream)
+* SendCommand
+
+[Протофайл](proto/telemetry.proto)
+
+---
+
+### Tracking Service
+
+Поиск и состояние дронов.
+
+* gRPC
+* Redis GEO
+* Kafka consumer
+
+Методы:
+
+* FindNearest
+* GetDroneLocation
+* SetStatus
+* ListDrones
+
+[Протофайл](proto/tracking.proto)
+
+---
+
+### Store Service
+
+Дарксторы (хранилища товаров).
+
+* gRPC
+* Redis GEO
+
+Методы:
+
+* CreateStore
+* GetStoreLocation
+* ListStores
+* FindNearest
+
+[Протофайл](proto/store.proto)
+
+---
+
+### Base Service
+
+Базы дронов.
+
+* gRPC
+* Redis GEO
+
+Методы:
+
+* CreateBase
+* GetBaseLocation
+* ListBases
+* FindNearest
+
+[Протофайл](proto/base.proto)
+
+---
+
+## Telemetry Emulator
+
+Эмулятор дронов, отправляющий телеметрию в Telemetry Service.
+
+* gRPC streaming
+* Настраиваемые данные: 
+  * Количество дронов
+  * Скорость полёта
+  * Расход батареи
+  * Частота отправки телеметрии
+
+---
+
+## Kafka
+
+Kafka используется для асинхронного обмена событиями между сервисами.
+
+Основные топики:
+
+* telemetry-data
+* telemetry-events
+
+Telemetry публикует события и данные дронов.
+Dispatch и Tracking подписываются на топики и обновляют состояние системы.
+
+---
+
+## Хранилища данных
+
+### PostgreSQL
+
+Используется для хранения бизнес-сущностей.
+
+Таблица orders:
+
+```
+CREATE TABLE IF NOT EXISTS orders (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    drone_id TEXT,
+    items TEXT[] NOT NULL,
+    status TEXT NOT NULL,
+    delivery_lat DOUBLE PRECISION NOT NULL,
+    delivery_lon DOUBLE PRECISION NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+Таблица assignments:
+
+```
+CREATE TABLE IF NOT EXISTS assignments (
+    id TEXT PRIMARY KEY,
+    order_id TEXT NOT NULL,
+    drone_id TEXT NOT NULL,
+    status TEXT NOT NULL,
+    target_lat DOUBLE PRECISION NULL,
+    target_lon DOUBLE PRECISION NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+Базы данных создаются автоматически при старте PostgreSQL контейнера:
+
+* order
+* dispatch
+
+---
+
+### Redis
+
+Используется как in-memory хранилище с GEO-индексами:
+
+* координаты дронов,
+* координаты дарксторов,
+* координаты баз.
+
+---
+
+## Nginx
+
+Nginx используется как единая точка входа в систему.
+
+Функции:
+
+* отдача frontend-статических файлов,
+* проксирование HTTP API Gateway,
+* health-check эндпоинты,
+* поддержка upgrade-заголовков,
+* keepalive соединения.
+
+### Основные маршруты
+
+* / — frontend (index.html)
+* /api/* — проксирование в API Gateway
+* /health — health-check API Gateway
+* /nginx/health — health-check Nginx
+
+### Поведение
+
+* Frontend доступен по [http://localhost](http://localhost)
+* API доступен по [http://localhost/api/v1](http://localhost/api/v1)
+* Настроены таймауты, retry и keepalive для upstream API Gateway
+
+---
+
+## Docker Compose
+
+Проект полностью запускается через Docker Compose.
+
+Состав окружения:
+
+* nginx
+* api-gateway
+* order + migrate
+* dispatch + migrate
+* telemetry
+* telemetry-emulator
+* tracking + kafka worker
+* base + migrate + generate
+* store + migrate + generate
+* postgres
+* redis
+* zookeeper
+* kafka
+* kafka-init
+
+Зависимости между сервисами описаны через depends_on и healthcheck.
+
+---
+
+## Запуск проекта
+
+### Требования
+
+* Docker
+* Docker Compose
+
+### Запуск
+
+```
+docker compose up --build -d
+```
+
+### Проверка
+
+```
+curl http://localhost/api/v1/ping
+```
+
+---
+
+## Frontend
+
+Frontend расположен в каталоге frontend/.
+
+Функции:
+
+* создание заказа,
+* получение состояния заказа,
+* отображение дронов и инфраструктуры,
+* визуализация на карте OpenStreetMap.
+
+Frontend реализован без фреймворков и служит демонстрацией взаимодействия с HTTP API.
+
+---
+
+## OpenAPI
+
+HTTP API Gateway описан спецификацией [OpenAPI 3.0](services/api-gateway/openapi.yml) и полностью соответствует DTO, используемым в сервисе.
+
+Спецификация может быть использована для генерации клиента или Swagger UI.
+
+---
+
+## Планы на будущее
+
+* Добавление аутентификации и авторизации пользователей.
+* Интеграция с реальными картографическими сервисами.
+* Определение точки заказа по адресу.
+* Добавление каталога товаров и управление корзиной.
+* Реализация более сложной логики назначения дронов.
