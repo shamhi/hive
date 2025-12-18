@@ -1,0 +1,232 @@
+openapi: 3.0.3
+
+info:
+  title: HIVE Drone Delivery API
+  description: |
+    HTTP API Gateway для микросервисной платформы доставки заказов дронами.
+    Предоставляет REST-интерфейс для frontend-клиента и проксирует запросы
+    к внутренним gRPC-сервисам.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost
+    description: Local via Nginx
+
+tags:
+  - name: system
+    description: Service health and system endpoints
+  - name: orders
+    description: Order management
+  - name: bases
+    description: Drone bases
+  - name: stores
+    description: Dark stores
+  - name: drones
+    description: Drone tracking
+
+paths:
+
+  /api/v1/ping:
+    get:
+      tags: [system]
+      summary: Ping API Gateway
+      responses:
+        "200":
+          description: Service is alive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /api/v1/orders:
+    post:
+      tags: [orders]
+      summary: Create new order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderRequest"
+      responses:
+        "201":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          description: Invalid request
+
+  /api/v1/orders/{id}:
+    get:
+      tags: [orders]
+      summary: Get order by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Order found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          description: Order not found
+
+  /api/v1/bases:
+    get:
+      tags: [bases]
+      summary: List drone bases
+      responses:
+        "200":
+          description: List of bases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Base"
+
+  /api/v1/stores:
+    get:
+      tags: [stores]
+      summary: List dark stores
+      responses:
+        "200":
+          description: List of stores
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Store"
+
+  /api/v1/drones:
+    get:
+      tags: [drones]
+      summary: List drones with last known state
+      responses:
+        "200":
+          description: List of drones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Drone"
+
+components:
+
+  schemas:
+
+    CreateOrderRequest:
+      type: object
+      required:
+        - user_id
+        - items
+        - delivery_lat
+        - delivery_lon
+      properties:
+        user_id:
+          type: string
+          example: user-123
+        items:
+          type: array
+          items:
+            type: string
+          example: ["pizza", "cola"]
+        delivery_lat:
+          type: number
+          format: double
+          example: 55.751244
+        delivery_lon:
+          type: number
+          format: double
+          example: 37.618423
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+          example: order-uuid
+        user_id:
+          type: string
+          example: user-123
+        drone_id:
+          type: string
+          nullable: true
+          example: drone-42
+        items:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          example: ASSIGNED
+        delivery_lat:
+          type: number
+          format: double
+        delivery_lon:
+          type: number
+          format: double
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Base:
+      type: object
+      properties:
+        id:
+          type: string
+          example: base-1
+        lat:
+          type: number
+          format: double
+        lon:
+          type: number
+          format: double
+
+    Store:
+      type: object
+      properties:
+        id:
+          type: string
+          example: store-1
+        lat:
+          type: number
+          format: double
+        lon:
+          type: number
+          format: double
+
+    Drone:
+      type: object
+      properties:
+        id:
+          type: string
+          example: drone-42
+        status:
+          type: string
+          example: FREE
+        lat:
+          type: number
+          format: double
+        lon:
+          type: number
+          format: double
+        battery:
+          type: integer
+          example: 85

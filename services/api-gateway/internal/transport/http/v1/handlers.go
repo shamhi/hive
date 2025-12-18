@@ -36,7 +36,7 @@ func NewHandler(
 }
 
 func (h *Handler) Ping(c echo.Context) error {
-	return c.String(http.StatusOK, "pong")
+	return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 }
 
 func (h *Handler) CreateOrder(c echo.Context) error {
