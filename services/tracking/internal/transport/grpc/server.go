@@ -13,6 +13,8 @@ import (
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 type App struct {
@@ -20,6 +22,7 @@ type App struct {
 	lg         logger.Logger
 	lis        net.Listener
 	grpcServer *grpc.Server
+	healthSrv  *health.Server
 }
 
 func New(
@@ -41,12 +44,17 @@ func New(
 		lg,
 	)
 	trackingGen.RegisterTrackingServiceServer(grpcServer, trackingService)
+	healthSrv := health.NewServer()
+	healthSrv.SetServingStatus("", healthpb.HealthCheckResponse_SERVING)
+	healthSrv.SetServingStatus(trackingGen.TrackingService_ServiceDesc.ServiceName, healthpb.HealthCheckResponse_SERVING)
+	healthpb.RegisterHealthServer(grpcServer, healthSrv)
 
 	return &App{
 		cfg:        cfg,
 		lg:         lg,
 		lis:        lis,
 		grpcServer: grpcServer,
+		healthSrv:  healthSrv,
 	}, nil
 }
 
@@ -65,6 +73,10 @@ func (a *App) Run(errChan chan<- error) {
 func (a *App) Stop(ctx context.Context) {
 	lg := a.lg.With(zap.String("component", "app"))
 	lg.Info(ctx, "Gracefully shutting down...")
+	if a.healthSrv != nil {
+		a.healthSrv.SetServingStatus("", healthpb.HealthCheckResponse_NOT_SERVING)
+		a.healthSrv.SetServingStatus(trackingGen.TrackingService_ServiceDesc.ServiceName, healthpb.HealthCheckResponse_NOT_SERVING)
+	}
 
 	done := make(chan struct{})
 	go func() {

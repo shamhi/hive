@@ -1,0 +1,113 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: store
+  namespace: hive
+  labels:
+    app.kubernetes.io/name: store
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: store
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: store
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: store
+        image: ghcr.io/your-org/hive/store-server:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 50053
+          name: grpc
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        env:
+        - name: ENV
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: ENV
+        - name: GRPC_PORT
+          value: "50053"
+        - name: SHUTDOWN_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: SHUTDOWN_TIMEOUT
+        - name: SEARCH_RADIUS
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: SEARCH_RADIUS
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: REDIS_HOST
+        - name: REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: REDIS_PORT
+        - name: REDIS_DB
+          value: "2"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: hive-secrets
+              key: REDIS_PASSWORD
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        startupProbe:
+          grpc:
+            port: 50053
+          failureThreshold: 30
+          periodSeconds: 2
+        readinessProbe:
+          grpc:
+            port: 50053
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 3
+        livenessProbe:
+          grpc:
+            port: 50053
+          periodSeconds: 15
+          timeoutSeconds: 2
+          failureThreshold: 3
+      volumes:
+      - name: tmp
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: store
+  namespace: hive
+  labels:
+    app.kubernetes.io/name: store
+spec:
+  selector:
+    app.kubernetes.io/name: store
+  ports:
+  - name: grpc
+    port: 50053
+    targetPort: grpc

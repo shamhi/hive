@@ -28,8 +28,8 @@ const (
 	initialBatteryMax = 100.0
 
 	// диапазон скорости (м/с)
-	speedMinMps = 20.0
-	speedMaxMps = 25.0
+	speedMinMps = 320.0
+	speedMaxMps = 325.0
 
 	// диапазон расхода батареи (%/м)
 	consumptionMinPerMeter = 0.001

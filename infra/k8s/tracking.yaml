@@ -1,0 +1,199 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tracking
+  namespace: hive
+  labels:
+    app.kubernetes.io/name: tracking
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: tracking
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: tracking
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: tracking
+        image: ghcr.io/your-org/hive/tracking-grpc-server:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 50055
+          name: grpc
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        env:
+        - name: ENV
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: ENV
+        - name: GRPC_PORT
+          value: "50055"
+        - name: SHUTDOWN_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: SHUTDOWN_TIMEOUT
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: REDIS_HOST
+        - name: REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: REDIS_PORT
+        - name: REDIS_DB
+          value: "0"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: hive-secrets
+              key: REDIS_PASSWORD
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        startupProbe:
+          grpc:
+            port: 50055
+          failureThreshold: 30
+          periodSeconds: 2
+        readinessProbe:
+          grpc:
+            port: 50055
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 3
+        livenessProbe:
+          grpc:
+            port: 50055
+          periodSeconds: 15
+          timeoutSeconds: 2
+          failureThreshold: 3
+      volumes:
+      - name: tmp
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tracking
+  namespace: hive
+  labels:
+    app.kubernetes.io/name: tracking
+spec:
+  selector:
+    app.kubernetes.io/name: tracking
+  ports:
+  - name: grpc
+    port: 50055
+    targetPort: grpc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tracking-worker
+  namespace: hive
+  labels:
+    app.kubernetes.io/name: tracking-worker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: tracking-worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: tracking-worker
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: tracking-worker
+        image: ghcr.io/your-org/hive/tracking-kafka-worker:latest
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        env:
+        - name: ENV
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: ENV
+        - name: TELEMETRY_DATA_TOPIC
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: TELEMETRY_DATA_TOPIC
+        - name: KAFKA_BROKERS
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: KAFKA_BROKERS
+        - name: KAFKA_GROUP_ID
+          value: "tracking-worker-group"
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: REDIS_HOST
+        - name: REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: REDIS_PORT
+        - name: REDIS_DB
+          value: "0"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: hive-secrets
+              key: REDIS_PASSWORD
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        readinessProbe:
+          exec:
+            command: ["/bin/sh", "-c", "kill -0 1"]
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 3
+        livenessProbe:
+          exec:
+            command: ["/bin/sh", "-c", "kill -0 1"]
+          periodSeconds: 15
+          timeoutSeconds: 2
+          failureThreshold: 3
+      volumes:
+      - name: tmp
+        emptyDir: {}

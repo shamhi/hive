@@ -19,8 +19,7 @@ func TestHandle_InvalidJSON_ReturnsWrappedError(t *testing.T) {
 		t.Fatalf("expected error to contain %q, got %q", "unmarshal telemetry", err.Error())
 	}
 
-	var se *json.SyntaxError
-	if !errors.As(err, &se) {
+	if _, ok := errors.AsType[*json.SyntaxError](err); !ok {
 		t.Fatalf("expected wrapped *json.SyntaxError, got %T", err)
 	}
 }

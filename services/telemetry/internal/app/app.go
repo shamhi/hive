@@ -15,6 +15,8 @@ import (
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/keepalive"
 )
 
@@ -23,6 +25,7 @@ type App struct {
 	lg             logger.Logger
 	lis            net.Listener
 	grpcServer     *grpc.Server
+	healthSrv      *health.Server
 	eventsProducer *kafka.Producer
 	dataProducer   *kafka.Producer
 }
@@ -60,12 +63,17 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	)
 	telemetryServer := transportGrpc.NewServer(telemetryService)
 	pb.RegisterTelemetryServiceServer(grpcServer, telemetryServer)
+	healthSrv := health.NewServer()
+	healthSrv.SetServingStatus("", healthpb.HealthCheckResponse_SERVING)
+	healthSrv.SetServingStatus(pb.TelemetryService_ServiceDesc.ServiceName, healthpb.HealthCheckResponse_SERVING)
+	healthpb.RegisterHealthServer(grpcServer, healthSrv)
 
 	return &App{
 		cfg:            cfg,
 		lg:             lg,
 		lis:            lis,
 		grpcServer:     grpcServer,
+		healthSrv:      healthSrv,
 		eventsProducer: eventsProducer,
 		dataProducer:   dataProducer,
 	}, nil
@@ -88,6 +96,10 @@ func (a *App) Stop(ctx context.Context) {
 	lg := a.lg.With(zap.String("component", "app"))
 
 	lg.Info(ctx, "Gracefully shutting down...")
+	if a.healthSrv != nil {
+		a.healthSrv.SetServingStatus("", healthpb.HealthCheckResponse_NOT_SERVING)
+		a.healthSrv.SetServingStatus(pb.TelemetryService_ServiceDesc.ServiceName, healthpb.HealthCheckResponse_NOT_SERVING)
+	}
 
 	if a.eventsProducer != nil {
 		a.eventsProducer.Close()

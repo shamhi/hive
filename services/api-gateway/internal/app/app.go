@@ -20,6 +20,7 @@ import (
 	grpcTrackingClient "hive/services/api-gateway/internal/infrastructure/grpc/tracking"
 	apiV1 "hive/services/api-gateway/internal/transport/http/v1"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -38,8 +39,15 @@ type App struct {
 
 func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	e := echo.New()
+	allowedOrigins := parseAllowedOrigins(cfg.CORSAllowedOrigins)
+	if len(allowedOrigins) == 0 {
+		allowedOrigins = []string{"http://localhost", "http://127.0.0.1"}
+	}
 
 	e.Validator = apiV1.NewCustomValidator()
+	e.GET("/health", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
+	})
 
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format: "${time_rfc3339} | ${method} | ${uri} | ${status} | ${latency_human}\n",
@@ -48,7 +56,7 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	e.Use(middleware.RequestID())
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"*"},
+		AllowOrigins: allowedOrigins,
 		AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.PATCH, echo.DELETE, echo.OPTIONS},
 		AllowHeaders: []string{
 			echo.HeaderOrigin,
@@ -211,6 +219,10 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 		dispatchClient,
 	)
 	apiV1.RegisterRoutes(e, handler)
+	e.Server.ReadTimeout = cfg.HTTPReadTimeout
+	e.Server.ReadHeaderTimeout = cfg.HTTPReadHeaderTimeout
+	e.Server.WriteTimeout = cfg.HTTPWriteTimeout
+	e.Server.IdleTimeout = cfg.HTTPIdleTimeout
 
 	return &App{
 		cfg:       cfg,
@@ -251,4 +263,22 @@ func (a *App) Stop(ctx context.Context) {
 		}
 	}
 	lg.Info(ctx, "gRPC connections closed")
+}
+
+func parseAllowedOrigins(raw string) []string {
+	if raw == "" {
+		return nil
+	}
+
+	parts := strings.Split(raw, ",")
+	out := make([]string, 0, len(parts))
+	for _, part := range parts {
+		origin := strings.TrimSpace(part)
+		if origin == "" {
+			continue
+		}
+		out = append(out, origin)
+	}
+
+	return out
 }

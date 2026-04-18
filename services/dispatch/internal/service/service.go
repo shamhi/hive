@@ -33,8 +33,7 @@ func shouldRetryDefault(err error) bool {
 		return false
 	}
 
-	var ne net.Error
-	if errors.As(err, &ne) {
+	if _, ok := errors.AsType[net.Error](err); ok {
 		return true
 	}
 

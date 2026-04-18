@@ -1,0 +1,123 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order
+  namespace: hive
+  labels:
+    app.kubernetes.io/name: order
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: order
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: order
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: order
+        image: ghcr.io/your-org/hive/order-server:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 50051
+          name: grpc
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        env:
+        - name: ENV
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: ENV
+        - name: GRPC_PORT
+          value: "50051"
+        - name: REQUEST_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: REQUEST_TIMEOUT
+        - name: SHUTDOWN_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: SHUTDOWN_TIMEOUT
+        - name: DISPATCH_ADDR
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: DISPATCH_ADDR
+        - name: POSTGRES_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: POSTGRES_HOST
+        - name: POSTGRES_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: POSTGRES_PORT
+        - name: POSTGRES_DB
+          value: "delivery_order_db"
+        - name: POSTGRES_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: hive-secrets
+              key: POSTGRES_USERNAME
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: hive-secrets
+              key: POSTGRES_PASSWORD
+        resources:
+          requests:
+            cpu: 150m
+            memory: 256Mi
+          limits:
+            cpu: 800m
+            memory: 512Mi
+        startupProbe:
+          grpc:
+            port: 50051
+          failureThreshold: 30
+          periodSeconds: 2
+        readinessProbe:
+          grpc:
+            port: 50051
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 3
+        livenessProbe:
+          grpc:
+            port: 50051
+          periodSeconds: 15
+          timeoutSeconds: 2
+          failureThreshold: 3
+      volumes:
+      - name: tmp
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order
+  namespace: hive
+  labels:
+    app.kubernetes.io/name: order
+spec:
+  selector:
+    app.kubernetes.io/name: order
+  ports:
+  - name: grpc
+    port: 50051
+    targetPort: grpc

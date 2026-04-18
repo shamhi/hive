@@ -1,0 +1,165 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dispatch
+  namespace: hive
+  labels:
+    app.kubernetes.io/name: dispatch
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: dispatch
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: dispatch
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: dispatch
+        image: ghcr.io/your-org/hive/dispatch-server:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 50052
+          name: grpc
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        env:
+        - name: ENV
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: ENV
+        - name: GRPC_PORT
+          value: "50052"
+        - name: REQUEST_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: REQUEST_TIMEOUT
+        - name: SHUTDOWN_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: SHUTDOWN_TIMEOUT
+        - name: MIN_DRONE_BATTERY
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: MIN_DRONE_BATTERY
+        - name: DRONE_SEARCH_RADIUS
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: DRONE_SEARCH_RADIUS
+        - name: TELEMETRY_ADDR
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: TELEMETRY_ADDR
+        - name: ORDER_ADDR
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: ORDER_ADDR
+        - name: STORE_ADDR
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: STORE_ADDR
+        - name: BASE_ADDR
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: BASE_ADDR
+        - name: TRACKING_ADDR
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: TRACKING_ADDR
+        - name: TELEMETRY_EVENTS_TOPIC
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: TELEMETRY_EVENTS_TOPIC
+        - name: KAFKA_BROKERS
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: KAFKA_BROKERS
+        - name: KAFKA_GROUP_ID
+          value: "dispatch-service-group"
+        - name: POSTGRES_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: POSTGRES_HOST
+        - name: POSTGRES_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: POSTGRES_PORT
+        - name: POSTGRES_DB
+          value: "delivery_dispatch_db"
+        - name: POSTGRES_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: hive-secrets
+              key: POSTGRES_USERNAME
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: hive-secrets
+              key: POSTGRES_PASSWORD
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 1000m
+            memory: 768Mi
+        startupProbe:
+          grpc:
+            port: 50052
+          failureThreshold: 30
+          periodSeconds: 2
+        readinessProbe:
+          grpc:
+            port: 50052
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 3
+        livenessProbe:
+          grpc:
+            port: 50052
+          periodSeconds: 15
+          timeoutSeconds: 2
+          failureThreshold: 3
+      volumes:
+      - name: tmp
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dispatch
+  namespace: hive
+  labels:
+    app.kubernetes.io/name: dispatch
+spec:
+  selector:
+    app.kubernetes.io/name: dispatch
+  ports:
+  - name: grpc
+    port: 50052
+    targetPort: grpc

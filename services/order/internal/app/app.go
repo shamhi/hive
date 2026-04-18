@@ -20,6 +20,8 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/health"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 type App struct {
@@ -27,6 +29,7 @@ type App struct {
 	lg         logger.Logger
 	lis        net.Listener
 	grpcServer *grpc.Server
+	healthSrv  *health.Server
 	grpcConns  []*grpc.ClientConn
 	postgresDB *pg.Database
 }
@@ -81,12 +84,17 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 	)
 	orderServer := transportGrpc.NewServer(orderService)
 	pbOrder.RegisterOrderServiceServer(grpcServer, orderServer)
+	healthSrv := health.NewServer()
+	healthSrv.SetServingStatus("", healthpb.HealthCheckResponse_SERVING)
+	healthSrv.SetServingStatus(pbOrder.OrderService_ServiceDesc.ServiceName, healthpb.HealthCheckResponse_SERVING)
+	healthpb.RegisterHealthServer(grpcServer, healthSrv)
 
 	return &App{
 		cfg:        cfg,
 		lg:         lg,
 		lis:        lis,
 		grpcServer: grpcServer,
+		healthSrv:  healthSrv,
 		grpcConns:  []*grpc.ClientConn{dispatchConn},
 		postgresDB: db,
 	}, nil
@@ -109,6 +117,10 @@ func (a *App) Stop(ctx context.Context) {
 	lg := a.lg.With(zap.String("component", "app"))
 
 	lg.Info(ctx, "Gracefully shutting down...")
+	if a.healthSrv != nil {
+		a.healthSrv.SetServingStatus("", healthpb.HealthCheckResponse_NOT_SERVING)
+		a.healthSrv.SetServingStatus(pbOrder.OrderService_ServiceDesc.ServiceName, healthpb.HealthCheckResponse_NOT_SERVING)
+	}
 
 	for _, conn := range a.grpcConns {
 		if err := conn.Close(); err != nil {

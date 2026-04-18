@@ -16,6 +16,8 @@ import (
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 type App struct {
@@ -23,6 +25,7 @@ type App struct {
 	lg         logger.Logger
 	lis        net.Listener
 	grpcServer *grpc.Server
+	healthSrv  *health.Server
 	redisDB    *redis.Database
 }
 
@@ -52,12 +55,17 @@ func New(cfg *config.Config, lg logger.Logger) (*App, error) {
 		&transportGrpc.Config{SearchRadius: cfg.SearchRadius},
 	)
 	pb.RegisterStoreServiceServer(grpcServer, storeServer)
+	healthSrv := health.NewServer()
+	healthSrv.SetServingStatus("", healthpb.HealthCheckResponse_SERVING)
+	healthSrv.SetServingStatus(pb.StoreService_ServiceDesc.ServiceName, healthpb.HealthCheckResponse_SERVING)
+	healthpb.RegisterHealthServer(grpcServer, healthSrv)
 
 	return &App{
 		cfg:        cfg,
 		lg:         lg,
 		lis:        lis,
 		grpcServer: grpcServer,
+		healthSrv:  healthSrv,
 		redisDB:    db,
 	}, nil
 }
@@ -79,6 +87,10 @@ func (a *App) Stop(ctx context.Context) {
 	lg := a.lg.With(zap.String("component", "app"))
 
 	lg.Info(ctx, "Gracefully shutting down...")
+	if a.healthSrv != nil {
+		a.healthSrv.SetServingStatus("", healthpb.HealthCheckResponse_NOT_SERVING)
+		a.healthSrv.SetServingStatus(pb.StoreService_ServiceDesc.ServiceName, healthpb.HealthCheckResponse_NOT_SERVING)
+	}
 
 	if a.redisDB != nil {
 		if err := a.redisDB.Close(); err != nil {

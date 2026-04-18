@@ -1,0 +1,237 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: order-migrate
+  namespace: hive
+spec:
+  backoffLimit: 4
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: order-migrate
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: migrate
+        image: ghcr.io/your-org/hive/order-migrate:latest
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        env:
+        - name: ENV
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: ENV
+        - name: POSTGRES_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: POSTGRES_HOST
+        - name: POSTGRES_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: POSTGRES_PORT
+        - name: POSTGRES_DB
+          value: "delivery_order_db"
+        - name: POSTGRES_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: hive-secrets
+              key: POSTGRES_USERNAME
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: hive-secrets
+              key: POSTGRES_PASSWORD
+      volumes:
+      - name: tmp
+        emptyDir: {}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: dispatch-migrate
+  namespace: hive
+spec:
+  backoffLimit: 4
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: dispatch-migrate
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: migrate
+        image: ghcr.io/your-org/hive/dispatch-migrate:latest
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        env:
+        - name: ENV
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: ENV
+        - name: POSTGRES_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: POSTGRES_HOST
+        - name: POSTGRES_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: POSTGRES_PORT
+        - name: POSTGRES_DB
+          value: "delivery_dispatch_db"
+        - name: POSTGRES_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: hive-secrets
+              key: POSTGRES_USERNAME
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: hive-secrets
+              key: POSTGRES_PASSWORD
+      volumes:
+      - name: tmp
+        emptyDir: {}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: base-migrate
+  namespace: hive
+spec:
+  backoffLimit: 4
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: base-migrate
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: migrate
+        image: ghcr.io/your-org/hive/base-migrate:latest
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        env:
+        - name: ENV
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: ENV
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: REDIS_HOST
+        - name: REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: REDIS_PORT
+        - name: REDIS_DB
+          value: "1"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: hive-secrets
+              key: REDIS_PASSWORD
+      volumes:
+      - name: tmp
+        emptyDir: {}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: store-migrate
+  namespace: hive
+spec:
+  backoffLimit: 4
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: store-migrate
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: migrate
+        image: ghcr.io/your-org/hive/store-migrate:latest
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        env:
+        - name: ENV
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: ENV
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: REDIS_HOST
+        - name: REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: hive-config
+              key: REDIS_PORT
+        - name: REDIS_DB
+          value: "2"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: hive-secrets
+              key: REDIS_PASSWORD
+      volumes:
+      - name: tmp
+        emptyDir: {}

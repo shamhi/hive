@@ -263,8 +263,7 @@ func shouldRetryKafka(err error) bool {
 	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 		return false
 	}
-	var ne net.Error
-	if errors.As(err, &ne) {
+	if _, ok := errors.AsType[net.Error](err); ok {
 		return true
 	}
 	return true

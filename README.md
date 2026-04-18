@@ -359,6 +359,61 @@ curl http://localhost/api/v1/ping
 
 ---
 
+## Kubernetes (production rollout)
+
+Для production-развертывания добавлен hardening-блок в `infra/k8s`:
+
+* readiness/liveness/startup probes (HTTP и gRPC health),
+* `securityContext` (non-root, seccomp, drop capabilities, read-only root filesystem),
+* `resources` requests/limits,
+* migration/init `Job` для order, dispatch, base и store,
+* базовый `Ingress` для API Gateway.
+
+Перед запуском:
+
+1. Сконфигурируйте образы в `infra/k8s/*.yaml` (по умолчанию стоят placeholder-значения `ghcr.io/your-org/...`).
+2. Обновите `infra/k8s/configmap.yaml` под ваше окружение (домен, Kafka/Redis/PostgreSQL endpoints, CORS).
+3. Заполните `infra/k8s/secret.yaml` реальными секретами.
+
+Применение:
+
+```bash
+# базовые ресурсы
+kubectl apply -f infra/k8s/namespace.yaml
+kubectl apply -f infra/k8s/configmap.yaml
+kubectl apply -f infra/k8s/secret.yaml
+
+# миграции (дождаться завершения каждого Job)
+kubectl apply -f infra/k8s/jobs.yaml
+kubectl wait --for=condition=complete job/order-migrate -n hive --timeout=180s
+kubectl wait --for=condition=complete job/dispatch-migrate -n hive --timeout=180s
+kubectl wait --for=condition=complete job/base-migrate -n hive --timeout=180s
+kubectl wait --for=condition=complete job/store-migrate -n hive --timeout=180s
+
+# приложения и ingress
+kubectl apply -f infra/k8s/order.yaml
+kubectl apply -f infra/k8s/dispatch.yaml
+kubectl apply -f infra/k8s/base.yaml
+kubectl apply -f infra/k8s/store.yaml
+kubectl apply -f infra/k8s/tracking.yaml
+kubectl apply -f infra/k8s/telemetry.yaml
+kubectl apply -f infra/k8s/api-gateway.yaml
+kubectl apply -f infra/k8s/pdb.yaml
+kubectl apply -f infra/k8s/ingress.yaml
+```
+
+Проверка:
+
+```bash
+kubectl get pods -n hive
+kubectl get svc -n hive
+kubectl get ingress -n hive
+```
+
+Примечание: `telemetry` в манифесте зафиксирован в `replicas: 1`, потому что активные drone stream-соединения хранятся в памяти процесса.
+
+---
+
 ## Frontend
 
 Frontend расположен в каталоге frontend/.
